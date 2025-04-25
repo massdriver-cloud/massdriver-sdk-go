@@ -47,7 +47,7 @@ func TestCreateArtifact(t *testing.T) {
 	}
 
 	input := artifact.Artifact{
-		Metadata: map[string]interface{}{"name": "Created"},
+		Metadata: &artifact.Metadata{Name: "Created"},
 		Data:     map[string]interface{}{"foo": "bar"},
 		Specs:    map[string]interface{}{"key": "value"},
 	}
@@ -144,7 +144,7 @@ func TestUpdateArtifact(t *testing.T) {
 	}
 
 	input := artifact.Artifact{
-		Metadata: map[string]interface{}{"name": "Updated"},
+		Metadata: &artifact.Metadata{Name: "Updated"},
 		Data:     map[string]interface{}{"bar": "baz"},
 		Specs:    map[string]interface{}{"x": "y"},
 	}

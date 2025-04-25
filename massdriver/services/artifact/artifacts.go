@@ -10,9 +10,16 @@ import (
 
 type Artifact struct {
 	ID       string                 `json:"id,omitempty"`
-	Metadata map[string]interface{} `json:"metadata"`
+	Metadata *Metadata              `json:"metadata"`
 	Data     map[string]interface{} `json:"data"`
 	Specs    map[string]interface{} `json:"specs"`
+}
+
+type Metadata struct {
+	Field              string `json:"field"`
+	ProviderResourceID string `json:"provider_resource_id"`
+	Type               string `json:"type"`
+	Name               string `json:"name"`
 }
 
 // CreateArtifact sends a POST /artifacts request
