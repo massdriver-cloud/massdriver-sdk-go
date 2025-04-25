@@ -1,4 +1,4 @@
-package artifacts_test
+package artifact_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/mockhttp"
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/services/artifacts"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/services/artifact"
 	"github.com/stretchr/testify/require"
 )
 
@@ -46,7 +46,7 @@ func TestCreateArtifact(t *testing.T) {
 		},
 	}
 
-	input := artifacts.Artifact{
+	input := artifact.Artifact{
 		Metadata: map[string]interface{}{"name": "Created"},
 		Data:     map[string]interface{}{"foo": "bar"},
 		Specs:    map[string]interface{}{"key": "value"},
@@ -55,7 +55,7 @@ func TestCreateArtifact(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
-			result, err := artifacts.CreateArtifact(context.Background(), client, input)
+			result, err := artifact.CreateArtifact(context.Background(), client, input)
 
 			if tt.expectErr {
 				require.Error(t, err)
@@ -104,7 +104,7 @@ func TestGetArtifact(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
-			result, err := artifacts.GetArtifact(context.Background(), client, "any-id")
+			result, err := artifact.GetArtifact(context.Background(), client, "any-id")
 
 			if tt.expectErr {
 				require.Error(t, err)
@@ -143,7 +143,7 @@ func TestUpdateArtifact(t *testing.T) {
 		},
 	}
 
-	input := artifacts.Artifact{
+	input := artifact.Artifact{
 		Metadata: map[string]interface{}{"name": "Updated"},
 		Data:     map[string]interface{}{"bar": "baz"},
 		Specs:    map[string]interface{}{"x": "y"},
@@ -152,7 +152,7 @@ func TestUpdateArtifact(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
-			result, err := artifacts.UpdateArtifact(context.Background(), client, "xyz-789", input)
+			result, err := artifact.UpdateArtifact(context.Background(), client, "xyz-789", input)
 
 			if tt.expectErr {
 				require.Error(t, err)
@@ -187,7 +187,7 @@ func TestDeleteArtifact(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
-			err := artifacts.DeleteArtifact(context.Background(), client, "abc-123", "db")
+			err := artifact.DeleteArtifact(context.Background(), client, "abc-123", "db")
 
 			if tt.expectErr {
 				require.Error(t, err)
