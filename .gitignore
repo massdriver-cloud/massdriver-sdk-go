@@ -1,0 +1,49 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Build output
+/build/
+/dist/
+/bin/
+/tmp/
+
+# Test cache & coverage
+*.coverprofile
+*.coverage
+*.testresult
+*.prof
+coverage.out
+coverage.html
+
+# Go module cache
+/go.sum
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+*.tmp
+.DS_Store
+
+# Direnv & tooling
+.envrc
+.env
+
+# OS
+Thumbs.db
+ehthumbs.db
+
+# CLI config
+.massdriver/
+.massdriver-config.yaml
+~/.massdriver/
+
+# Mage build tool (if used)
+mage_output_file.go
