@@ -1,4 +1,4 @@
-package artifact_test
+package artifacts_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/mockhttp"
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/services/artifact"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/services/artifacts"
 	"github.com/stretchr/testify/require"
 )
 
@@ -46,8 +46,8 @@ func TestCreateArtifact(t *testing.T) {
 		},
 	}
 
-	input := artifact.Artifact{
-		Metadata: &artifact.Metadata{Name: "Created"},
+	input := artifacts.Artifact{
+		Metadata: &artifacts.Metadata{Name: "Created"},
 		Data:     map[string]interface{}{"foo": "bar"},
 		Specs:    map[string]interface{}{"key": "value"},
 	}
@@ -55,7 +55,9 @@ func TestCreateArtifact(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
-			result, err := artifact.CreateArtifact(context.Background(), client, input)
+			service := artifacts.NewService(client)
+
+			result, err := service.CreateArtifact(context.Background(), input)
 
 			if tt.expectErr {
 				require.Error(t, err)
@@ -104,7 +106,9 @@ func TestGetArtifact(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
-			result, err := artifact.GetArtifact(context.Background(), client, "any-id")
+			service := artifacts.NewService(client)
+
+			result, err := service.GetArtifact(context.Background(), "any-id")
 
 			if tt.expectErr {
 				require.Error(t, err)
@@ -143,8 +147,8 @@ func TestUpdateArtifact(t *testing.T) {
 		},
 	}
 
-	input := artifact.Artifact{
-		Metadata: &artifact.Metadata{Name: "Updated"},
+	input := artifacts.Artifact{
+		Metadata: &artifacts.Metadata{Name: "Updated"},
 		Data:     map[string]interface{}{"bar": "baz"},
 		Specs:    map[string]interface{}{"x": "y"},
 	}
@@ -152,7 +156,9 @@ func TestUpdateArtifact(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
-			result, err := artifact.UpdateArtifact(context.Background(), client, "xyz-789", input)
+			service := artifacts.NewService(client)
+
+			result, err := service.UpdateArtifact(context.Background(), "xyz-789", input)
 
 			if tt.expectErr {
 				require.Error(t, err)
@@ -187,7 +193,9 @@ func TestDeleteArtifact(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
-			err := artifact.DeleteArtifact(context.Background(), client, "abc-123", "db")
+			service := artifacts.NewService(client)
+
+			err := service.DeleteArtifact(context.Background(), "abc-123", "db")
 
 			if tt.expectErr {
 				require.Error(t, err)

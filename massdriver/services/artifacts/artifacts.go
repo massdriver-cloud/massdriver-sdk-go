@@ -1,4 +1,4 @@
-package artifact
+package artifacts
 
 import (
 	"context"
@@ -22,10 +22,19 @@ type Metadata struct {
 	Name               string `json:"name"`
 }
 
+type Service struct {
+	client *client.Client
+}
+
+// NewService creates a new Artifact service.
+func NewService(c *client.Client) *Service {
+	return &Service{client: c}
+}
+
 // CreateArtifact sends a POST /artifacts request
-func CreateArtifact(ctx context.Context, c *client.Client, a Artifact) (*Artifact, error) {
+func (s *Service) CreateArtifact(ctx context.Context, a Artifact) (*Artifact, error) {
 	var result Artifact
-	resp, err := c.HTTP.R().
+	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
 		SetBody(a).
 		SetResult(&result).
@@ -41,9 +50,9 @@ func CreateArtifact(ctx context.Context, c *client.Client, a Artifact) (*Artifac
 }
 
 // GetArtifact sends a GET /artifacts/:id request
-func GetArtifact(ctx context.Context, c *client.Client, id string) (*Artifact, error) {
+func (s *Service) GetArtifact(ctx context.Context, id string) (*Artifact, error) {
 	var result Artifact
-	resp, err := c.HTTP.R().
+	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
 		SetResult(&result).
 		Get("/artifacts/" + id)
@@ -61,9 +70,9 @@ func GetArtifact(ctx context.Context, c *client.Client, id string) (*Artifact, e
 }
 
 // UpdateArtifact sends a PUT /artifacts/:id request
-func UpdateArtifact(ctx context.Context, c *client.Client, id string, a Artifact) (*Artifact, error) {
+func (s *Service) UpdateArtifact(ctx context.Context, id string, a Artifact) (*Artifact, error) {
 	var result Artifact
-	resp, err := c.HTTP.R().
+	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
 		SetBody(a).
 		SetResult(&result).
@@ -79,13 +88,13 @@ func UpdateArtifact(ctx context.Context, c *client.Client, id string, a Artifact
 }
 
 // DeleteArtifact sends a DELETE /artifacts/:id with metadata.field in the body
-func DeleteArtifact(ctx context.Context, c *client.Client, id, field string) error {
+func (s *Service) DeleteArtifact(ctx context.Context, id, field string) error {
 	payload := map[string]interface{}{
 		"metadata": map[string]interface{}{
 			"field": field,
 		},
 	}
-	resp, err := c.HTTP.R().
+	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
 		SetBody(payload).
 		Delete("/artifacts/" + id)
