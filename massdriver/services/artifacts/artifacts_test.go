@@ -57,7 +57,7 @@ func TestCreateArtifact(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
 			service := artifacts.NewService(client)
 
-			result, err := service.CreateArtifact(context.Background(), input)
+			result, err := service.CreateArtifact(context.Background(), &input)
 
 			if tt.expectErr {
 				require.Error(t, err)
@@ -158,7 +158,7 @@ func TestUpdateArtifact(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
 			service := artifacts.NewService(client)
 
-			result, err := service.UpdateArtifact(context.Background(), "xyz-789", input)
+			result, err := service.UpdateArtifact(context.Background(), "xyz-789", &input)
 
 			if tt.expectErr {
 				require.Error(t, err)
@@ -179,7 +179,7 @@ func TestDeleteArtifact(t *testing.T) {
 	}{
 		{
 			name:      "success",
-			status:    204,
+			status:    200,
 			expectErr: false,
 		},
 		{

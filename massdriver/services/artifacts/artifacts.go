@@ -16,10 +16,9 @@ type Artifact struct {
 }
 
 type Metadata struct {
-	Field              string `json:"field"`
-	ProviderResourceID string `json:"provider_resource_id"`
-	Type               string `json:"type"`
-	Name               string `json:"name"`
+	Field string `json:"field"`
+	Type  string `json:"type"`
+	Name  string `json:"name"`
 }
 
 type Service struct {
@@ -31,14 +30,14 @@ func NewService(c *client.Client) *Service {
 	return &Service{client: c}
 }
 
-// CreateArtifact sends a POST /artifacts request
-func (s *Service) CreateArtifact(ctx context.Context, a Artifact) (*Artifact, error) {
+// CreateArtifact sends a POST /v1/artifacts request
+func (s *Service) CreateArtifact(ctx context.Context, a *Artifact) (*Artifact, error) {
 	var result Artifact
 	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
 		SetBody(a).
 		SetResult(&result).
-		Post("/artifacts")
+		Post("/v1/artifacts")
 
 	if err != nil {
 		return nil, err
@@ -49,13 +48,13 @@ func (s *Service) CreateArtifact(ctx context.Context, a Artifact) (*Artifact, er
 	return &result, nil
 }
 
-// GetArtifact sends a GET /artifacts/:id request
+// GetArtifact sends a GET /v1/artifacts/:id request
 func (s *Service) GetArtifact(ctx context.Context, id string) (*Artifact, error) {
 	var result Artifact
 	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
 		SetResult(&result).
-		Get("/artifacts/" + id)
+		Get("/v1/artifacts/" + id)
 
 	if err != nil {
 		return nil, err
@@ -69,14 +68,14 @@ func (s *Service) GetArtifact(ctx context.Context, id string) (*Artifact, error)
 	return &result, nil
 }
 
-// UpdateArtifact sends a PUT /artifacts/:id request
-func (s *Service) UpdateArtifact(ctx context.Context, id string, a Artifact) (*Artifact, error) {
+// UpdateArtifact sends a PUT /v1/artifacts/:id request
+func (s *Service) UpdateArtifact(ctx context.Context, id string, a *Artifact) (*Artifact, error) {
 	var result Artifact
 	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
 		SetBody(a).
 		SetResult(&result).
-		Put("/artifacts/" + id)
+		Put("/v1/artifacts/" + id)
 
 	if err != nil {
 		return nil, err
@@ -87,7 +86,7 @@ func (s *Service) UpdateArtifact(ctx context.Context, id string, a Artifact) (*A
 	return &result, nil
 }
 
-// DeleteArtifact sends a DELETE /artifacts/:id with metadata.field in the body
+// DeleteArtifact sends a DELETE /v1/artifacts/:id with metadata.field in the body
 func (s *Service) DeleteArtifact(ctx context.Context, id, field string) error {
 	payload := map[string]interface{}{
 		"metadata": map[string]interface{}{
@@ -97,12 +96,12 @@ func (s *Service) DeleteArtifact(ctx context.Context, id, field string) error {
 	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
 		SetBody(payload).
-		Delete("/artifacts/" + id)
+		Delete("/v1/artifacts/" + id)
 
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode() != http.StatusNoContent {
+	if resp.StatusCode() != http.StatusOK {
 		return fmt.Errorf("delete artifact failed: %s", resp.Status())
 	}
 	return nil
