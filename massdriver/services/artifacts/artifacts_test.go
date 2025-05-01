@@ -195,7 +195,7 @@ func TestDeleteArtifact(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
 			service := artifacts.NewService(client)
 
-			err := service.DeleteArtifact(context.Background(), "abc-123")
+			err := service.DeleteArtifact(context.Background(), "abc-123", "db")
 
 			if tt.expectErr {
 				require.Error(t, err)

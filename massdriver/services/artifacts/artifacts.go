@@ -87,9 +87,15 @@ func (s *Service) UpdateArtifact(ctx context.Context, id string, a *Artifact) (*
 }
 
 // DeleteArtifact sends a DELETE /v1/artifacts/:id with metadata.field in the body
-func (s *Service) DeleteArtifact(ctx context.Context, id string) error {
+func (s *Service) DeleteArtifact(ctx context.Context, id, field string) error {
+	payload := map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"field": field,
+		},
+	}
 	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
+		SetBody(payload).
 		Delete("/v1/artifacts/" + id)
 
 	if err != nil {
