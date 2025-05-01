@@ -21,12 +21,13 @@ type Metric struct {
 }
 
 type Alarm struct {
-	ID              string  `json:"id,omitempty"`
-	PackageID       string  `json:"package_id,omitempty"`
-	DisplayName     string  `json:"display_name"`
-	CloudResourceID string  `json:"cloud_resource_id"`
-	DeploymentID    string  `json:"deployment_id,omitempty"`
-	Metric          *Metric `json:"metric,omitempty"`
+	ID                 string  `json:"id,omitempty"`
+	DisplayName        string  `json:"display_name"`
+	CloudResourceID    string  `json:"cloud_resource_id"`
+	Metric             *Metric `json:"metric,omitempty"`
+	Threshold          float64 `json:"threshold,omitempty"`
+	PeriodMinutes      int     `json:"period_minutes,omitempty"`
+	ComparisonOperator string  `json:"comparsion_operator,omitempty"`
 }
 
 type Service struct {
