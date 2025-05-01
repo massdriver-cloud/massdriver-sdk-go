@@ -8,11 +8,16 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/client"
 )
 
+type Dimension struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 type Metric struct {
-	Name       string              `json:"name"`
-	Namespace  string              `json:"namespace"`
-	Statistic  string              `json:"statistic"`
-	Dimensions []map[string]string `json:"dimensions,omitempty"`
+	Name       string      `json:"name"`
+	Namespace  string      `json:"namespace"`
+	Statistic  string      `json:"statistic"`
+	Dimensions []Dimension `json:"dimensions,omitempty"`
 }
 
 type Alarm struct {
