@@ -38,7 +38,7 @@ func NewService(c *client.Client) *Service {
 }
 
 // Create creates a new package alarm for a specific package.
-func (s *Service) Create(ctx context.Context, packageID string, alarm *Alarm) (*Alarm, error) {
+func (s *Service) CreateAlarm(ctx context.Context, packageID string, alarm *Alarm) (*Alarm, error) {
 	var result Alarm
 	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
@@ -56,7 +56,7 @@ func (s *Service) Create(ctx context.Context, packageID string, alarm *Alarm) (*
 }
 
 // Get retrieves a package alarm by package ID and alarm ID.
-func (s *Service) Get(ctx context.Context, packageID, alarmID string) (*Alarm, error) {
+func (s *Service) GetAlarm(ctx context.Context, packageID, alarmID string) (*Alarm, error) {
 	var result Alarm
 	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
@@ -76,7 +76,7 @@ func (s *Service) Get(ctx context.Context, packageID, alarmID string) (*Alarm, e
 }
 
 // Update modifies an existing package alarm by ID.
-func (s *Service) Update(ctx context.Context, packageID, alarmID string, update *Alarm) (*Alarm, error) {
+func (s *Service) UpdateAlarm(ctx context.Context, packageID, alarmID string, update *Alarm) (*Alarm, error) {
 	var result Alarm
 	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
@@ -94,7 +94,7 @@ func (s *Service) Update(ctx context.Context, packageID, alarmID string, update 
 }
 
 // Delete removes a package alarm by ID.
-func (s *Service) Delete(ctx context.Context, packageID, alarmID string) error {
+func (s *Service) DeleteAlarm(ctx context.Context, packageID, alarmID string) error {
 	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
 		Delete(fmt.Sprintf("/v1/packages/%s/alarms/%s", packageID, alarmID))
