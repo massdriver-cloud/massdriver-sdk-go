@@ -56,7 +56,7 @@ func TestCreateAlarm(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
 			svc := packagealarms.NewService(client)
 
-			result, err := svc.CreateAlarm(context.Background(), "pkg-abc", &input)
+			result, err := svc.CreatePackageAlarm(context.Background(), "pkg-abc", &input)
 			if tt.expectErr {
 				require.Error(t, err)
 			} else {
@@ -105,7 +105,7 @@ func TestGetAlarm(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
 			svc := packagealarms.NewService(client)
 
-			result, err := svc.GetAlarm(context.Background(), "pkg-abc", "alarm-xyz")
+			result, err := svc.GetPackageAlarm(context.Background(), "pkg-abc", "alarm-xyz")
 
 			if tt.expectErr {
 				require.Error(t, err)
@@ -153,7 +153,7 @@ func TestUpdateAlarm(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.body})
 			svc := packagealarms.NewService(client)
 
-			result, err := svc.UpdateAlarm(context.Background(), "pkg-abc", "alarm-xyz", &input)
+			result, err := svc.UpdatePackageAlarm(context.Background(), "pkg-abc", "alarm-xyz", &input)
 			if tt.expectErr {
 				require.Error(t, err)
 			} else {
@@ -187,7 +187,7 @@ func TestDeleteAlarm(t *testing.T) {
 			client := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: `{}`})
 			svc := packagealarms.NewService(client)
 
-			err := svc.DeleteAlarm(context.Background(), "pkg-abc", "alarm-xyz")
+			err := svc.DeletePackageAlarm(context.Background(), "pkg-abc", "alarm-xyz")
 			if tt.expectErr {
 				require.Error(t, err)
 			} else {
