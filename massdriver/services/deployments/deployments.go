@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/client"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/rest"
 )
 
 type Status string
@@ -48,21 +49,29 @@ func (s *Service) UpdateDeploymentStatus(ctx context.Context, id string, status 
 		SetBody(map[string]Status{"status": status}).
 		SetResult(&result).
 		Patch("/v1/deployments/" + id)
-
 	if err != nil {
 		return nil, err
 	}
 
 	if resp.StatusCode() == http.StatusUnprocessableEntity {
-		return nil, fmt.Errorf("failed to update deployment status: %s", resp.String())
-		// responseBody := resp.Body()
-		// return nil, &InvalidTransitionError{
-		// 	Response: string(responseBody),
-		// }
+		errorResponse, parseErr := rest.ParseJSONErrorResponse(resp)
+		if parseErr != nil {
+			return nil, &InvalidTransitionError{
+				Response: string("failed deployment status update"),
+			}
+		}
+		if message, ok := errorResponse.Errors["status"]; ok {
+			return nil, &InvalidTransitionError{
+				Response: message[0],
+			}
+		}
+		return nil, &InvalidTransitionError{
+			Response: string("failed deployment status update"),
+		}
 	}
 
 	if resp.IsError() {
-		return nil, fmt.Errorf("failed to update deployment status: %s", resp.String())
+		return nil, fmt.Errorf("failed to update deployment status: %s", resp.Status())
 	}
 
 	return &result, nil
