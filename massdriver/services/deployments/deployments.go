@@ -54,14 +54,15 @@ func (s *Service) UpdateDeploymentStatus(ctx context.Context, id string, status 
 	}
 
 	if resp.StatusCode() == http.StatusUnprocessableEntity {
-		responseBody := resp.Body()
-		return nil, &InvalidTransitionError{
-			Response: string(responseBody),
-		}
+		return nil, fmt.Errorf("failed to update deployment status: %s", resp.String())
+		// responseBody := resp.Body()
+		// return nil, &InvalidTransitionError{
+		// 	Response: string(responseBody),
+		// }
 	}
 
 	if resp.IsError() {
-		return nil, fmt.Errorf("failed to update deployment: %s", resp.String())
+		return nil, fmt.Errorf("failed to update deployment status: %s", resp.String())
 	}
 
 	return &result, nil
