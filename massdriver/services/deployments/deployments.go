@@ -55,21 +55,16 @@ func (s *Service) UpdateDeploymentStatus(ctx context.Context, id string, status 
 
 	if resp.StatusCode() == http.StatusUnprocessableEntity {
 		errorResponse, parseErr := rest.ParseJSONErrorResponse(resp)
-		fmt.Println("1")
-		if parseErr != nil {
-			fmt.Println("2")
+		if parseErr == nil {
 			return nil, &InvalidTransitionError{
 				Response: string("failed deployment status update"),
 			}
 		}
-		fmt.Println("3")
 		if message, ok := errorResponse.Errors["status"]; ok {
-			fmt.Println("4")
 			return nil, &InvalidTransitionError{
 				Response: message[0],
 			}
 		}
-		fmt.Println("5")
 		return nil, &InvalidTransitionError{
 			Response: string("failed deployment status update"),
 		}
