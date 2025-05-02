@@ -31,6 +31,14 @@ func NewService(c *client.Client) *Service {
 	return &Service{client: c}
 }
 
+type InvalidTransitionError struct {
+	Response string
+}
+
+func (e *InvalidTransitionError) Error() string {
+	return fmt.Sprintf("invalid deployment transition: %q", e.Response)
+}
+
 // UpdateDeploymentStatus updates the deployment status (e.g., to "COMPLETED")
 func (s *Service) UpdateDeploymentStatus(ctx context.Context, id string, status Status) (*Deployment, error) {
 	var result Deployment
@@ -46,7 +54,10 @@ func (s *Service) UpdateDeploymentStatus(ctx context.Context, id string, status 
 	}
 
 	if resp.StatusCode() == http.StatusUnprocessableEntity {
-		return nil, fmt.Errorf("invalid deployment transition: %s", resp.String())
+		responseBody := resp.Body()
+		return nil, &InvalidTransitionError{
+			Response: string(responseBody),
+		}
 	}
 
 	if resp.IsError() {
@@ -54,4 +65,9 @@ func (s *Service) UpdateDeploymentStatus(ctx context.Context, id string, status 
 	}
 
 	return &result, nil
+}
+
+func IsInvalidTransitionError(err error) bool {
+	_, ok := err.(*InvalidTransitionError)
+	return ok
 }

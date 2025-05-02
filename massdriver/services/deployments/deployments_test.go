@@ -25,12 +25,13 @@ func newTestClient(r *mockhttp.MockHTTPResponse) *client.Client {
 
 func TestUpdateDeploymentStatus(t *testing.T) {
 	tests := []struct {
-		name       string
-		status     int
-		body       string
-		expectErr  bool
-		expectID   string
-		expectCode int
+		name            string
+		status          int
+		body            string
+		expectErr       bool
+		expectID        string
+		expectErrType   error
+		expectErrSubstr string
 	}{
 		{
 			name:      "success",
@@ -40,16 +41,19 @@ func TestUpdateDeploymentStatus(t *testing.T) {
 			expectID:  "dep-123",
 		},
 		{
-			name:      "invalid transition",
-			status:    422,
-			body:      `{"errors":{"status":["cannot transition from COMPLETED to RUNNING"]}}`,
-			expectErr: true,
+			name:            "invalid transition",
+			status:          422,
+			body:            `{"errors":{"status":["cannot transition from COMPLETED to RUNNING"]}}`,
+			expectErr:       true,
+			expectErrType:   &deployments.InvalidTransitionError{},
+			expectErrSubstr: "invalid transition",
 		},
 		{
-			name:      "unauthorized",
-			status:    403,
-			body:      `{"error":"forbidden"}`,
-			expectErr: true,
+			name:            "unauthorized",
+			status:          403,
+			body:            `{"error":"forbidden"}`,
+			expectErr:       true,
+			expectErrSubstr: "forbidden",
 		},
 	}
 
@@ -63,6 +67,14 @@ func TestUpdateDeploymentStatus(t *testing.T) {
 			if tt.expectErr {
 				require.Error(t, err)
 				require.Nil(t, dep)
+
+				if tt.expectErrType != nil {
+					require.ErrorAs(t, err, &tt.expectErrType)
+				}
+
+				if tt.expectErrSubstr != "" {
+					require.Contains(t, err.Error(), tt.expectErrSubstr)
+				}
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, tt.expectID, dep.ID)
