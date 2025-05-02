@@ -37,7 +37,7 @@ type InvalidTransitionError struct {
 }
 
 func (e *InvalidTransitionError) Error() string {
-	return fmt.Sprintf("invalid deployment transition: %q", e.Response)
+	return fmt.Sprintf("invalid deployment transition: %s", e.Response)
 }
 
 // UpdateDeploymentStatus updates the deployment status (e.g., to "COMPLETED")
