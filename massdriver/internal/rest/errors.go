@@ -21,7 +21,7 @@ func (e *ErrorResponse) IsValidationError() bool {
 
 func ParseJSONErrorResponse(resp *resty.Response) (ErrorResponse, error) {
 	var errResp ErrorResponse
-	if err := json.NewDecoder(resp.RawBody()).Decode(&errResp); err != nil {
+	if err := json.Unmarshal(resp.Body(), &errResp); err != nil {
 		return errResp, fmt.Errorf("failed to parse error response: %w", err)
 	}
 	return errResp, nil
