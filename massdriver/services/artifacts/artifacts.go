@@ -9,16 +9,12 @@ import (
 )
 
 type Artifact struct {
-	ID       string                 `json:"id,omitempty"`
-	Metadata *Metadata              `json:"metadata"`
-	Data     map[string]interface{} `json:"data"`
-	Specs    map[string]interface{} `json:"specs"`
-}
-
-type Metadata struct {
-	Field string `json:"field"`
-	Type  string `json:"type"`
-	Name  string `json:"name"`
+	ID    string                 `json:"id,omitempty"`
+	Field string                 `json:"field,omitempty"`
+	Type  string                 `json:"type"`
+	Name  string                 `json:"name"`
+	Data  map[string]interface{} `json:"data"`
+	Specs map[string]interface{} `json:"specs"`
 }
 
 type Service struct {
@@ -89,9 +85,7 @@ func (s *Service) UpdateArtifact(ctx context.Context, id string, a *Artifact) (*
 // DeleteArtifact sends a DELETE /v1/artifacts/:id with metadata.field in the body
 func (s *Service) DeleteArtifact(ctx context.Context, id, field string) error {
 	payload := map[string]interface{}{
-		"metadata": map[string]interface{}{
-			"field": field,
-		},
+		"field": field,
 	}
 	resp, err := s.client.HTTP.R().
 		SetContext(ctx).

@@ -46,14 +46,14 @@ func TestUpdateDeploymentStatus(t *testing.T) {
 			body:            `{"errors":{"status":["cannot transition from COMPLETED to RUNNING"]}}`,
 			expectErr:       true,
 			expectErrType:   &deployments.InvalidTransitionError{},
-			expectErrSubstr: "invalid transition",
+			expectErrSubstr: "invalid deployment transition",
 		},
 		{
 			name:            "unauthorized",
 			status:          403,
 			body:            `{"error":"forbidden"}`,
 			expectErr:       true,
-			expectErrSubstr: "forbidden",
+			expectErrSubstr: "403",
 		},
 	}
 

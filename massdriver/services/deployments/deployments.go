@@ -71,7 +71,7 @@ func (s *Service) UpdateDeploymentStatus(ctx context.Context, id string, status 
 	}
 
 	if resp.IsError() {
-		return nil, fmt.Errorf("failed to update deployment status: %s", resp.Status())
+		return nil, fmt.Errorf("failed to update deployment status: %v", resp.StatusCode())
 	}
 
 	return &result, nil

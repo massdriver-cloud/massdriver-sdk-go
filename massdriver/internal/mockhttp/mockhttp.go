@@ -12,10 +12,12 @@ type MockHTTPResponse struct {
 }
 
 type MutableRoundTripper struct {
-	Response *MockHTTPResponse
+	ReceivedRequest *http.Request
+	Response        *MockHTTPResponse
 }
 
 func (m *MutableRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	m.ReceivedRequest = req
 	return &http.Response{
 		StatusCode: m.Response.StatusCode,
 		Body:       io.NopCloser(bytes.NewBufferString(m.Response.Body)),
