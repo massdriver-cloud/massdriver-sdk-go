@@ -2,6 +2,7 @@ package packagealarms
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -68,7 +69,7 @@ func (s *Service) GetPackageAlarm(ctx context.Context, packageID, alarmID string
 		return nil, err
 	}
 	if resp.StatusCode() == http.StatusNotFound {
-		return nil, nil
+		return nil, errors.New("not found")
 	}
 	if resp.IsError() {
 		return nil, fmt.Errorf("get alarm failed: %s", resp.Status())
@@ -88,6 +89,9 @@ func (s *Service) UpdatePackageAlarm(ctx context.Context, packageID, alarmID str
 	if err != nil {
 		return nil, err
 	}
+	if resp.StatusCode() == http.StatusNotFound {
+		return nil, errors.New("not found")
+	}
 	if resp.IsError() {
 		return nil, fmt.Errorf("update alarm failed: %s", resp.Status())
 	}
@@ -102,6 +106,9 @@ func (s *Service) DeletePackageAlarm(ctx context.Context, packageID, alarmID str
 
 	if err != nil {
 		return err
+	}
+	if resp.StatusCode() == http.StatusNotFound {
+		return errors.New("not found")
 	}
 	if resp.StatusCode() != http.StatusOK {
 		return fmt.Errorf("delete alarm failed: %s", resp.Status())

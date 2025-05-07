@@ -88,7 +88,7 @@ func TestGetAlarm(t *testing.T) {
 			name:      "not found",
 			status:    404,
 			body:      `{}`,
-			expectErr: false,
+			expectErr: true,
 			expectNil: true,
 		},
 		{

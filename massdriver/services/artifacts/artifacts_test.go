@@ -100,7 +100,7 @@ func TestGetArtifact(t *testing.T) {
 			name:         "not found",
 			status:       404,
 			responseBody: `{"error":"not found"}`,
-			expectErr:    false,
+			expectErr:    true,
 			expectNil:    true,
 		},
 		{

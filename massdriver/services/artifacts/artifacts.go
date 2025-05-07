@@ -2,6 +2,7 @@ package artifacts
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -56,7 +57,7 @@ func (s *Service) GetArtifact(ctx context.Context, id string) (*Artifact, error)
 		return nil, err
 	}
 	if resp.StatusCode() == http.StatusNotFound {
-		return nil, nil
+		return nil, errors.New("not found")
 	}
 	if resp.IsError() {
 		return nil, fmt.Errorf("get artifact failed: %s", resp.Status())
@@ -76,6 +77,9 @@ func (s *Service) UpdateArtifact(ctx context.Context, id string, a *Artifact) (*
 	if err != nil {
 		return nil, err
 	}
+	if resp.StatusCode() == http.StatusNotFound {
+		return nil, errors.New("not found")
+	}
 	if resp.IsError() {
 		return nil, fmt.Errorf("update artifact failed: %s", resp.Status())
 	}
@@ -94,6 +98,9 @@ func (s *Service) DeleteArtifact(ctx context.Context, id, field string) error {
 
 	if err != nil {
 		return err
+	}
+	if resp.StatusCode() == http.StatusNotFound {
+		return errors.New("not found")
 	}
 	if resp.StatusCode() != http.StatusOK {
 		return fmt.Errorf("delete artifact failed: %s", resp.Status())
