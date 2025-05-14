@@ -22,7 +22,7 @@ func (r *RoundTripperWithHeaders) RoundTrip(req *http.Request) (*http.Response, 
 }
 
 func NewClient(auth *config.Auth) graphql.Client {
-	baseURL := auth.BaseURL + gqlPath
+	baseURL := auth.URL + gqlPath
 
 	transport := &RoundTripperWithHeaders{
 		Base: http.DefaultTransport,

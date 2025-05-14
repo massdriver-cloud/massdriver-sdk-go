@@ -16,7 +16,7 @@ type Auth struct {
 	Method    AuthMethod
 	Value     string
 	AccountID string // Deployment ID or Org ID
-	BaseURL   string
+	URL       string
 }
 
 // ResolveAuth determines which authentication method to use, in priority order:
@@ -30,7 +30,7 @@ func ResolveAuth(cfg *Config) (*Auth, error) {
 			Method:    AuthDeployment,
 			Value:     "Basic " + encoded,
 			AccountID: cfg.DeploymentID,
-			BaseURL:   cfg.APIURL,
+			URL:       cfg.URL,
 		}, nil
 	}
 
@@ -40,7 +40,7 @@ func ResolveAuth(cfg *Config) (*Auth, error) {
 			Method:    AuthAPIKey,
 			Value:     "Basic " + encoded,
 			AccountID: cfg.OrgID,
-			BaseURL:   cfg.APIURL,
+			URL:       cfg.URL,
 		}, nil
 	}
 
