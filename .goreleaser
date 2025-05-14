@@ -1,0 +1,12 @@
+project_name: massdriver-sdk-go
+
+builds: []
+archives: []
+
+release:
+  github:
+    owner: massdriver-cloud
+    name: massdriver-sdk-go
+
+changelog:
+  use: git
