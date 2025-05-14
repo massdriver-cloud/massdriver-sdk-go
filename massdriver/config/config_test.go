@@ -30,7 +30,7 @@ func TestGetConfig(t *testing.T) {
 				APIKey:          "key-abc",
 				DeploymentID:    "deploy-123",
 				DeploymentToken: "token-xyz",
-				URL:             "https://custom.massdriver.cloud",
+				APIURL:          "https://custom.massdriver.cloud",
 				Profile:         "dev",
 			},
 		},
@@ -44,7 +44,7 @@ func TestGetConfig(t *testing.T) {
 			expectConfig: &config.Config{
 				OrgID:  "org-slug",
 				APIKey: "abc123",
-				URL:    "https://api.massdriver.cloud",
+				APIURL: "https://api.massdriver.cloud",
 			},
 		},
 		{
@@ -54,8 +54,8 @@ func TestGetConfig(t *testing.T) {
 			},
 			expectErr: false,
 			expectConfig: &config.Config{
-				OrgID: "00000000-1111-2222-3333-444444444444",
-				URL:   "https://api.massdriver.cloud",
+				OrgID:  "00000000-1111-2222-3333-444444444444",
+				APIURL: "https://api.massdriver.cloud",
 			},
 		},
 		{
@@ -63,7 +63,7 @@ func TestGetConfig(t *testing.T) {
 			env:       map[string]string{},
 			expectErr: false,
 			expectConfig: &config.Config{
-				URL: "https://api.massdriver.cloud",
+				APIURL: "https://api.massdriver.cloud",
 			},
 		},
 	}
@@ -97,7 +97,7 @@ func TestGetConfig(t *testing.T) {
 				require.Equal(t, tt.expectConfig.DeploymentID, cfg.DeploymentID)
 				require.Equal(t, tt.expectConfig.DeploymentToken, cfg.DeploymentToken)
 				require.Equal(t, tt.expectConfig.Profile, cfg.Profile)
-				require.Equal(t, tt.expectConfig.URL, cfg.URL)
+				require.Equal(t, tt.expectConfig.APIURL, cfg.APIURL)
 			}
 		})
 	}

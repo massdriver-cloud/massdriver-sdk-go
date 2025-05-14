@@ -7,7 +7,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
-const defaultMassdriverURL = "https://api.massdriver.cloud"
+const defaultAPIURL = "https://api.massdriver.cloud"
 
 type Config struct {
 	OrgID           string `json:"organization_id" envconfig:"ORG_ID"`
@@ -15,7 +15,7 @@ type Config struct {
 	DeploymentID    string `json:"deployment_id" envconfig:"DEPLOYMENT_ID"`
 	DeploymentToken string `json:"deployment_token" envconfig:"TOKEN"`
 	Profile         string `json:"profile" envconfig:"PROFILE"`
-	URL             string `json:"url" envconfig:"API_URL"`
+	APIURL          string `json:"url" envconfig:"API_URL"`
 }
 
 func Get() (*Config, error) {
@@ -30,8 +30,8 @@ func Get() (*Config, error) {
 		fmt.Printf("environment variable MASSDRIVER_ORG_ID is a UUID. This is deprecated and will be removed in a future release. Please use the organization abbreviation instead.\n")
 	}
 
-	if cfg.URL == "" {
-		cfg.URL = defaultMassdriverURL
+	if cfg.APIURL == "" {
+		cfg.APIURL = defaultAPIURL
 	}
 
 	return &cfg, nil
