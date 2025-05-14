@@ -30,7 +30,7 @@ func ResolveAuth(cfg *Config) (*Auth, error) {
 			Method:    AuthDeployment,
 			Value:     "Basic " + encoded,
 			AccountID: cfg.DeploymentID,
-			BaseURL:   defaultMassdriverURL,
+			BaseURL:   cfg.APIURL,
 		}, nil
 	}
 
@@ -40,7 +40,7 @@ func ResolveAuth(cfg *Config) (*Auth, error) {
 			Method:    AuthAPIKey,
 			Value:     "Basic " + encoded,
 			AccountID: cfg.OrgID,
-			BaseURL:   defaultMassdriverURL,
+			BaseURL:   cfg.APIURL,
 		}, nil
 	}
 
