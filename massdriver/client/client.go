@@ -25,7 +25,7 @@ func New() (*Client, error) {
 	}
 
 	http := resty.New().
-		SetBaseURL(auth.BaseURL).
+		SetBaseURL(auth.URL).
 		SetHeader("Authorization", auth.Value).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json")
