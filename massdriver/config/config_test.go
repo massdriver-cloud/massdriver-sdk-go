@@ -26,7 +26,7 @@ func TestGetConfig(t *testing.T) {
 			},
 			expectErr: false,
 			expectConfig: &config.Config{
-				OrgID:           "org-slug",
+				OrganizationID:  "org-slug",
 				APIKey:          "key-abc",
 				DeploymentID:    "deploy-123",
 				DeploymentToken: "token-xyz",
@@ -42,26 +42,41 @@ func TestGetConfig(t *testing.T) {
 			},
 			expectErr: false,
 			expectConfig: &config.Config{
-				OrgID:  "org-slug",
-				APIKey: "abc123",
-				URL:    "https://api.massdriver.cloud",
+				OrganizationID: "org-slug",
+				APIKey:         "abc123",
+				URL:            "https://api.massdriver.cloud",
 			},
 		},
 		{
-			name: "prints UUID warning if OrgID is a UUID",
+			name: "errors if OrgID is a UUID",
 			env: map[string]string{
-				"MASSDRIVER_ORG_ID": "00000000-1111-2222-3333-444444444444",
+				"MASSDRIVER_ORG_ID":  "00000000-1111-2222-3333-444444444444",
+				"MASSDRIVER_API_KEY": "abc123",
 			},
-			expectErr: false,
+			expectErr: true,
 			expectConfig: &config.Config{
-				OrgID: "00000000-1111-2222-3333-444444444444",
-				URL:   "https://api.massdriver.cloud",
+				OrganizationID: "00000000-1111-2222-3333-444444444444",
+				APIKey:         "abc123",
+				URL:            "https://api.massdriver.cloud",
 			},
 		},
 		{
-			name:      "empty config should not error",
+			name: "errors if URL doesn't include protocol",
+			env: map[string]string{
+				"MASSDRIVER_ORG_ID":  "00000000-1111-2222-3333-444444444444",
+				"MASSDRIVER_API_KEY": "abc123",
+			},
+			expectErr: true,
+			expectConfig: &config.Config{
+				OrganizationID: "00000000-1111-2222-3333-444444444444",
+				APIKey:         "abc123",
+				URL:            "custom.domain.com",
+			},
+		},
+		{
+			name:      "empty config should error",
 			env:       map[string]string{},
-			expectErr: false,
+			expectErr: true,
 			expectConfig: &config.Config{
 				URL: "https://api.massdriver.cloud",
 			},
@@ -92,7 +107,7 @@ func TestGetConfig(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, cfg)
-				require.Equal(t, tt.expectConfig.OrgID, cfg.OrgID)
+				require.Equal(t, tt.expectConfig.OrganizationID, cfg.OrganizationID)
 				require.Equal(t, tt.expectConfig.APIKey, cfg.APIKey)
 				require.Equal(t, tt.expectConfig.DeploymentID, cfg.DeploymentID)
 				require.Equal(t, tt.expectConfig.DeploymentToken, cfg.DeploymentToken)

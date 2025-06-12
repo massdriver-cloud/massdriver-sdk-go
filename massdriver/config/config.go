@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/google/uuid"
 	"github.com/kelseyhightower/envconfig"
@@ -10,7 +11,8 @@ import (
 const defaultURL = "https://api.massdriver.cloud"
 
 type Config struct {
-	OrgID           string `json:"organization_id" envconfig:"ORG_ID"`
+	Credentials     *Credentials
+	OrganizationID  string `json:"organization_id" envconfig:"ORG_ID"`
 	APIKey          string `json:"api_key" envconfig:"API_KEY"`
 	DeploymentID    string `json:"deployment_id" envconfig:"DEPLOYMENT_ID"`
 	DeploymentToken string `json:"deployment_token" envconfig:"TOKEN"`
@@ -20,19 +22,46 @@ type Config struct {
 
 func Get() (*Config, error) {
 	cfg := Config{}
-	err := envconfig.Process("massdriver", &cfg)
-	if err != nil {
-		return nil, fmt.Errorf("error initializing configuration: %w", err)
+	envErr := envconfig.Process("massdriver", &cfg)
+	if envErr != nil {
+		return nil, fmt.Errorf("error initializing configuration: %w", envErr)
 	}
 
-	uuidErr := uuid.Validate(cfg.OrgID)
-	if uuidErr == nil {
-		fmt.Printf("environment variable MASSDRIVER_ORG_ID is a UUID. This is deprecated and will be removed in a future release. Please use the organization abbreviation instead.\n")
+	auth, authErr := resolveAuth(&cfg)
+	if authErr != nil {
+		return nil, fmt.Errorf("error resolving credentials: %w", authErr)
 	}
+	cfg.Credentials = auth
 
 	if cfg.URL == "" {
 		cfg.URL = defaultURL
 	}
 
+	validateErr := validateConfig(&cfg)
+	if validateErr != nil {
+		return nil, fmt.Errorf("configuration is invalid: %w", validateErr)
+	}
+
 	return &cfg, nil
+}
+
+func validateConfig(cfg *Config) error {
+	if cfg.OrganizationID == "" {
+		return fmt.Errorf("organization ID is required")
+	}
+	if cfg.Credentials == nil || (cfg.Credentials.ID == "" && cfg.Credentials.Secret == "") {
+		return fmt.Errorf("credentials are required")
+	}
+
+	uuidErr := uuid.Validate(cfg.OrganizationID)
+	if uuidErr == nil {
+		return fmt.Errorf("organization ID is a UUID. This is deprecated and will be removed in a future release, please use the organization abbreviation instead")
+	}
+
+	parsedURL, err := url.Parse(cfg.URL)
+	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+		return fmt.Errorf("url must include scheme and host (e.g., https://api.massdriver.cloud)")
+	}
+
+	return nil
 }

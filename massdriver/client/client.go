@@ -8,9 +8,9 @@ import (
 )
 
 type Client struct {
-	Auth *config.Auth
-	HTTP *resty.Client
-	GQL  graphql.Client
+	Config *config.Config
+	HTTP   *resty.Client
+	GQL    graphql.Client
 }
 
 func New() (*Client, error) {
@@ -19,22 +19,17 @@ func New() (*Client, error) {
 		return nil, cfgErr
 	}
 
-	auth, err := config.ResolveAuth(cfg)
-	if err != nil {
-		return nil, err
-	}
-
 	http := resty.New().
-		SetBaseURL(auth.URL).
-		SetHeader("Authorization", auth.Value).
+		SetBaseURL(cfg.URL).
+		SetHeader("Authorization", cfg.Credentials.AuthHeaderValue).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json")
 
-	gqlClient := gql.NewClient(auth)
+	gqlClient := gql.NewClient(cfg)
 
 	return &Client{
-		Auth: auth,
-		HTTP: http,
-		GQL:  gqlClient,
+		Config: cfg,
+		HTTP:   http,
+		GQL:    gqlClient,
 	}, nil
 }
