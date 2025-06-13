@@ -49,7 +49,7 @@ func validateConfig(cfg *Config) error {
 	if cfg.OrganizationID == "" {
 		return fmt.Errorf("organization ID is required")
 	}
-	if cfg.Credentials == nil || (cfg.Credentials.ID == "" && cfg.Credentials.Secret == "") {
+	if cfg.Credentials == nil || cfg.Credentials.ID == "" || cfg.Credentials.Secret == "" {
 		return fmt.Errorf("credentials are required")
 	}
 

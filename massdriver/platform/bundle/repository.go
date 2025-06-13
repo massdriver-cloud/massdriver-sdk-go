@@ -1,8 +1,9 @@
 package bundle
 
 import (
+	"net/http"
 	"net/url"
-	"path/filepath"
+	"path"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/client"
 
@@ -17,9 +18,9 @@ func GetBundleRepository(mdClient *client.Client, bundleName string) (oras.Targe
 	if urlErr != nil {
 		return nil, urlErr
 	}
+	mdHost := mdUrl.Host
 
-	reg := mdUrl.Host
-	repo, repoErr := remote.NewRepository(filepath.Join(reg, mdClient.Config.OrganizationID, bundleName))
+	repo, repoErr := remote.NewRepository(path.Join(mdHost, mdClient.Config.OrganizationID, bundleName))
 	if repoErr != nil {
 		return nil, repoErr
 	}
@@ -27,10 +28,9 @@ func GetBundleRepository(mdClient *client.Client, bundleName string) (oras.Targe
 	repo.Client = &auth.Client{
 		Client: retry.DefaultClient,
 		Cache:  auth.NewCache(),
-		Credential: auth.StaticCredential(reg, auth.Credential{
-			Username: mdClient.Config.Credentials.ID,
-			Password: mdClient.Config.Credentials.Secret,
-		}),
+		Header: http.Header{
+			"authorization": []string{mdClient.Config.Credentials.AuthHeaderValue},
+		},
 	}
 
 	return repo, nil
