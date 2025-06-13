@@ -27,18 +27,17 @@ func Get() (*Config, error) {
 	if envErr != nil {
 		return nil, fmt.Errorf("error initializing configuration: %w", envErr)
 	}
+	cfg.initializeOrganizationID()
+
+	if cfg.URL == "" {
+		cfg.URL = defaultURL
+	}
 
 	auth, authErr := resolveAuth(&cfg)
 	if authErr != nil {
 		return nil, fmt.Errorf("error resolving credentials: %w", authErr)
 	}
 	cfg.Credentials = auth
-
-	if cfg.URL == "" {
-		cfg.URL = defaultURL
-	}
-
-	cfg.initializeOrganizationID()
 
 	validateErr := validateConfig(&cfg)
 	if validateErr != nil {
@@ -50,7 +49,7 @@ func Get() (*Config, error) {
 
 func (c *Config) initializeOrganizationID() {
 	if c.OrganizationID == "" {
-		os.Getenv("MASSDRIVER_ORG_ID")
+		c.OrganizationID = os.Getenv("MASSDRIVER_ORG_ID")
 	}
 }
 
