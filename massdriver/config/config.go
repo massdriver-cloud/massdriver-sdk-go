@@ -46,16 +46,15 @@ func Get() (*Config, error) {
 }
 
 func validateConfig(cfg *Config) error {
-	if cfg.OrganizationID == "" {
-		return fmt.Errorf("organization ID is required")
-	}
 	if cfg.Credentials == nil || cfg.Credentials.ID == "" || cfg.Credentials.Secret == "" {
 		return fmt.Errorf("credentials are required")
 	}
 
-	uuidErr := uuid.Validate(cfg.OrganizationID)
-	if uuidErr == nil {
-		return fmt.Errorf("organization ID is a UUID. This is deprecated and will be removed in a future release, please use the organization abbreviation instead")
+	if cfg.OrganizationID != "" {
+		uuidErr := uuid.Validate(cfg.OrganizationID)
+		if uuidErr == nil {
+			return fmt.Errorf("organization ID is a UUID. This is deprecated and will be removed in a future release, please use the organization abbreviation instead")
+		}
 	}
 
 	parsedURL, err := url.Parse(cfg.URL)
