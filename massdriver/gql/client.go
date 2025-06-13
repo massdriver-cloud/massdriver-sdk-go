@@ -21,13 +21,13 @@ func (r *RoundTripperWithHeaders) RoundTrip(req *http.Request) (*http.Response, 
 	return r.Base.RoundTrip(req)
 }
 
-func NewClient(auth *config.Auth) graphql.Client {
-	baseURL := auth.URL + gqlPath
+func NewClient(config *config.Config) graphql.Client {
+	baseURL := config.URL + gqlPath
 
 	transport := &RoundTripperWithHeaders{
 		Base: http.DefaultTransport,
 		Headers: map[string]string{
-			"Authorization": auth.Value,
+			"Authorization": config.Credentials.AuthHeaderValue,
 			"Content-Type":  "application/json",
 		},
 	}
