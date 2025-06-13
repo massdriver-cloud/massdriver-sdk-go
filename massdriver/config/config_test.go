@@ -11,20 +11,19 @@ func TestGetConfig(t *testing.T) {
 	tests := []struct {
 		name         string
 		env          map[string]string
-		expectErr    bool
+		expectErr    string
 		expectConfig *config.Config
 	}{
 		{
 			name: "loads full config with URL",
 			env: map[string]string{
-				"MASSDRIVER_ORG_ID":        "org-slug",
-				"MASSDRIVER_API_KEY":       "key-abc",
-				"MASSDRIVER_DEPLOYMENT_ID": "deploy-123",
-				"MASSDRIVER_TOKEN":         "token-xyz",
-				"MASSDRIVER_URL":           "https://custom.massdriver.cloud",
-				"MASSDRIVER_PROFILE":       "dev",
+				"MASSDRIVER_ORGANIZATION_ID": "org-slug",
+				"MASSDRIVER_API_KEY":         "key-abc",
+				"MASSDRIVER_DEPLOYMENT_ID":   "deploy-123",
+				"MASSDRIVER_TOKEN":           "token-xyz",
+				"MASSDRIVER_URL":             "https://custom.massdriver.cloud",
+				"MASSDRIVER_PROFILE":         "dev",
 			},
-			expectErr: false,
 			expectConfig: &config.Config{
 				OrganizationID:  "org-slug",
 				APIKey:          "key-abc",
@@ -37,10 +36,9 @@ func TestGetConfig(t *testing.T) {
 		{
 			name: "defaults URL to standard URL",
 			env: map[string]string{
-				"MASSDRIVER_ORG_ID":  "org-slug",
-				"MASSDRIVER_API_KEY": "abc123",
+				"MASSDRIVER_ORGANIZATION_ID": "org-slug",
+				"MASSDRIVER_API_KEY":         "abc123",
 			},
-			expectErr: false,
 			expectConfig: &config.Config{
 				OrganizationID: "org-slug",
 				APIKey:         "abc123",
@@ -48,72 +46,73 @@ func TestGetConfig(t *testing.T) {
 			},
 		},
 		{
-			name: "errors if OrgID is a UUID",
+			name: "falls back to MASSDRIVER_ORG_ID if MASSDRIVER_ORGANIZATION_ID is not set",
 			env: map[string]string{
-				"MASSDRIVER_ORG_ID":  "00000000-1111-2222-3333-444444444444",
+				"MASSDRIVER_ORG_ID":  "org-id",
 				"MASSDRIVER_API_KEY": "abc123",
 			},
-			expectErr: true,
 			expectConfig: &config.Config{
-				OrganizationID: "00000000-1111-2222-3333-444444444444",
+				OrganizationID: "org-id",
 				APIKey:         "abc123",
 				URL:            "https://api.massdriver.cloud",
 			},
 		},
 		{
+			name: "errors if OrgID is a UUID",
+			env: map[string]string{
+				"MASSDRIVER_ORGANIZATION_ID": "00000000-1111-2222-3333-444444444444",
+				"MASSDRIVER_API_KEY":         "abc123",
+			},
+			expectErr: "organization ID is a UUID. This is deprecated and will be removed in a future release, please use the organization abbreviation instead",
+		},
+		{
+			name: "errors if niether orgId or organizationId is set",
+			env: map[string]string{
+				"MASSDRIVER_DEPLOYMENT_ID": "deploy-123",
+				"MASSDRIVER_TOKEN":         "token-xyz",
+				"MASSDRIVER_API_KEY":       "abc123",
+			},
+			expectErr: "organization ID is required",
+		},
+		{
 			name: "errors if URL doesn't include protocol",
 			env: map[string]string{
-				"MASSDRIVER_ORG_ID":  "00000000-1111-2222-3333-444444444444",
-				"MASSDRIVER_API_KEY": "abc123",
+				"MASSDRIVER_ORGANIZATION_ID": "org-slug",
+				"MASSDRIVER_API_KEY":         "key-abc",
+				"MASSDRIVER_URL":             "custom.domain.com",
 			},
-			expectErr: true,
-			expectConfig: &config.Config{
-				OrganizationID: "00000000-1111-2222-3333-444444444444",
-				APIKey:         "abc123",
-				URL:            "custom.domain.com",
-			},
+			expectErr: "url must include scheme and host (e.g., https://api.massdriver.cloud)",
 		},
 		{
 			name:      "empty config should error",
 			env:       map[string]string{},
-			expectErr: true,
-			expectConfig: &config.Config{
-				URL: "https://api.massdriver.cloud",
-			},
+			expectErr: "no valid credentials found in environment",
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Clear all possible env vars to avoid bleed
-			clearEnv := []string{
-				"MASSDRIVER_ORG_ID", "MASSDRIVER_API_KEY",
-				"MASSDRIVER_DEPLOYMENT_ID", "MASSDRIVER_TOKEN",
-				"MASSDRIVER_URL", "MASSDRIVER_PROFILE",
-			}
-			for _, key := range clearEnv {
-				t.Setenv(key, "")
-			}
-
-			// Set test-specific env
-			for k, v := range tt.env {
-				t.Setenv(k, v)
-			}
-
+	for _, test := range tests {
+		for k, v := range test.env {
+			t.Setenv(k, v)
+		}
+		t.Run(test.name, func(t *testing.T) {
 			cfg, err := config.Get()
 
-			if tt.expectErr {
+			if test.expectErr != "" {
 				require.Error(t, err)
+				require.Contains(t, err.Error(), test.expectErr)
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, cfg)
-				require.Equal(t, tt.expectConfig.OrganizationID, cfg.OrganizationID)
-				require.Equal(t, tt.expectConfig.APIKey, cfg.APIKey)
-				require.Equal(t, tt.expectConfig.DeploymentID, cfg.DeploymentID)
-				require.Equal(t, tt.expectConfig.DeploymentToken, cfg.DeploymentToken)
-				require.Equal(t, tt.expectConfig.Profile, cfg.Profile)
-				require.Equal(t, tt.expectConfig.URL, cfg.URL)
+				require.Equal(t, test.expectConfig.OrganizationID, cfg.OrganizationID)
+				require.Equal(t, test.expectConfig.APIKey, cfg.APIKey)
+				require.Equal(t, test.expectConfig.DeploymentID, cfg.DeploymentID)
+				require.Equal(t, test.expectConfig.DeploymentToken, cfg.DeploymentToken)
+				require.Equal(t, test.expectConfig.Profile, cfg.Profile)
+				require.Equal(t, test.expectConfig.URL, cfg.URL)
 			}
 		})
+		for k, _ := range test.env {
+			t.Setenv(k, "")
+		}
 	}
 }
