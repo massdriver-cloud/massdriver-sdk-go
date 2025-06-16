@@ -21,13 +21,22 @@ profiles:
     api_key: "custom-key"
     url: "https://custom.massdriver.cloud"
 `
+	xdgProfileYAML := `
+version: 1
+profiles:
+  default:
+    organization_id: "xdg-org"
+    api_key: "xdg-key"
+    url: "https://xdg.massdriver.cloud"
+`
 
 	tests := []struct {
-		name         string
-		env          map[string]string
-		writeProfile bool
-		expectErr    string
-		expectConfig *config.Config
+		name            string
+		env             map[string]string
+		writeProfile    bool
+		writeXDGProfile bool
+		expectErr       string
+		expectConfig    *config.Config
 	}{
 		{
 			name: "loads full config with URL",
@@ -161,6 +170,24 @@ profiles:
 			},
 		},
 		{
+			name: "loads config from XDG_CONFIG_HOME if present",
+			env: map[string]string{
+				"HOME": "/nonexistent",
+			},
+			writeXDGProfile: true,
+			expectConfig: &config.Config{
+				OrganizationID: "xdg-org",
+				URL:            "https://xdg.massdriver.cloud",
+				Profile:        "default",
+				Credentials: &config.Credentials{
+					Method:          config.AuthAPIKey,
+					ID:              "xdg-org",
+					Secret:          "xdg-key",
+					AuthHeaderValue: "Basic eGRnLW9yZzp4ZGcta2V5",
+				},
+			},
+		},
+		{
 			name: "errors if OrgID is a UUID",
 			env: map[string]string{
 				"MASSDRIVER_ORGANIZATION_ID": "00000000-1111-2222-3333-444444444444",
@@ -194,17 +221,21 @@ profiles:
 	}
 
 	for _, test := range tests {
-		for k, v := range test.env {
-			t.Setenv(k, v)
-		}
 		t.Run(test.name, func(t *testing.T) {
+			for k, v := range test.env {
+				t.Setenv(k, v)
+			}
+			xdgDir := t.TempDir()
+			homeDir := t.TempDir()
+
+			if test.writeXDGProfile {
+				writeTempConfigFileAt(t, xdgDir, "massdriver/config.yaml", xdgProfileYAML)
+				t.Setenv("XDG_CONFIG_HOME", xdgDir)
+			}
+
 			if test.writeProfile {
-				tmpDir := t.TempDir()
-				configDir := filepath.Join(tmpDir, ".massdriver")
-				require.NoError(t, os.Mkdir(configDir, 0o755))
-				configPath := filepath.Join(configDir, "config.yaml")
-				require.NoError(t, os.WriteFile(configPath, []byte(profileYAML), 0o600))
-				t.Setenv("HOME", tmpDir)
+				writeTempConfigFileAt(t, homeDir, ".config/massdriver/config.yaml", profileYAML)
+				t.Setenv("HOME", homeDir)
 			}
 
 			cfg, err := config.Get()
@@ -218,37 +249,13 @@ profiles:
 				require.Equal(t, *test.expectConfig, *cfg)
 			}
 		})
-		for k, _ := range test.env {
-			t.Setenv(k, "")
-		}
 	}
 }
 
-// func TestFoo(t *testing.T) {
-// 	type foo struct {
-// 		A string `yaml:"a" envconfig:"TEST_A"`
-// 		B string `yaml:"b" envconfig:"TEST_B"`
-// 	}
-
-// 	inputboth := "a: value1\nb: value2"
-// 	inputjusta := "a: value3"
-
-// 	var both, justA, overwrite foo
-
-// 	yaml.Unmarshal([]byte(inputboth), &both)
-// 	yaml.Unmarshal([]byte(inputjusta), &justA)
-
-// 	yaml.Unmarshal([]byte(inputboth), &overwrite)
-// 	yaml.Unmarshal([]byte(inputjusta), &overwrite)
-
-// 	bar := foo{
-// 		A: "value1",
-// 		B: "value2",
-// 	}
-// 	t.Setenv("TEST_A", "value4")
-// 	t.Setenv("TEST_B", "")
-
-// 	envconfig.Process("", &bar)
-
-// 	require.Equal(t, "value1", both.A)
-// }
+func writeTempConfigFileAt(t *testing.T, dir, relPath, content string) string {
+	t.Helper()
+	fullPath := filepath.Join(dir, relPath)
+	require.NoError(t, os.MkdirAll(filepath.Dir(fullPath), 0o755))
+	require.NoError(t, os.WriteFile(fullPath, []byte(content), 0o600))
+	return fullPath
+}

@@ -15,7 +15,6 @@ const (
 
 type Credentials struct {
 	Method          AuthMethod
-	Source          CredentialSource
 	ID              string
 	Secret          string
 	AuthHeaderValue string

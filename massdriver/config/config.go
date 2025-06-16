@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 
 	"github.com/google/uuid"
 	"github.com/kelseyhightower/envconfig"
@@ -11,6 +12,7 @@ import (
 )
 
 const defaultURL = "https://api.massdriver.cloud"
+const configPathFromConfigDir = "massdriver/config.yaml"
 
 type configFileProfile struct {
 	OrganizationID string `json:"organization_id" yaml:"organization_id"`
@@ -57,16 +59,18 @@ func Get() (*Config, error) {
 func initializeConfig() (*Config, error) {
 	cfg := Config{}
 
-	envs, envsErr := getConfigEnvs()
-	if envsErr != nil {
-		return nil, envsErr
+	configEnvs, configEnvsErr := getConfigEnvs()
+	if configEnvsErr != nil {
+		return nil, fmt.Errorf("error reading environment configuration: %w", configEnvsErr)
 	}
 
-	// Ignore error from getConfigFile since it isn't mandatory. Eventually we can issue warnings here if needed.
 	profile := configFileProfile{}
-	configFile, _ := getConfigFile()
+	configFile, configFileErr := getConfigFile()
+	if configFileErr != nil {
+		return nil, fmt.Errorf("error reading config file: %w", configFileErr)
+	}
 	if configFile != nil && configFile.Profiles != nil {
-		profileName := envs.Profile
+		profileName := configEnvs.Profile
 		if profileName == "" {
 			profileName = "default"
 		}
@@ -77,10 +81,10 @@ func initializeConfig() (*Config, error) {
 		}
 	}
 
-	cfg.OrganizationID = coalesceString(envs.OrganizationID, envs.OrgId, profile.OrganizationID)
-	cfg.URL = coalesceString(envs.URL, profile.URL, defaultURL)
+	cfg.OrganizationID = coalesceString(configEnvs.OrganizationID, configEnvs.OrgId, profile.OrganizationID)
+	cfg.URL = coalesceString(configEnvs.URL, profile.URL, defaultURL)
 
-	credentials, credErr := resolveCredentials(envs, &profile)
+	credentials, credErr := resolveCredentials(configEnvs, &profile)
 	if credErr != nil {
 		return nil, fmt.Errorf("error resolving credentials: %w", credErr)
 	}
@@ -90,20 +94,32 @@ func initializeConfig() (*Config, error) {
 }
 
 func getConfigFile() (*configFile, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return nil, fmt.Errorf("could not determine home directory: %w", err)
+	var configFilePath string
+
+	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
+	if xdgConfigHome != "" {
+		configFilePath = filepath.Join(xdgConfigHome, configPathFromConfigDir)
+	} else {
+
+		homeDir, homeDirErr := os.UserHomeDir()
+		if homeDirErr != nil {
+			return nil, fmt.Errorf("could not determine home directory: %w", homeDirErr)
+		}
+		configFilePath = filepath.Join(homeDir, ".config", configPathFromConfigDir)
 	}
 
-	configPath := homeDir + "/.massdriver/config.yaml"
-	file, err := os.ReadFile(configPath)
-	if err != nil {
-		return nil, fmt.Errorf("could not read config file %s: %w", configPath, err)
+	file, readErr := os.ReadFile(configFilePath)
+	if readErr != nil {
+		if os.IsNotExist(readErr) {
+			// quietly return nil if the config file does not exist
+			return nil, nil
+		}
+		return nil, fmt.Errorf("could not read config file %s: %w", configFilePath, readErr)
 	}
 
 	var cfg configFile
-	if err := yaml.Unmarshal(file, &cfg); err != nil {
-		return nil, fmt.Errorf("could not unmarshal config file %s: %w", configPath, err)
+	if yamlErr := yaml.Unmarshal(file, &cfg); yamlErr != nil {
+		return nil, fmt.Errorf("could not unmarshal config file %s: %w", configFilePath, yamlErr)
 	}
 
 	if cfg.Version != 1 {
