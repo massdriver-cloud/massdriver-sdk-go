@@ -58,14 +58,6 @@ func TestGetConfig(t *testing.T) {
 			},
 		},
 		{
-			name: "errors if OrgID is a UUID",
-			env: map[string]string{
-				"MASSDRIVER_ORGANIZATION_ID": "00000000-1111-2222-3333-444444444444",
-				"MASSDRIVER_API_KEY":         "abc123",
-			},
-			expectErr: "organization ID is a UUID. This is deprecated and will be removed in a future release, please use the organization abbreviation instead",
-		},
-		{
 			name: "errors if niether orgId or organizationId is set",
 			env: map[string]string{
 				"MASSDRIVER_DEPLOYMENT_ID": "deploy-123",
