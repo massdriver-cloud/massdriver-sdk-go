@@ -228,15 +228,17 @@ profiles:
 
 			xdgDir := t.TempDir()
 			homeDir := t.TempDir()
+			t.Setenv("HOME", homeDir)
 
 			if test.writeXDGProfile {
 				writeTempConfigFileAt(t, xdgDir, "massdriver/config.yaml", xdgProfileYAML)
 				t.Setenv("XDG_CONFIG_HOME", xdgDir)
+			} else {
+				t.Setenv("XDG_CONFIG_HOME", "")
 			}
 
 			if test.writeProfile {
 				writeTempConfigFileAt(t, homeDir, ".config/massdriver/config.yaml", profileYAML)
-				t.Setenv("HOME", homeDir)
 			}
 
 			cfg, err := config.Get()
