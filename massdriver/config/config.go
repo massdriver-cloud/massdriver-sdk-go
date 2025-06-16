@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -59,6 +60,11 @@ func validateConfig(cfg *Config) error {
 
 	if cfg.Credentials == nil || cfg.Credentials.ID == "" || cfg.Credentials.Secret == "" {
 		return fmt.Errorf("credentials are required")
+	}
+
+	uuidErr := uuid.Validate(cfg.OrganizationID)
+	if uuidErr == nil {
+		return fmt.Errorf("organization ID is a UUID. This is deprecated and will be removed in a future release, please use the organization abbreviation instead")
 	}
 
 	parsedURL, err := url.Parse(cfg.URL)
