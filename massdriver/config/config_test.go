@@ -25,12 +25,9 @@ func TestGetConfig(t *testing.T) {
 				"MASSDRIVER_PROFILE":         "dev",
 			},
 			expectConfig: &config.Config{
-				OrganizationID:  "org-slug",
-				APIKey:          "key-abc",
-				DeploymentID:    "deploy-123",
-				DeploymentToken: "token-xyz",
-				URL:             "https://custom.massdriver.cloud",
-				Profile:         "dev",
+				OrganizationID: "org-slug",
+				URL:            "https://custom.massdriver.cloud",
+				Profile:        "dev",
 			},
 		},
 		{
@@ -41,7 +38,6 @@ func TestGetConfig(t *testing.T) {
 			},
 			expectConfig: &config.Config{
 				OrganizationID: "org-slug",
-				APIKey:         "abc123",
 				URL:            "https://api.massdriver.cloud",
 			},
 		},
@@ -53,7 +49,6 @@ func TestGetConfig(t *testing.T) {
 			},
 			expectConfig: &config.Config{
 				OrganizationID: "org-id",
-				APIKey:         "abc123",
 				URL:            "https://api.massdriver.cloud",
 			},
 		},
@@ -86,7 +81,7 @@ func TestGetConfig(t *testing.T) {
 		{
 			name:      "empty config should error",
 			env:       map[string]string{},
-			expectErr: "no valid credentials found in environment",
+			expectErr: "no credentials found",
 		},
 	}
 
@@ -104,11 +99,9 @@ func TestGetConfig(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, cfg)
 				require.Equal(t, test.expectConfig.OrganizationID, cfg.OrganizationID)
-				require.Equal(t, test.expectConfig.APIKey, cfg.APIKey)
-				require.Equal(t, test.expectConfig.DeploymentID, cfg.DeploymentID)
-				require.Equal(t, test.expectConfig.DeploymentToken, cfg.DeploymentToken)
 				require.Equal(t, test.expectConfig.Profile, cfg.Profile)
 				require.Equal(t, test.expectConfig.URL, cfg.URL)
+				require.Equal(t, *test.expectConfig.Credentials, *cfg.Credentials)
 			}
 		})
 		for k, _ := range test.env {
@@ -116,3 +109,32 @@ func TestGetConfig(t *testing.T) {
 		}
 	}
 }
+
+// func TestFoo(t *testing.T) {
+// 	type foo struct {
+// 		A string `yaml:"a" envconfig:"TEST_A"`
+// 		B string `yaml:"b" envconfig:"TEST_B"`
+// 	}
+
+// 	inputboth := "a: value1\nb: value2"
+// 	inputjusta := "a: value3"
+
+// 	var both, justA, overwrite foo
+
+// 	yaml.Unmarshal([]byte(inputboth), &both)
+// 	yaml.Unmarshal([]byte(inputjusta), &justA)
+
+// 	yaml.Unmarshal([]byte(inputboth), &overwrite)
+// 	yaml.Unmarshal([]byte(inputjusta), &overwrite)
+
+// 	bar := foo{
+// 		A: "value1",
+// 		B: "value2",
+// 	}
+// 	t.Setenv("TEST_A", "value4")
+// 	t.Setenv("TEST_B", "")
+
+// 	envconfig.Process("", &bar)
+
+// 	require.Equal(t, "value1", both.A)
+// }

@@ -9,13 +9,14 @@ import (
 func TestResolveAuth(t *testing.T) {
 	tests := []struct {
 		name      string
-		cfg       Config
+		cfg       configEnvs
+		profile   configFileProfile
 		expectErr bool
 		expected  *Credentials
 	}{
 		{
 			name: "Deployment Token Auth",
-			cfg: Config{
+			cfg: configEnvs{
 				DeploymentID:    "deploy-123",
 				DeploymentToken: "token-abc",
 				OrganizationID:  "org789",
@@ -31,7 +32,7 @@ func TestResolveAuth(t *testing.T) {
 		},
 		{
 			name: "API Key Fallback Auth",
-			cfg: Config{
+			cfg: configEnvs{
 				DeploymentID:    "",
 				DeploymentToken: "",
 				OrganizationID:  "org789",
@@ -46,8 +47,48 @@ func TestResolveAuth(t *testing.T) {
 			},
 		},
 		{
+			name: "Environment Variables overrules Profile",
+			cfg: configEnvs{
+				DeploymentID:    "",
+				DeploymentToken: "",
+				OrganizationID:  "org789",
+				APIKey:          "abc123",
+			},
+			profile: configFileProfile{
+				OrganizationID: "profile-org",
+				APIKey:         "profile-key",
+			},
+			expectErr: false,
+			expected: &Credentials{
+				Method:          AuthAPIKey,
+				ID:              "org789",
+				Secret:          "abc123",
+				AuthHeaderValue: "Basic b3JnNzg5OmFiYzEyMw==",
+			},
+		},
+		{
+			name: "Fallback to profile",
+			cfg: configEnvs{
+				DeploymentID:    "",
+				DeploymentToken: "",
+				OrganizationID:  "",
+				APIKey:          "",
+			},
+			profile: configFileProfile{
+				OrganizationID: "profile-org",
+				APIKey:         "profile-key",
+			},
+			expectErr: false,
+			expected: &Credentials{
+				Method:          AuthAPIKey,
+				ID:              "profile-org",
+				Secret:          "profile-key",
+				AuthHeaderValue: "Basic cHJvZmlsZS1vcmc6cHJvZmlsZS1rZXk=",
+			},
+		},
+		{
 			name: "Missing Credentials",
-			cfg: Config{
+			cfg: configEnvs{
 				DeploymentID:    "",
 				DeploymentToken: "",
 				OrganizationID:  "",
@@ -59,7 +100,7 @@ func TestResolveAuth(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			auth, err := resolveAuth(&tt.cfg)
+			auth, err := resolveCredentials(&tt.cfg, &tt.profile)
 
 			if tt.expectErr {
 				require.Error(t, err)
