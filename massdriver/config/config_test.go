@@ -225,6 +225,7 @@ profiles:
 			for k, v := range test.env {
 				t.Setenv(k, v)
 			}
+
 			xdgDir := t.TempDir()
 			homeDir := t.TempDir()
 
