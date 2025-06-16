@@ -73,10 +73,10 @@ func initializeConfig() (*Config, error) {
 
 		if profileConfig, exists := configFile.Profiles[profileName]; exists {
 			profile = profileConfig
+			cfg.Profile = profileName
 		}
 	}
 
-	cfg.Profile = envs.Profile
 	cfg.OrganizationID = coalesceString(envs.OrganizationID, envs.OrgId, profile.OrganizationID)
 	cfg.URL = coalesceString(envs.URL, profile.URL, defaultURL)
 
