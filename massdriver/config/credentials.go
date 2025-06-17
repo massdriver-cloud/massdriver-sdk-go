@@ -6,6 +6,7 @@ import (
 )
 
 type AuthMethod string
+type CredentialSource string
 
 const (
 	AuthDeployment AuthMethod = "deployment"
@@ -23,32 +24,28 @@ type Credentials struct {
 // 1. Environment variables MASSDRIVER_DEPLOYMENT_ID + MASSDRIVER_TOKEN
 // 2. Environment variables MASSDRIVER_ORG_ID + MASSDRIVER_API_KEY
 // 3. MASSDRIVER_PROFILE from ~/.massdriver/config (stubbed)
-func resolveAuth(cfg *Config) (*Credentials, error) {
-	if cfg.DeploymentID != "" && cfg.DeploymentToken != "" {
-		encoded := base64.StdEncoding.EncodeToString([]byte(cfg.DeploymentID + ":" + cfg.DeploymentToken))
+func resolveCredentials(envs *configEnvs, profile *configFileProfile) (*Credentials, error) {
+	if envs.DeploymentID != "" && envs.DeploymentToken != "" {
+		encoded := base64.StdEncoding.EncodeToString([]byte(envs.DeploymentID + ":" + envs.DeploymentToken))
 		return &Credentials{
 			Method:          AuthDeployment,
-			ID:              cfg.DeploymentID,
-			Secret:          cfg.DeploymentToken,
+			ID:              envs.DeploymentID,
+			Secret:          envs.DeploymentToken,
 			AuthHeaderValue: "Basic " + encoded,
 		}, nil
 	}
 
-	if cfg.OrganizationID != "" && cfg.APIKey != "" {
-		encoded := base64.StdEncoding.EncodeToString([]byte(cfg.OrganizationID + ":" + cfg.APIKey))
+	organizationID := coalesceString(envs.OrganizationID, envs.OrgId, profile.OrganizationID)
+	apiKey := coalesceString(envs.APIKey, profile.APIKey)
+	if organizationID != "" && apiKey != "" {
+		encoded := base64.StdEncoding.EncodeToString([]byte(organizationID + ":" + apiKey))
 		return &Credentials{
 			Method:          AuthAPIKey,
-			ID:              cfg.OrganizationID,
-			Secret:          cfg.APIKey,
+			ID:              organizationID,
+			Secret:          apiKey,
 			AuthHeaderValue: "Basic " + encoded,
 		}, nil
 	}
 
-	return resolveProfileAuth()
-}
-
-// ResolveProfileAuth is stubbed for now. Later, it will read ~/.massdriver/config
-// and return an API key + org ID based on MASSDRIVER_PROFILE or default.
-func resolveProfileAuth() (*Credentials, error) {
-	return nil, fmt.Errorf("no valid credentials found in environment; profile auth not yet implemented")
+	return nil, fmt.Errorf("no credentials found")
 }
