@@ -8,7 +8,7 @@ import (
 )
 
 type Client struct {
-	Config *config.Config
+	Config config.Config
 	HTTP   *resty.Client
 	GQL    graphql.Client
 }
@@ -28,7 +28,7 @@ func New() (*Client, error) {
 	gqlClient := gql.NewClient(cfg)
 
 	return &Client{
-		Config: cfg,
+		Config: *cfg,
 		HTTP:   http,
 		GQL:    gqlClient,
 	}, nil
