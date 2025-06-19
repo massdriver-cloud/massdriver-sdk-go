@@ -12,7 +12,7 @@ import (
 func TestGetBundleRepository(t *testing.T) {
 	tests := []struct {
 		name         string
-		cfg          *config.Config
+		cfg          config.Config
 		bundleName   string
 		expectErr    bool
 		expectedHost string
@@ -20,7 +20,7 @@ func TestGetBundleRepository(t *testing.T) {
 	}{
 		{
 			name: "valid config",
-			cfg: &config.Config{
+			cfg: config.Config{
 				Credentials: &config.Credentials{
 					ID:     "test-org",
 					Secret: "test-secret",
@@ -35,7 +35,7 @@ func TestGetBundleRepository(t *testing.T) {
 		},
 		{
 			name: "invalid URL",
-			cfg: &config.Config{
+			cfg: config.Config{
 				Credentials: &config.Credentials{
 					ID:     "test-org",
 					Secret: "test-secret",
