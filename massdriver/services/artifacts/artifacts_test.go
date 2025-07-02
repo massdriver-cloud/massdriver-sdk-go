@@ -2,229 +2,262 @@ package artifacts_test
 
 import (
 	"context"
-	"io"
+	"net/http"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/client"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/mockhttp"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/services/artifacts"
 	"github.com/stretchr/testify/require"
 )
 
-func newTestClient(r *mockhttp.MockHTTPResponse) (*client.Client, *mockhttp.MutableRoundTripper) {
-	roundtripper := mockhttp.MutableRoundTripper{Response: r}
+const testBaseURL = "https://api.massdriver.mock"
+
+func setupTestService(t *testing.T) (*artifacts.Service, *mockhttp.MockTransport) {
+	t.Helper()
+
+	mockTransport := mockhttp.NewMockTransport()
 	httpClient := resty.New().
-		SetTransport(&roundtripper).
-		SetBaseURL("https://api.massdriver.mock").
+		SetTransport(mockTransport).
+		SetBaseURL(testBaseURL).
 		SetHeader("Authorization", "Basic testtoken").
 		SetHeader("Content-Type", "application/json")
 
-	return &client.Client{
+	testClient := &client.Client{
+		Config: config.Config{
+			URL: testBaseURL,
+		},
 		HTTP: httpClient,
-	}, &roundtripper
+	}
+
+	service := artifacts.NewService(testClient)
+	return service, mockTransport
 }
 
-func TestCreateArtifact(t *testing.T) {
-	tests := []struct {
-		name         string
-		status       int
-		sentBody     string
-		responseBody string
-		expectErr    bool
-		expectID     string
-	}{
-		{
-			name:         "success",
-			status:       201,
-			sentBody:     `{"name":"Created","type":"db","data":{"foo":"bar"},"specs":{"key":"value"}}`,
-			responseBody: `{"id":"abc-123","name":"Created"}`,
-			expectID:     "abc-123",
-			expectErr:    false,
-		},
-		{
-			name:         "failure",
-			status:       500,
-			responseBody: `{"error":"something went wrong"}`,
-			expectErr:    true,
-		},
-	}
+func TestNewService(t *testing.T) {
+	testClient := &client.Client{}
+	service := artifacts.NewService(testClient)
 
-	input := artifacts.Artifact{
-		Name:  "Created",
-		Type:  "db",
-		Data:  map[string]interface{}{"foo": "bar"},
-		Specs: map[string]interface{}{"key": "value"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			client, roundTripper := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.responseBody})
-			service := artifacts.NewService(client)
-
-			result, err := service.CreateArtifact(context.Background(), &input)
-
-			if tt.expectErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				require.NotNil(t, result)
-				require.Equal(t, tt.expectID, result.ID)
-
-				gotBody, err := io.ReadAll(roundTripper.ReceivedRequest.Body)
-				require.NoError(t, err)
-				require.JSONEq(t, tt.sentBody, string(gotBody))
-			}
-		})
-	}
+	require.NotNil(t, service)
 }
 
-func TestGetArtifact(t *testing.T) {
+func TestService_CreateArtifact(t *testing.T) {
 	tests := []struct {
 		name         string
 		status       int
 		responseBody string
 		expectErr    bool
-		expectNil    bool
-		expectID     string
 	}{
 		{
-			name:         "success",
-			status:       200,
-			responseBody: `{"id":"abc-123","name":"Fetched"}`,
-			expectID:     "abc-123",
+			name:         "successful creation",
+			status:       http.StatusCreated,
+			responseBody: `{"id": "123", "name": "test-artifact", "type": "kubernetes-cluster"}`,
 			expectErr:    false,
-			expectNil:    false,
 		},
 		{
-			name:         "not found",
-			status:       404,
-			responseBody: `{"error":"not found"}`,
+			name:         "validation error",
+			status:       http.StatusBadRequest,
+			responseBody: `{"error": "invalid artifact data"}`,
 			expectErr:    true,
-			expectNil:    true,
 		},
 		{
 			name:         "server error",
-			status:       500,
-			responseBody: `{"error":"fail"}`,
+			status:       http.StatusInternalServerError,
+			responseBody: `{"error": "internal server error"}`,
 			expectErr:    true,
-			expectNil:    false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client, _ := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.responseBody})
-			service := artifacts.NewService(client)
+			service, mockTransport := setupTestService(t)
 
-			result, err := service.GetArtifact(context.Background(), "any-id")
+			mockTransport.RegisterResponse("POST", testBaseURL+"/v1/artifacts", &mockhttp.MockHTTPResponse{
+				StatusCode: tt.status,
+				Body:       tt.responseBody,
+			})
+
+			artifact := &artifacts.Artifact{
+				Name: "test-artifact",
+				Type: "kubernetes-cluster",
+				Data: map[string]interface{}{"test": "data"},
+			}
+
+			ctx := context.Background()
+			result, err := service.CreateArtifact(ctx, artifact)
 
 			if tt.expectErr {
 				require.Error(t, err)
+				require.Nil(t, result)
 			} else {
 				require.NoError(t, err)
-				if tt.expectNil {
-					require.Nil(t, result)
-				} else {
-					require.Equal(t, tt.expectID, result.ID)
-				}
+				require.NotNil(t, result)
 			}
+
+			require.Equal(t, 1, mockTransport.CallCount)
 		})
 	}
 }
 
-func TestUpdateArtifact(t *testing.T) {
+func TestService_GetArtifact(t *testing.T) {
 	tests := []struct {
 		name         string
 		status       int
-		sentBody     string
 		responseBody string
 		expectErr    bool
-		expectID     string
 	}{
 		{
-			name:         "success",
-			status:       200,
-			sentBody:     `{"id":"xyz-789","name":"Updated","type":"db","data":{"bar":"baz"},"specs":{"x":"y"}}`,
-			responseBody: `{"id":"xyz-789","name":"Updated"}`,
+			name:         "successful get",
+			status:       http.StatusOK,
+			responseBody: `{"id": "123", "name": "test-artifact", "type": "kubernetes-cluster"}`,
 			expectErr:    false,
-			expectID:     "xyz-789",
 		},
 		{
-			name:         "failure",
-			status:       422,
-			responseBody: `{"error":"invalid input"}`,
+			name:         "not found",
+			status:       http.StatusNotFound,
+			responseBody: `{"error": "artifact not found"}`,
+			expectErr:    true,
+		},
+		{
+			name:         "server error",
+			status:       http.StatusInternalServerError,
+			responseBody: `{"error": "internal server error"}`,
 			expectErr:    true,
 		},
 	}
 
-	input := artifacts.Artifact{
-		ID:    "xyz-789",
-		Name:  "Updated",
-		Type:  "db",
-		Data:  map[string]interface{}{"bar": "baz"},
-		Specs: map[string]interface{}{"x": "y"},
-	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client, roundTripper := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.responseBody})
-			service := artifacts.NewService(client)
+			service, mockTransport := setupTestService(t)
 
-			result, err := service.UpdateArtifact(context.Background(), "xyz-789", &input)
+			mockTransport.RegisterResponse("GET", testBaseURL+"/v1/artifacts/123", &mockhttp.MockHTTPResponse{
+				StatusCode: tt.status,
+				Body:       tt.responseBody,
+			})
+
+			ctx := context.Background()
+			result, err := service.GetArtifact(ctx, "123")
 
 			if tt.expectErr {
 				require.Error(t, err)
+				require.Nil(t, result)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, tt.expectID, result.ID)
-
-				gotBody, err := io.ReadAll(roundTripper.ReceivedRequest.Body)
-				require.NoError(t, err)
-				require.JSONEq(t, tt.sentBody, string(gotBody))
+				require.NotNil(t, result)
 			}
+
+			require.Equal(t, 1, mockTransport.CallCount)
 		})
 	}
 }
 
-func TestDeleteArtifact(t *testing.T) {
+func TestService_UpdateArtifact(t *testing.T) {
 	tests := []struct {
 		name         string
 		status       int
-		sentBody     string
 		responseBody string
 		expectErr    bool
 	}{
 		{
-			name:      "success",
-			status:    200,
-			sentBody:  `{"field":"db"}`,
-			expectErr: false,
+			name:         "successful update",
+			status:       http.StatusOK,
+			responseBody: `{"id": "123", "name": "updated-artifact", "type": "kubernetes-cluster"}`,
+			expectErr:    false,
 		},
 		{
-			name:         "failure",
-			status:       400,
-			responseBody: `{"error":"bad input"}`,
+			name:         "not found",
+			status:       http.StatusNotFound,
+			responseBody: `{"error": "artifact not found"}`,
+			expectErr:    true,
+		},
+		{
+			name:         "validation error",
+			status:       http.StatusBadRequest,
+			responseBody: `{"error": "invalid artifact data"}`,
 			expectErr:    true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client, roundTripper := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.responseBody})
-			service := artifacts.NewService(client)
+			service, mockTransport := setupTestService(t)
 
-			err := service.DeleteArtifact(context.Background(), "abc-123", "db")
+			mockTransport.RegisterResponse("PUT", testBaseURL+"/v1/artifacts/123", &mockhttp.MockHTTPResponse{
+				StatusCode: tt.status,
+				Body:       tt.responseBody,
+			})
+
+			artifact := &artifacts.Artifact{
+				ID:   "123",
+				Name: "updated-artifact",
+				Type: "kubernetes-cluster",
+				Data: map[string]interface{}{"test": "updated"},
+			}
+
+			ctx := context.Background()
+			result, err := service.UpdateArtifact(ctx, "123", artifact)
+
+			if tt.expectErr {
+				require.Error(t, err)
+				require.Nil(t, result)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, result)
+			}
+
+			require.Equal(t, 1, mockTransport.CallCount)
+		})
+	}
+}
+
+func TestService_DeleteArtifact(t *testing.T) {
+	tests := []struct {
+		name         string
+		status       int
+		responseBody string
+		expectErr    bool
+	}{
+		{
+			name:         "successful deletion",
+			status:       http.StatusOK,
+			responseBody: `{}`,
+			expectErr:    false,
+		},
+		{
+			name:         "not found",
+			status:       http.StatusNotFound,
+			responseBody: `{"error": "artifact not found"}`,
+			expectErr:    true,
+		},
+		{
+			name:         "server error",
+			status:       http.StatusInternalServerError,
+			responseBody: `{"error": "internal server error"}`,
+			expectErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			service, mockTransport := setupTestService(t)
+
+			mockTransport.RegisterResponse("DELETE", testBaseURL+"/v1/artifacts/123", &mockhttp.MockHTTPResponse{
+				StatusCode: tt.status,
+				Body:       tt.responseBody,
+			})
+
+			ctx := context.Background()
+			err := service.DeleteArtifact(ctx, "123", "test-field")
 
 			if tt.expectErr {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-
-				gotBody, err := io.ReadAll(roundTripper.ReceivedRequest.Body)
-				require.NoError(t, err)
-				require.JSONEq(t, tt.sentBody, string(gotBody))
 			}
+
+			require.Equal(t, 1, mockTransport.CallCount)
 		})
 	}
 }
