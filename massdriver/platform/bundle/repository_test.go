@@ -6,6 +6,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/bundle"
+	"github.com/stretchr/testify/require"
 	"oras.land/oras-go/v2/registry/remote"
 )
 
@@ -17,9 +18,10 @@ func TestGetBundleRepository(t *testing.T) {
 		expectErr    bool
 		expectedHost string
 		expectedPath string
+		expectedHTTP bool
 	}{
 		{
-			name: "valid config",
+			name: "valid config with HTTPS",
 			cfg: config.Config{
 				Credentials: &config.Credentials{
 					ID:     "test-org",
@@ -32,6 +34,24 @@ func TestGetBundleRepository(t *testing.T) {
 			expectErr:    false,
 			expectedHost: "registry.example.com",
 			expectedPath: "test-org/test-bundle",
+			expectedHTTP: false,
+		},
+		{
+			name: "valid config with HTTP",
+			cfg: config.Config{
+				Credentials: &config.Credentials{
+					ID:              "test-org",
+					Secret:          "test-secret",
+					AuthHeaderValue: "Basic dGVzdC1vcmc6dGVzdC1zZWNyZXQ=",
+				},
+				OrganizationID: "test-org",
+				URL:            "http://registry.example.com",
+			},
+			bundleName:   "test-bundle",
+			expectErr:    false,
+			expectedHost: "registry.example.com",
+			expectedPath: "test-org/test-bundle",
+			expectedHTTP: true,
 		},
 		{
 			name: "invalid URL",
@@ -69,15 +89,10 @@ func TestGetBundleRepository(t *testing.T) {
 				t.Fatalf("expected *remote.Repository, got %T", repo)
 			}
 
-			if remoteRepo.Reference.Registry != tt.expectedHost {
-				t.Errorf("expected registry %q, got %q", tt.expectedHost, remoteRepo.Reference.Registry)
-			}
-			if remoteRepo.Reference.Repository != tt.expectedPath {
-				t.Errorf("expected repository path %q, got %q", tt.expectedPath, remoteRepo.Reference.Repository)
-			}
-			if remoteRepo.Client == nil {
-				t.Error("expected auth client to be set")
-			}
+			require.Equal(t, tt.expectedHost, remoteRepo.Reference.Registry)
+			require.Equal(t, tt.expectedPath, remoteRepo.Reference.Repository)
+			require.NotNil(t, remoteRepo.Client, "expected auth client to be set")
+			require.Equal(t, tt.expectedHTTP, remoteRepo.PlainHTTP)
 		})
 	}
 }
