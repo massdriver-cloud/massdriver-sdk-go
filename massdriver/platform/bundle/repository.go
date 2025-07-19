@@ -25,6 +25,10 @@ func GetBundleRepository(mdClient *client.Client, bundleName string) (oras.Targe
 		return nil, repoErr
 	}
 
+	if mdUrl.Scheme == "http" {
+		repo.PlainHTTP = true
+	}
+
 	repo.Client = &auth.Client{
 		Client: retry.DefaultClient,
 		Cache:  auth.NewCache(),
