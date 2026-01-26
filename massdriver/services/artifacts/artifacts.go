@@ -10,12 +10,14 @@ import (
 )
 
 type Artifact struct {
-	ID    string                 `json:"id,omitempty"`
-	Field string                 `json:"field,omitempty"`
-	Type  string                 `json:"type"`
-	Name  string                 `json:"name"`
-	Data  map[string]interface{} `json:"data"`
-	Specs map[string]interface{} `json:"specs"`
+	ID      string                 `json:"id,omitempty"`
+	Field   string                 `json:"field,omitempty"`
+	Type    string                 `json:"type"`
+	Name    string                 `json:"name"`
+	Payload map[string]interface{} `json:"payload,omitempty"`
+	// Deprecated: Use Payload instead
+	Data  map[string]interface{} `json:"data,omitempty"`
+	Specs map[string]interface{} `json:"specs,omitempty"`
 }
 
 type Service struct {

@@ -37,7 +37,7 @@ func TestCreateArtifact(t *testing.T) {
 		{
 			name:         "success",
 			status:       201,
-			sentBody:     `{"name":"Created","type":"db","data":{"foo":"bar"},"specs":{"key":"value"}}`,
+			sentBody:     `{"name":"Created","type":"db","payload":{"foo":"bar","key":"value"}}`,
 			responseBody: `{"id":"abc-123","name":"Created"}`,
 			expectID:     "abc-123",
 			expectErr:    false,
@@ -51,10 +51,9 @@ func TestCreateArtifact(t *testing.T) {
 	}
 
 	input := artifacts.Artifact{
-		Name:  "Created",
-		Type:  "db",
-		Data:  map[string]interface{}{"foo": "bar"},
-		Specs: map[string]interface{}{"key": "value"},
+		Name:    "Created",
+		Type:    "db",
+		Payload: map[string]interface{}{"foo": "bar", "key": "value"},
 	}
 
 	for _, tt := range tests {
@@ -145,7 +144,7 @@ func TestUpdateArtifact(t *testing.T) {
 		{
 			name:         "success",
 			status:       200,
-			sentBody:     `{"id":"xyz-789","name":"Updated","type":"db","data":{"bar":"baz"},"specs":{"x":"y"}}`,
+			sentBody:     `{"id":"xyz-789","name":"Updated","type":"db","payload":{"bar":"baz","x":"y"}}`,
 			responseBody: `{"id":"xyz-789","name":"Updated"}`,
 			expectErr:    false,
 			expectID:     "xyz-789",
@@ -159,11 +158,10 @@ func TestUpdateArtifact(t *testing.T) {
 	}
 
 	input := artifacts.Artifact{
-		ID:    "xyz-789",
-		Name:  "Updated",
-		Type:  "db",
-		Data:  map[string]interface{}{"bar": "baz"},
-		Specs: map[string]interface{}{"x": "y"},
+		ID:      "xyz-789",
+		Name:    "Updated",
+		Type:    "db",
+		Payload: map[string]interface{}{"bar": "baz", "x": "y"},
 	}
 
 	for _, tt := range tests {
