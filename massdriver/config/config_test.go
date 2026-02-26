@@ -16,10 +16,12 @@ profiles:
   default:
     organization_id: "profile-org"
     api_key: "profile-key"
+    templates_path: "/default/templates"
   custom:
     organization_id: "custom-org"
     api_key: "custom-key"
     url: "https://custom.massdriver.cloud"
+    templates_path: "/custom/templates"
 `
 	xdgProfileYAML := `
 version: 1
@@ -107,6 +109,7 @@ profiles:
 				OrganizationID: "org-id",
 				URL:            "https://custom.massdriver.cloud",
 				Profile:        "custom",
+				TemplatesPath:  "/custom/templates",
 				Credentials: &config.Credentials{
 					Method:          config.AuthAPIKey,
 					ID:              "org-id",
@@ -125,6 +128,7 @@ profiles:
 				OrganizationID: "custom-org",
 				URL:            "https://custom.massdriver.cloud",
 				Profile:        "custom",
+				TemplatesPath:  "/custom/templates",
 				Credentials: &config.Credentials{
 					Method:          config.AuthAPIKey,
 					ID:              "custom-org",
@@ -141,6 +145,7 @@ profiles:
 				OrganizationID: "profile-org",
 				URL:            "https://api.massdriver.cloud",
 				Profile:        "default",
+				TemplatesPath:  "/default/templates",
 				Credentials: &config.Credentials{
 					Method:          config.AuthAPIKey,
 					ID:              "profile-org",
@@ -161,11 +166,32 @@ profiles:
 				OrganizationID: "env-org",
 				URL:            "https://custom.massdriver.cloud",
 				Profile:        "custom",
+				TemplatesPath:  "/custom/templates",
 				Credentials: &config.Credentials{
 					Method:          config.AuthAPIKey,
 					ID:              "env-org",
 					Secret:          "env-key",
 					AuthHeaderValue: "Basic ZW52LW9yZzplbnYta2V5",
+				},
+			},
+		},
+		{
+			name: "templates_path env var takes precedence over profile",
+			env: map[string]string{
+				"MASSDRIVER_PROFILE":        "custom",
+				"MASSDRIVER_TEMPLATES_PATH": "/env/templates",
+			},
+			writeProfile: true,
+			expectConfig: &config.Config{
+				OrganizationID: "custom-org",
+				URL:            "https://custom.massdriver.cloud",
+				Profile:        "custom",
+				TemplatesPath:  "/env/templates",
+				Credentials: &config.Credentials{
+					Method:          config.AuthAPIKey,
+					ID:              "custom-org",
+					Secret:          "custom-key",
+					AuthHeaderValue: "Basic Y3VzdG9tLW9yZzpjdXN0b20ta2V5",
 				},
 			},
 		},

@@ -18,6 +18,7 @@ type configFileProfile struct {
 	OrganizationID string `json:"organization_id" yaml:"organization_id"`
 	APIKey         string `json:"api_key" yaml:"api_key"`
 	URL            string `json:"url" yaml:"url"`
+	TemplatesPath  string `json:"templates_path" yaml:"templates_path"`
 }
 type configFile struct {
 	Version  int                          `json:"version" yaml:"version"`
@@ -32,6 +33,7 @@ type configEnvs struct {
 	DeploymentToken string `json:"deployment_token" yaml:"deployment_token" envconfig:"TOKEN"`
 	Profile         string `json:"profile" yaml:"profile" envconfig:"PROFILE"`
 	URL             string `json:"url" yaml:"url" envconfig:"URL"`
+	TemplatesPath   string `json:"templates_path" yaml:"templates_path" envconfig:"TEMPLATES_PATH"`
 }
 
 type Config struct {
@@ -39,6 +41,7 @@ type Config struct {
 	OrganizationID string
 	Profile        string
 	URL            string
+	TemplatesPath  string
 }
 
 func Get() (*Config, error) {
@@ -83,6 +86,7 @@ func initializeConfig() (*Config, error) {
 
 	cfg.OrganizationID = coalesceString(configEnvs.OrganizationID, configEnvs.OrgId, profile.OrganizationID)
 	cfg.URL = coalesceString(configEnvs.URL, profile.URL, defaultURL)
+	cfg.TemplatesPath = coalesceString(configEnvs.TemplatesPath, profile.TemplatesPath)
 
 	credentials, credErr := resolveCredentials(configEnvs, &profile)
 	if credErr != nil {
