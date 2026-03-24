@@ -8,7 +8,7 @@ import (
 )
 
 const gqlV0Path = "/api"
-const gqlV1Path = "/api/v1"
+const gqlV1Path = "/api/graphql/v1"
 
 type RoundTripperWithHeaders struct {
 	Headers map[string]string
