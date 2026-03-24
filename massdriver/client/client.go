@@ -11,6 +11,7 @@ type Client struct {
 	Config config.Config
 	HTTP   *resty.Client
 	GQL    graphql.Client
+	GQLv1  graphql.Client
 }
 
 func New() (*Client, error) {
@@ -25,11 +26,10 @@ func New() (*Client, error) {
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json")
 
-	gqlClient := gql.NewClient(cfg)
-
 	return &Client{
 		Config: *cfg,
 		HTTP:   http,
-		GQL:    gqlClient,
+		GQL:    gql.NewV0Client(cfg),
+		GQLv1:  gql.NewV1Client(cfg),
 	}, nil
 }
