@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/base64"
 	"fmt"
+	"strings"
 )
 
 type AuthMethod string
@@ -11,6 +12,7 @@ type CredentialSource string
 const (
 	AuthDeployment AuthMethod = "deployment"
 	AuthAPIKey     AuthMethod = "api_key"
+	AuthPAT        AuthMethod = "personal_access_token"
 )
 
 type Credentials struct {
@@ -38,6 +40,15 @@ func resolveCredentials(envs *configEnvs, profile *configFileProfile) (*Credenti
 	organizationID := coalesceString(envs.OrganizationID, envs.OrgId, profile.OrganizationID)
 	apiKey := coalesceString(envs.APIKey, profile.APIKey)
 	if organizationID != "" && apiKey != "" {
+		if strings.HasPrefix(apiKey, "mds_") || strings.HasPrefix(apiKey, "md_") {
+			return &Credentials{
+				Method:          AuthPAT,
+				ID:              organizationID,
+				Secret:          apiKey,
+				AuthHeaderValue: "Bearer " + apiKey,
+			}, nil
+		}
+
 		encoded := base64.StdEncoding.EncodeToString([]byte(organizationID + ":" + apiKey))
 		return &Credentials{
 			Method:          AuthAPIKey,
