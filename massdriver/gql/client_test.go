@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Khan/genqlient/graphql"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/stretchr/testify/require"
 )
@@ -43,4 +45,29 @@ func TestRoundTripperWithHeaders_SetsHeaders(t *testing.T) {
 	require.NotNil(t, capturedRequest)
 	require.Equal(t, "Bearer test-token", capturedRequest.Header.Get("Authorization"))
 	require.Equal(t, "application/json", capturedRequest.Header.Get("Content-Type"))
+}
+
+func TestNewV2Client_UsesV2Path(t *testing.T) {
+	var capturedPath string
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedPath = r.URL.Path
+		w.WriteHeader(http.StatusOK)
+		io.WriteString(w, `{"data": {}}`)
+	}))
+	defer server.Close()
+
+	cfg := &config.Config{
+		URL: server.URL,
+		Credentials: &config.Credentials{
+			AuthHeaderValue: "Bearer test-token",
+		},
+	}
+
+	client := gql.NewV2Client(cfg)
+
+	var resp graphql.Response
+	err := client.MakeRequest(context.TODO(), &graphql.Request{Query: "query { __typename }"}, &resp)
+	require.NoError(t, err)
+	require.Equal(t, "/api/v2", capturedPath)
 }
