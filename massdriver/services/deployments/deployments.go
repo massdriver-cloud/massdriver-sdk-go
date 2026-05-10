@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/client"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/rest"
 )
 

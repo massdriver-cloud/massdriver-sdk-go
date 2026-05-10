@@ -1,6 +1,7 @@
 package config
 
 import (
+	"cmp"
 	"fmt"
 	"net/url"
 	"os"
@@ -37,40 +38,79 @@ type configEnvs struct {
 }
 
 type Config struct {
-	Credentials    *Credentials
+	Credentials    Credentials
 	OrganizationID string
 	Profile        string
 	URL            string
-	TemplatesPath  string
+	// TemplatesPath is the directory the Massdriver CLI uses to
+	// scaffold new bundles. The SDK itself does not consume this
+	// field — it is loaded for the benefit of CLI tools that share
+	// this config-resolution code. Safe to ignore in non-CLI usage.
+	TemplatesPath string
 }
 
-func Get() (*Config, error) {
+// Overrides are caller-supplied values that win over environment
+// variables and the config file. Empty strings mean "no override —
+// fall back to env/file."
+type Overrides struct {
+	APIKey         string
+	OrganizationID string
+	URL            string
+	Profile        string
+}
 
-	cfg, initErr := initializeConfig()
+// Get is shorthand for [Load](Overrides{}).
+func Get() (Config, error) {
+	return Load(Overrides{})
+}
+
+// Load resolves a [Config] from environment variables, the active
+// profile in ~/.config/massdriver/config.yaml, and the supplied
+// [Overrides] (highest precedence).
+func Load(o Overrides) (Config, error) {
+	cfg, initErr := initializeConfig(o)
 	if initErr != nil {
-		return nil, fmt.Errorf("error initializing configuration: %w", initErr)
+		return Config{}, fmt.Errorf("error initializing configuration: %w", initErr)
 	}
 
 	validateErr := validateConfig(cfg)
 	if validateErr != nil {
-		return nil, fmt.Errorf("configuration is invalid: %w", validateErr)
+		return Config{}, fmt.Errorf("configuration is invalid: %w", validateErr)
 	}
 
 	return cfg, nil
 }
 
-func initializeConfig() (*Config, error) {
+func initializeConfig(o Overrides) (Config, error) {
 	cfg := Config{}
 
 	configEnvs, configEnvsErr := getConfigEnvs()
 	if configEnvsErr != nil {
-		return nil, fmt.Errorf("error reading environment configuration: %w", configEnvsErr)
+		return Config{}, fmt.Errorf("error reading environment configuration: %w", configEnvsErr)
+	}
+
+	// Apply overrides on top of env-sourced values. Overrides win.
+	// Track whether the API key was supplied via an option so the
+	// resolved Credentials carries the right Source.
+	var apiKeyOrigin CredentialSource
+	if o.OrganizationID != "" {
+		configEnvs.OrganizationID = o.OrganizationID
+	}
+	if o.APIKey != "" {
+		configEnvs.APIKey = o.APIKey
+		apiKeyOrigin = SourceOption
+	}
+	if o.URL != "" {
+		configEnvs.URL = o.URL
+	}
+	if o.Profile != "" {
+		configEnvs.Profile = o.Profile
 	}
 
 	profile := configFileProfile{}
 	configFile, configFileErr := getConfigFile()
 	if configFileErr != nil {
-		return nil, fmt.Errorf("error reading config file: %w", configFileErr)
+		return Config{}, fmt.Errorf("error reading config file: %w", configFileErr)
 	}
 	if configFile != nil && configFile.Profiles != nil {
 		profileName := configEnvs.Profile
@@ -84,17 +124,17 @@ func initializeConfig() (*Config, error) {
 		}
 	}
 
-	cfg.OrganizationID = coalesceString(configEnvs.OrganizationID, configEnvs.OrgId, profile.OrganizationID)
-	cfg.URL = coalesceString(configEnvs.URL, profile.URL, defaultURL)
-	cfg.TemplatesPath = coalesceString(configEnvs.TemplatesPath, profile.TemplatesPath)
+	cfg.OrganizationID = cmp.Or(configEnvs.OrganizationID, configEnvs.OrgId, profile.OrganizationID)
+	cfg.URL = cmp.Or(configEnvs.URL, profile.URL, defaultURL)
+	cfg.TemplatesPath = cmp.Or(configEnvs.TemplatesPath, profile.TemplatesPath)
 
-	credentials, credErr := resolveCredentials(configEnvs, &profile)
+	credentials, credErr := resolveCredentials(configEnvs, &profile, apiKeyOrigin)
 	if credErr != nil {
-		return nil, fmt.Errorf("error resolving credentials: %w", credErr)
+		return Config{}, fmt.Errorf("error resolving credentials: %w", credErr)
 	}
 	cfg.Credentials = credentials
 
-	return &cfg, nil
+	return cfg, nil
 }
 
 func getConfigFile() (*configFile, error) {
@@ -142,12 +182,12 @@ func getConfigEnvs() (*configEnvs, error) {
 	return envs, nil
 }
 
-func validateConfig(cfg *Config) error {
+func validateConfig(cfg Config) error {
 	if cfg.OrganizationID == "" {
 		return fmt.Errorf("organization ID is required")
 	}
 
-	if cfg.Credentials == nil || cfg.Credentials.ID == "" || cfg.Credentials.Secret == "" {
+	if cfg.Credentials.ID == "" || cfg.Credentials.Secret == "" {
 		return fmt.Errorf("credentials are required")
 	}
 
@@ -164,11 +204,3 @@ func validateConfig(cfg *Config) error {
 	return nil
 }
 
-func coalesceString(values ...string) string {
-	for _, v := range values {
-		if v != "" {
-			return v
-		}
-	}
-	return ""
-}

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/client"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/mockhttp"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/services/artifacts"
 	"github.com/stretchr/testify/require"
