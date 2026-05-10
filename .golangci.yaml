@@ -1,258 +1,182 @@
-## Golden config for golangci-lint v1.46.2
-#
-# This is the best config for golangci-lint based on my experience and opinion.
-# It is very strict, but not extremely strict.
-# Feel free to adopt and change it for your needs.
-version: 2
+version: "2"
 
 run:
-  # Timeout for analysis, e.g. 30s, 5m.
-  # Default: 1m
   timeout: 3m
-
-# This file contains only configs which differ from defaults.
-# All possible options can be found here https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
-linters-settings:
-  cyclop:
-    # The maximal code complexity to report.
-    # Default: 10
-    max-complexity: 30
-    # The maximal average package complexity.
-    # If it's higher than 0.0 (float) the check is enabled
-    # Default: 0.0
-    package-average: 10.0
-
-  errcheck:
-    # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
-    # Such cases aren't reported by default.
-    # Default: false
-    check-type-assertions: true
-
-  funlen:
-    # Checks the number of lines in a function.
-    # If lower than 0, disable the check.
-    # Default: 60
-    lines: 100
-    # Checks the number of statements in a function.
-    # If lower than 0, disable the check.
-    # Default: 40
-    statements: 51
-
-  gocognit:
-    # Minimal code complexity to report
-    # Default: 30 (but we recommend 10-20)
-    min-complexity: 20
-
-  gocritic:
-    # Settings passed to gocritic.
-    # The settings key is the name of a supported gocritic checker.
-    # The list of supported checkers can be find in https://go-critic.github.io/overview.
-    settings:
-      captLocal:
-        # Whether to restrict checker to params only.
-        # Default: true
-        paramsOnly: false
-      underef:
-        # Whether to skip (*x).method() calls where x is a pointer receiver.
-        # Default: true
-        skipRecvDeref: false
-
-  gomodguard:
-    blocked:
-      # List of blocked modules.
-      # Default: []
-      modules:
-        - github.com/golang/protobuf:
-            recommendations:
-              - google.golang.org/protobuf
-            reason: "see https://developers.google.com/protocol-buffers/docs/reference/go/faq#modules"
-        - github.com/satori/go.uuid:
-            recommendations:
-              - github.com/google/uuid
-            reason: "satori's package is not maintained"
-        - github.com/gofrs/uuid:
-            recommendations:
-              - github.com/google/uuid
-            reason: "see recommendation from dev-infra team: https://confluence.gtforge.com/x/gQI6Aw"
-
-  govet:
-    # Enable all analyzers.
-    # Default: false
-    enable-all: true
-    # Disable analyzers by name.
-    # Run `go tool vet help` to see all analyzers.
-    # Default: []
-    disable:
-      - fieldalignment # too strict
-    # Settings per analyzer.
-    settings:
-      shadow:
-        # Whether to be strict about shadowing; can be noisy.
-        # Default: false
-        strict: true
-
-  nakedret:
-    # Make an issue if func has more lines of code than this setting, and it has naked returns.
-    # Default: 30
-    max-func-lines: 0
-
-  nolintlint:
-    # Exclude following linters from requiring an explanation.
-    # Default: []
-    allow-no-explanation: [funlen, gocognit, lll]
-    # Enable to require an explanation of nonzero length after each nolint directive.
-    # Default: false
-    require-explanation: false
-    # Enable to require nolint directives to mention the specific linter being suppressed.
-    # Default: false
-    require-specific: true
-
-  rowserrcheck:
-    # database/sql is always checked
-    # Default: []
-    packages:
-      - github.com/jmoiron/sqlx
-
-  tenv:
-    # The option `all` will run against whole test files (`_test.go`) regardless of method/function signatures.
-    # Otherwise, only methods that take `*testing.T`, `*testing.B`, and `testing.TB` as arguments are checked.
-    # Default: false
-    all: true
+  # Analyze test files too — but with relaxed rules for tests below.
+  tests: true
+  # Build tags so integration test files are also analyzed.
+  build-tags:
+    - integration
 
 linters:
+  default: standard
   enable:
-    - errcheck # Errcheck is a program for checking for unchecked errors in go programs. These unchecked errors can be critical bugs in some cases
-    - govet # Vet examines Go source code and reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
-    - ineffassign # Detects when assignments to existing variables are not used
-    - staticcheck # Staticcheck is a go vet on steroids, applying a ton of static analysis checks
-    - unused # Checks Go code for unused constants, variables, functions and types
-    - asciicheck # Simple linter to check that your code does not contain non-ASCII identifiers
-    - bidichk # Checks for dangerous unicode character sequences
-    - bodyclose # checks whether HTTP response body is closed successfully
-    - contextcheck # check the function whether use a non-inherited context
-    - cyclop # checks function and package cyclomatic complexity
-    - dupl # Tool for code clone detection
-    - durationcheck # check for two durations multiplied together
-    - errname # Checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error.
-    - errorlint # errorlint is a linter for that can be used to find code that will cause problems with the error wrapping scheme introduced in Go 1.13.
-    # - execinquery # execinquery is a linter about query string checker in Query function which reads your Go src files and warning it finds
-    - exhaustive # check exhaustiveness of enum switch statements
-    # - forbidigo # Forbids identifiers
-    - funlen # Tool for detection of long functions
-    # - gochecknoglobals # check that no global variables exist
-    # - gochecknoinits # Checks that no init functions are present in Go code
-    - gocognit # Computes and checks the cognitive complexity of functions
-    - goconst # Finds repeated strings that could be replaced by a constant
-    - gocritic # Provides diagnostics that check for bugs, performance and style issues.
-    - gocyclo # Computes and checks the cyclomatic complexity of functions
-    # - godot # Check if comments end in a period
-    # - gomnd # An analyzer to detect magic numbers.
-    - gomoddirectives # Manage the use of 'replace', 'retract', and 'excludes' directives in go.mod.
-    - gomodguard # Allow and block list linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations.
-    - goprintffuncname # Checks that printf-like functions are named with f at the end
-    - gosec # Inspects source code for security problems
-    # - lll # Reports long lines
-    - makezero # Finds slice declarations with non-zero initial length
-    - nakedret # Finds naked returns in functions greater than a specified function length
-    # - nestif # Reports deeply nested if statements
-    - nilerr # Finds the code that returns nil even if it checks that the error is not nil.
-    # - nilnil # Checks that there is no simultaneous return of nil error and an invalid value.
-    - noctx # noctx finds sending http request without context.Context
-    - nolintlint # Reports ill-formed or insufficient nolint directives
-    # - nonamedreturns # Reports all named returns
-    # - nosprintfhostport # Checks for misuse of Sprintf to construct a host with port in a URL.
-    - predeclared # find code that shadows one of Go's predeclared identifiers
-    - promlinter # Check Prometheus metrics naming via promlint
-    - revive # Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
-    - rowserrcheck # checks whether Err of rows is checked successfully
-    - sqlclosecheck # Checks that sql.Rows and sql.Stmt are closed.
-    - testpackage # linter that makes you use a separate _test package
-    - tparallel # tparallel detects inappropriate usage of t.Parallel() method in your Go test codes
-    - unconvert # Remove unnecessary type conversions
-    - unparam # Reports unused function parameters
-    - wastedassign # wastedassign finds wasted assignment statements.
-    - whitespace # Tool for detection of leading and trailing whitespace
-    ## you may want to enable
-    #- decorder # check declaration order and count of types, constants, variables and functions
-    #- exhaustruct # Checks if all structure fields are initialized
-    #- goheader # Checks is file header matches to pattern
-    #- ireturn # Accept Interfaces, Return Concrete Types
-    #- prealloc # [premature optimization, but can be used in some cases] Finds slice declarations that could potentially be preallocated
-    #- varnamelen # [great idea, but too many false positives] checks that the length of a variable's name matches its scope
-    #- wrapcheck # Checks that errors returned from external packages are wrapped
-    ## disabled
-    #- containedctx # containedctx is a linter that detects struct contained context.Context field
-    #- depguard # [replaced by gomodguard] Go linter that checks if package imports are in a list of acceptable packages
-    #- dogsled # Checks assignments with too many blank identifiers (e.g. x, _, _, _, := f())
-    #- errchkjson # [don't see profit + I'm against of omitting errors like in the first example https://github.com/breml/errchkjson] Checks types passed to the json encoding functions. Reports unsupported types and optionally reports occasions, where the check for the returned error can be omitted.
-    #- forcetypeassert # [replaced by errcheck] finds forced type assertions
-    #- gci # Gci controls golang package import order and makes it always deterministic.
-    - godox # Tool for detection of FIXME, TODO and other comment keywords
-    #- goerr113 # [too strict] Golang linter to check the errors handling expressions
-    #- gofmt # [replaced by goimports] Gofmt checks whether code was gofmt-ed. By default this tool runs with -s option to check for code simplification
-    #- gofumpt # [replaced by goimports, gofumports is not available yet] Gofumpt checks whether code was gofumpt-ed.
-    #- grouper # An analyzer to analyze expression groups.
-    #- ifshort # Checks that your code uses short syntax for if-statements whenever possible
-    #- importas # Enforces consistent import aliases
-    #- maintidx # maintidx measures the maintainability index of each function.
-    #- misspell # [useless] Finds commonly misspelled English words in comments
-    #- nlreturn # [too strict and mostly code is not more readable] nlreturn checks for a new line before return and branch statements to increase code clarity
-    #- paralleltest # [too many false positives] paralleltest detects missing usage of t.Parallel() method in your Go test
-    #- tagliatelle # Checks the struct tags.
-    #- thelper # thelper detects golang test helpers without t.Helper() call and checks the consistency of test helpers
-    #- wsl # [too strict and mostly code is not more readable] Whitespace Linter - Forces you to use empty lines!
-    ## deprecated
-    #- exhaustivestruct # [deprecated, replaced by exhaustruct] Checks if all struct's fields are initialized
-    #- golint # [deprecated, replaced by revive] Golint differs from gofmt. Gofmt reformats Go source code, whereas golint prints out style mistakes
-    #- interfacer # [deprecated] Linter that suggests narrower interface types
-    #- maligned # [deprecated, replaced by govet fieldalignment] Tool to detect Go structs that would take less memory if their fields were sorted
-    #- scopelint # [deprecated, replaced by exportloopref] Scopelint checks for unpinned variables in go programs
+    # Default set is { errcheck, govet, ineffassign, staticcheck, unused }.
+    # Add a small, opinionated set of higher-signal linters on top.
+    - bodyclose # detects HTTP response bodies that are never closed
+    - contextcheck # context.Context is propagated correctly
+    - copyloopvar # post-Go-1.22 loopvar semantics; flags accidental shared captures
+    - cyclop # cyclomatic complexity (with tuned threshold below)
+    - dupl # large duplicated blocks (suppressed for the Iter pattern)
+    - errname # error variables named ErrFoo and types named FooError
+    - errorlint # checks for the wrong way to wrap errors
+    - exhaustive # exhaustive switch on enum-like types
+    - gosec # security checks
+    - misspell # spelling
+    - revive # successor to golint; doc comments, naming, etc.
+    - testifylint # idiomatic testify usage
+    - testpackage # use of `package foo_test` for external tests
+    - unconvert # redundant type conversions
+    - unparam # unused function parameters
+    - whitespace # leading/trailing whitespace inside blocks
 
-issues:
-  # Maximum count of issues with the same text.
-  # Set to 0 to disable.
-  # Default: 3
-  max-same-issues: 50
+  settings:
+    cyclop:
+      # Default 10 is too tight for this codebase's pagination loops
+      # and exhaustive case analysis. 20 keeps real complexity flagged
+      # without nagging on legitimate breadth.
+      max-complexity: 20
 
-  exclude:
-    # These files are _incidentally_ duplicated.
-    - "(\\d+)-(\\d+) lines are duplicate of `cmd/infrastructure.go:(\\d+)-(\\d+)`"
-    - "(\\d+)-(\\d+) lines are duplicate of `cmd/application.go:(\\d+)-(\\d+)`"
-    # I get it, but this function name makes sense
-    - "cognitive complexity 28 of func `\\(\\*Bundle\\).LintParamsConnectionsNameCollision` is high \\(> 20\\)"
+    errcheck:
+      # Don't require error checks for these stdlib helpers — overhead
+      # without value.
+      exclude-functions:
+        - io.WriteString
+        - (*net/http.Request).Write
+        - (io.Closer).Close
+        - (net.Conn).Close
 
-  exclude-rules:
-    # Allow unused params at the cobra command level
-    - linters: [revive]
-      text: "unused-parameter: parameter ('cmd'|'args') seems to be unused, consider removing or renaming it as _"
-    # GQL client autogens to artifactId and orgId
-    - linters: [revive]
-      text: "var-naming: var artifactId should be artifactID"
-    - linters: [revive]
-      text: "var-naming: (var|func parameter) orgId should be orgID"
-    - linters: [stylecheck]
-      text: "ST1003: func parameter orgId should be orgID"
-    - source: "^//\\s*go:generate\\s"
-      linters: [lll]
-    # Allow TODO for now
-    - source: "(noinspection|TODO)"
-      linters: [godox]
-    - source: "//noinspection"
-      linters: [gocritic]
-    - source: "^\\s+if _, ok := err\\.\\([^.]+\\.InternalError\\); ok {"
-      linters: [errorlint]
-    - path: "_test\\.go"
-      linters:
-        - revive
-        - bodyclose
-        - dupl
-        - funlen
-        - goconst
-        - gosec
-        - noctx
-        - wrapcheck
-        - gocognit
-        - cyclop
-    # Ignore the file, this is part of the prompt flow which isn't currently setup to be tested
-    - linters: [testpackage]
-      path: "pkg/bundle/prompt_test.go"
+    revive:
+      # High-signal rules only. The doc-comment-on-every-export rule
+      # ("exported", "package-comments") is great in principle but
+      # noisy on enum-style const blocks where the type carries the
+      # docs and the values are self-describing. Skipping until we
+      # find we want it back.
+      rules:
+        - name: var-naming
+        - name: unused-parameter
+        - name: indent-error-flow
+        - name: superfluous-else
+        - name: unreachable-code
+        - name: redefines-builtin-id
+        - name: error-return
+        - name: error-naming
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: errorf
+        - name: dot-imports
+        - name: blank-imports
+
+    gosec:
+      excludes:
+        - G304 # Variable file paths — fine for ~/.config-style lookups.
+        - G115 # int overflow conversions — almost always false positive in tests.
+
+  exclusions:
+    # Default presets handle obvious noise (vendored code, generated
+    # files, etc.) plus we add per-path overrides below.
+    presets:
+      - common-false-positives
+      - legacy
+      - std-error-handling
+
+    rules:
+      # Tests get relaxed treatment: complexity is fine (table tests
+      # are inherently branchy), repeated literals are fine, doc
+      # comments aren't required.
+      - path: _test\.go
+        linters:
+          - cyclop
+          - dupl
+          - errcheck
+          - errorlint
+          - funlen
+          - gocognit
+          - gosec
+          - goconst
+          - revive
+          - testpackage
+          - unparam
+
+      # Compile-time type assertions in tests like
+      # `var _ *types.Foo = got.Field` are intentional — the
+      # explicit type is the point. staticcheck's QF1011 wants the
+      # type omitted, which would defeat the assertion.
+      - path: _test\.go
+        text: "QF1011"
+        linters:
+          - staticcheck
+
+      # Internal packages aren't part of the public API; doc comments
+      # on every exported symbol there are nice but not required.
+      - path: massdriver/internal/
+        linters:
+          - revive
+
+      # Legacy serde alias on the env-config struct kept for
+      # backward compat with existing user setups.
+      - text: "var-naming: struct field OrgId should be OrgID"
+        linters:
+          - revive
+
+      # The types package name is intentional — it's the canonical
+      # home for all platform types and short imports read better
+      # (`types.Project`, `types.Resource`).
+      - path: massdriver/platform/types/
+        text: "avoid meaningless package names"
+        linters:
+          - revive
+
+      # Generated genqlient code: don't lint at all.
+      - path: massdriver/internal/gen/zz_generated\.go
+        linters:
+          - all
+
+      # The auditlogs.Iter and instances.IterAlarms helpers are
+      # near-clones of their package's List loop by design — same
+      # logic, different shape.
+      - path: massdriver/platform/.+/(auditlogs|instances|alarms)\.go
+        linters:
+          - dupl
+
+      # Absinthe socket dispatch is a switch on Phoenix frame events;
+      # the breadth is the point of the function.
+      - path: massdriver/internal/absinthe/socket\.go
+        text: "function dispatch"
+        linters:
+          - cyclop
+
+      # TailLogs orchestrates backfill + subscription + drain; its
+      # complexity is essential, not accidental. Refactor would make
+      # the flow harder to follow.
+      - path: massdriver/platform/deployments/stream\.go
+        text: "function TailLogs"
+        linters:
+          - cyclop
+
+      # provisioning/* is the REST surface called by xo (baked into
+      # provisioner containers) and by the Terraform provider —
+      # it's a separate audience from the GraphQL platform packages
+      # and gets relaxed lint treatment to match its history.
+      - path: massdriver/provisioning/
+        linters:
+          - revive
+          - errorlint
+          - testifylint
+
+      # MutationFailed is the user-facing error type for failed
+      # mutations; renaming to MutationFailedError reads worse and
+      # would be a breaking-change in the public API.
+      - path: massdriver/gql/errors\.go
+        text: "error type name `MutationFailed`"
+        linters:
+          - errname
+
+      # absinthe.Subscription.Close uses its own short timeout
+      # internally (it's invoked from a goroutine watching ctx.Done).
+      # Threading the parent ctx would deadlock during cancellation.
+      - path: massdriver/platform/deployments/stream\.go
+        text: "should pass the context parameter"
+        linters:
+          - contextcheck

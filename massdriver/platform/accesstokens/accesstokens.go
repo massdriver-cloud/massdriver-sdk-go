@@ -212,6 +212,8 @@ func buildListFilter(input ListInput) *gen.AccessTokensFilter {
 	case StatusRevoked:
 		v := true
 		return &gen.AccessTokensFilter{Revoked: &v}
+	case StatusAny:
+		return nil
 	}
 	return nil
 }

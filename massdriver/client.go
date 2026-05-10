@@ -24,14 +24,14 @@ import (
 
 // Client is the top-level SDK client. Each domain service is a field;
 // access is just `c.<Service>.<Method>(ctx, ...)`. Construct with
-// [NewClient].
+// [NewClient]. Read the resolved configuration via [Client.Config].
 type Client struct {
-	// Config is the resolved configuration this client uses —
-	// organization id, base URL, the credential, the source it
-	// came from. Read-only after construction; mutating it has no
-	// effect on subsequent service calls because each service has
-	// already captured its own transport client.
-	Config config.Config
+	// config is the resolved configuration; exposed read-only via
+	// [Client.Config]. Kept unexported so callers can't accidentally
+	// mutate fields and expect the change to propagate to in-flight
+	// services (it doesn't — each service has captured its own
+	// transport client at construction time).
+	config config.Config
 
 	// AccessTokens manages personal access tokens (PATs) for the
 	// authenticated identity.
@@ -76,6 +76,12 @@ type Client struct {
 	// Viewer reports the currently-authenticated identity.
 	Viewer *viewer.Service
 }
+
+// Config returns the resolved configuration this client uses —
+// organization id, base URL, credentials, the source they came from,
+// etc. The returned value is a copy; mutating it has no effect on
+// subsequent service calls.
+func (c *Client) Config() config.Config { return c.config }
 
 // NewClient constructs the SDK client.
 //
@@ -139,7 +145,7 @@ func NewClient(opts ...Option) (*Client, error) {
 // Internal — used by [NewClient] and by internal tests.
 func wrap(c *client.Client) *Client {
 	return &Client{
-		Config:          c.Config,
+		config:          c.Config,
 		AccessTokens:    accesstokens.New(c),
 		AuditLogs:       auditlogs.New(c),
 		Bundles:         bundles.New(c),

@@ -77,6 +77,8 @@ func IsTerminal(status string) bool {
 	switch Status(status) {
 	case StatusCompleted, StatusFailed, StatusRejected, StatusAborted:
 		return true
+	case StatusProposed, StatusApproved, StatusPending, StatusRunning:
+		return false
 	}
 	return false
 }
@@ -419,6 +421,8 @@ func buildListSort(input ListInput) *gen.DeploymentsSort {
 		field = gen.DeploymentsSortFieldCreatedAt
 	case SortByStatus:
 		field = gen.DeploymentsSortFieldStatus
+	case SortByUpdatedAt:
+		// already the default
 	}
 	order := gen.SortOrderDesc
 	if input.SortOrder == SortAsc {

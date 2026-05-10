@@ -85,6 +85,22 @@ field. Common entry points:
 | `c.Organizations` | Organization metadata + custom-attribute schema. |
 | `c.Server`, `c.Viewer`, `c.URLs` | Server metadata, current identity, deep links. |
 
+## Two API surfaces
+
+This repo ships two separate SDK surfaces. Most users only need the
+first.
+
+- [`massdriver/platform`](massdriver/platform) — the GraphQL **platform
+  API**, accessed through `*massdriver.Client`. Authenticated with
+  personal access tokens or service-account keys. This is the public
+  SDK for any tooling that talks to Massdriver from outside a
+  deployment (CLIs, dashboards, automation, custom integrations).
+- [`massdriver/provisioning`](massdriver/provisioning) — REST endpoints
+  intended **only** for code running inside a provisioner during a
+  deployment run. These endpoints accept deployment-token auth only,
+  scoped to the in-flight deployment. Don't import this from
+  general-purpose tooling — use `platform` for that.
+
 ## Errors
 
 Every wrapper returns errors that callers can classify with `errors.Is`

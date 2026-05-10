@@ -1,4 +1,4 @@
-package artifacts_test
+package resources_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/mockhttp"
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/services/artifacts"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/provisioning/resources"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,7 +25,7 @@ func newTestClient(r *mockhttp.MockHTTPResponse) (*client.Client, *mockhttp.Muta
 	}, &roundtripper
 }
 
-func TestCreateArtifact(t *testing.T) {
+func TestCreateResource(t *testing.T) {
 	tests := []struct {
 		name         string
 		status       int
@@ -37,7 +37,7 @@ func TestCreateArtifact(t *testing.T) {
 		{
 			name:         "success",
 			status:       201,
-			sentBody:     `{"name":"Created","type":"db","payload":{"foo":"bar","key":"value"}}`,
+			sentBody:     `{"id":"abc-123","name":"Created","field":"database","type":"db","payload":{"foo":"bar","key":"value"}}`,
 			responseBody: `{"id":"abc-123","name":"Created"}`,
 			expectID:     "abc-123",
 			expectErr:    false,
@@ -50,18 +50,20 @@ func TestCreateArtifact(t *testing.T) {
 		},
 	}
 
-	input := artifacts.Artifact{
+	input := resources.Resource{
+		ID:      "abc-123",
 		Name:    "Created",
 		Type:    "db",
+		Field:   "database",
 		Payload: map[string]interface{}{"foo": "bar", "key": "value"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client, roundTripper := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.responseBody})
-			service := artifacts.NewService(client)
+			service := resources.NewService(client)
 
-			result, err := service.CreateArtifact(context.Background(), &input)
+			result, err := service.CreateResource(context.Background(), &input)
 
 			if tt.expectErr {
 				require.Error(t, err)
@@ -78,7 +80,7 @@ func TestCreateArtifact(t *testing.T) {
 	}
 }
 
-func TestGetArtifact(t *testing.T) {
+func TestGetResource(t *testing.T) {
 	tests := []struct {
 		name         string
 		status       int
@@ -114,9 +116,9 @@ func TestGetArtifact(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client, _ := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.responseBody})
-			service := artifacts.NewService(client)
+			service := resources.NewService(client)
 
-			result, err := service.GetArtifact(context.Background(), "any-id")
+			result, err := service.GetResource(context.Background(), "any-id")
 
 			if tt.expectErr {
 				require.Error(t, err)
@@ -132,7 +134,7 @@ func TestGetArtifact(t *testing.T) {
 	}
 }
 
-func TestUpdateArtifact(t *testing.T) {
+func TestUpdateResource(t *testing.T) {
 	tests := []struct {
 		name         string
 		status       int
@@ -144,7 +146,7 @@ func TestUpdateArtifact(t *testing.T) {
 		{
 			name:         "success",
 			status:       200,
-			sentBody:     `{"id":"xyz-789","name":"Updated","type":"db","payload":{"bar":"baz","x":"y"}}`,
+			sentBody:     `{"id":"xyz-789","name":"Updated","field":"database","type":"db","payload":{"bar":"baz","x":"y"}}`,
 			responseBody: `{"id":"xyz-789","name":"Updated"}`,
 			expectErr:    false,
 			expectID:     "xyz-789",
@@ -157,9 +159,10 @@ func TestUpdateArtifact(t *testing.T) {
 		},
 	}
 
-	input := artifacts.Artifact{
+	input := resources.Resource{
 		ID:      "xyz-789",
 		Name:    "Updated",
+		Field:   "database",
 		Type:    "db",
 		Payload: map[string]interface{}{"bar": "baz", "x": "y"},
 	}
@@ -167,9 +170,9 @@ func TestUpdateArtifact(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client, roundTripper := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.responseBody})
-			service := artifacts.NewService(client)
+			service := resources.NewService(client)
 
-			result, err := service.UpdateArtifact(context.Background(), "xyz-789", &input)
+			result, err := service.UpdateResource(context.Background(), "xyz-789", &input)
 
 			if tt.expectErr {
 				require.Error(t, err)
@@ -185,7 +188,7 @@ func TestUpdateArtifact(t *testing.T) {
 	}
 }
 
-func TestDeleteArtifact(t *testing.T) {
+func TestDeleteResource(t *testing.T) {
 	tests := []struct {
 		name         string
 		status       int
@@ -210,9 +213,9 @@ func TestDeleteArtifact(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client, roundTripper := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.responseBody})
-			service := artifacts.NewService(client)
+			service := resources.NewService(client)
 
-			err := service.DeleteArtifact(context.Background(), "abc-123", "db")
+			err := service.DeleteResource(context.Background(), "abc-123", "db")
 
 			if tt.expectErr {
 				require.Error(t, err)

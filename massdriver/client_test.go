@@ -43,7 +43,7 @@ func TestNewClient_WithAPIKeyOverridesEnv(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
-	if got := string(c.Config.Credentials.Source); got != "option" {
+	if got := string(c.Config().Credentials.Source); got != "option" {
 		t.Errorf("Config.Credentials.Source = %q, want option (override should be tagged)", got)
 	}
 }
@@ -72,7 +72,7 @@ func TestNewClient_AuthMethodForPATPrefix(t *testing.T) {
 			if err != nil {
 				t.Fatalf("NewClient: %v", err)
 			}
-			if got := string(c.Config.Credentials.Method); got != tc.want {
+			if got := string(c.Config().Credentials.Method); got != tc.want {
 				t.Errorf("Config.Credentials.Method = %q, want %q", got, tc.want)
 			}
 		})
@@ -90,7 +90,7 @@ func TestNewClient_EnvSourceTracking(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
-	if got := string(c.Config.Credentials.Source); got != "env" {
+	if got := string(c.Config().Credentials.Source); got != "env" {
 		t.Errorf("Config.Credentials.Source = %q, want env", got)
 	}
 }
@@ -141,14 +141,14 @@ func TestNewClient_WithGQLClientBypassesAuth(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewClient with mock GQL must not require auth: %v", err)
 	}
-	if c.Config.OrganizationID != "test-org" {
-		t.Errorf("Config.OrganizationID = %q, want test-org", c.Config.OrganizationID)
+	if c.Config().OrganizationID != "test-org" {
+		t.Errorf("Config.OrganizationID = %q, want test-org", c.Config().OrganizationID)
 	}
 	// Credentials.Method/Source are empty when auth is bypassed.
-	if got := string(c.Config.Credentials.Method); got != "" {
+	if got := string(c.Config().Credentials.Method); got != "" {
 		t.Errorf("Config.Credentials.Method = %q, want empty (auth bypassed via WithGQLClient)", got)
 	}
-	if got := string(c.Config.Credentials.Source); got != "" {
+	if got := string(c.Config().Credentials.Source); got != "" {
 		t.Errorf("Config.Credentials.Source = %q, want empty (auth bypassed via WithGQLClient)", got)
 	}
 }
@@ -166,7 +166,7 @@ func TestNewClient_BaseURL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
-	if got := c.Config.URL; got != "https://md.internal.acme.com" {
+	if got := c.Config().URL; got != "https://md.internal.acme.com" {
 		t.Errorf("Config.URL = %q, want https://md.internal.acme.com", got)
 	}
 }

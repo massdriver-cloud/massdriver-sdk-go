@@ -144,7 +144,6 @@ func getConfigFile() (*configFile, error) {
 	if xdgConfigHome != "" {
 		configFilePath = filepath.Join(xdgConfigHome, configPathFromConfigDir)
 	} else {
-
 		homeDir, homeDirErr := os.UserHomeDir()
 		if homeDirErr != nil {
 			return nil, fmt.Errorf("could not determine home directory: %w", homeDirErr)
