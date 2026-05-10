@@ -70,9 +70,11 @@ type reply struct {
 //
 // baseURL is the HTTPS API base (e.g. "https://api.example.com"). It's
 // converted to wss://example.com/api/socket/websocket?token=<token>&vsn=2.0.0.
-// The token is sent as a query parameter because browsers can't set headers
-// on WebSocket upgrades — Phoenix UserSockets typically accept it from
-// connect/3.
+// The token is sent as a query parameter because Phoenix's UserSocket
+// reads auth from connect/3 params (which originate from the upgrade
+// URL's query string). Switching to an Authorization header would
+// require the server-side UserSocket to opt into connect_info; until
+// that lands, query-string is the only auth path the server accepts.
 func Dial(ctx context.Context, baseURL, token string) (*Socket, error) {
 	wsURL, err := buildWSURL(baseURL, token)
 	if err != nil {
@@ -153,14 +155,23 @@ func (s *Socket) push(ctx context.Context, joinRef *string, ref, topic, event st
 		return reply{}, err
 	}
 
+	timer := time.NewTimer(replyTimeout)
+	defer timer.Stop()
+
 	select {
 	case r := <-ch:
 		return r, nil
 	case <-ctx.Done():
 		return reply{}, ctx.Err()
 	case <-s.done:
-		return reply{}, fmt.Errorf("absinthe socket closed: %w", s.Err())
-	case <-time.After(replyTimeout):
+		// s.Err() is nil on a clean server-initiated close (isNormalClose
+		// suppresses it). Return a plain sentinel in that case so we
+		// don't render "absinthe socket closed: %!w(<nil>)".
+		if err := s.Err(); err != nil {
+			return reply{}, fmt.Errorf("absinthe socket closed: %w", err)
+		}
+		return reply{}, errors.New("absinthe socket closed")
+	case <-timer.C:
 		return reply{}, fmt.Errorf("absinthe push %s: timeout waiting for reply", event)
 	}
 }

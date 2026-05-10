@@ -24,6 +24,9 @@ type roundTripperWithHeaders struct {
 }
 
 func (r *roundTripperWithHeaders) RoundTrip(req *http.Request) (*http.Response, error) {
+	// http.RoundTripper requires that RoundTrip not modify the caller's
+	// request — clone before injecting headers.
+	req = req.Clone(req.Context())
 	for k, v := range r.Headers {
 		req.Header.Set(k, v)
 	}

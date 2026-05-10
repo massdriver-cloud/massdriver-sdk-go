@@ -91,15 +91,13 @@ func resolveCredentials(envs *configEnvs, profile *configFileProfile, origin Cre
 	if organizationID != "" && apiKey != "" {
 		source := origin
 		if source == SourceUnknown {
-			// No option set the API key. Infer from the layer
-			// that had a non-empty value.
-			switch {
-			case envs.APIKey != "":
+			// No option set the API key. Infer from the layer that had
+			// a non-empty value — apiKey came from cmp.Or(envs, profile),
+			// so exactly one of these branches must hit.
+			if envs.APIKey != "" {
 				source = SourceEnv
-			case profile.APIKey != "":
+			} else {
 				source = SourceProfile
-			default:
-				source = SourceEnv
 			}
 		}
 		if strings.HasPrefix(apiKey, "mds_") || strings.HasPrefix(apiKey, "md_") {
