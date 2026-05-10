@@ -38,7 +38,10 @@ test: ## Run unit tests
 
 .PHONY: test-integration
 test-integration: ## Run integration tests (requires MASSDRIVER_API_KEY + MASSDRIVER_ORGANIZATION_ID)
-	$(GO) test -tags=integration -count=1 ./...
+	# -p 1 serializes packages: every integration test runs against a
+	# single shared org, and some tests mutate org-wide schema (e.g.
+	# custom attributes) in ways that break others when run concurrently.
+	$(GO) test -tags=integration -count=1 -p 1 ./...
 
 .PHONY: check
 check: vet lint test ## Run vet, lint, and tests — everything you'd want before pushing

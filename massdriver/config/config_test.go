@@ -255,8 +255,26 @@ profiles:
 		},
 	}
 
+	// Every MASSDRIVER_* env var the config package reads. We clear all
+	// of them at the start of each subtest so values from the developer's
+	// shell (e.g. integration-test credentials) don't leak in and shadow
+	// the per-case fixtures.
+	massdriverEnv := []string{
+		"MASSDRIVER_ORGANIZATION_ID",
+		"MASSDRIVER_ORG_ID",
+		"MASSDRIVER_API_KEY",
+		"MASSDRIVER_DEPLOYMENT_ID",
+		"MASSDRIVER_TOKEN",
+		"MASSDRIVER_PROFILE",
+		"MASSDRIVER_URL",
+		"MASSDRIVER_TEMPLATES_PATH",
+	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			for _, k := range massdriverEnv {
+				t.Setenv(k, "")
+			}
 			for k, v := range test.env {
 				t.Setenv(k, v)
 			}

@@ -50,10 +50,18 @@ func TestIntegration_Organizations_CustomAttributes_CRUD(t *testing.T) {
 	// underscore separators.
 	key := fmt.Sprintf("inttest_attr_%08x", rand.Uint32())
 
+	// Use REPO scope and Required=false so the brief window when this
+	// attribute exists doesn't break parallel project/environment
+	// integration tests running against the same org. The platform
+	// validates writes against the current attribute schema, so a
+	// Required=true attribute on PROJECT scope causes spurious
+	// failures in the projects package's tests.
+	required := false
 	created, err := c.Organizations.CreateCustomAttribute(ctx, organizations.CreateCustomAttributeInput{
-		Key:    key,
-		Scope:  organizations.AttributeScopeProject,
-		Values: []string{"alpha", "beta"},
+		Key:      key,
+		Scope:    organizations.AttributeScopeRepo,
+		Required: &required,
+		Values:   []string{"alpha", "beta"},
 	})
 	if err != nil {
 		t.Fatalf("CreateCustomAttribute: %v", err)
@@ -66,8 +74,8 @@ func TestIntegration_Organizations_CustomAttributes_CRUD(t *testing.T) {
 	if created.Key != key {
 		t.Errorf("Create key = %q, want %q", created.Key, key)
 	}
-	if created.Scope != string(organizations.AttributeScopeProject) {
-		t.Errorf("Create scope = %q, want %q", created.Scope, organizations.AttributeScopeProject)
+	if created.Scope != string(organizations.AttributeScopeRepo) {
+		t.Errorf("Create scope = %q, want %q", created.Scope, organizations.AttributeScopeRepo)
 	}
 
 	updated, err := c.Organizations.UpdateCustomAttribute(ctx, created.ID, organizations.UpdateCustomAttributeInput{
