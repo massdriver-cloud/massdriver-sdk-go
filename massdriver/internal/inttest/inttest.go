@@ -56,8 +56,9 @@ const FixturePrefix = "inttest-"
 //	}
 func Client(t *testing.T) *massdriver.Client {
 	t.Helper()
-	if os.Getenv("MASSDRIVER_API_KEY") == "" || os.Getenv("MASSDRIVER_ORGANIZATION_ID") == "" {
-		t.Fatal("integration tests require MASSDRIVER_API_KEY and MASSDRIVER_ORGANIZATION_ID")
+	hasOrg := os.Getenv("MASSDRIVER_ORGANIZATION_ID") != "" || os.Getenv("MASSDRIVER_ORG_ID") != ""
+	if os.Getenv("MASSDRIVER_API_KEY") == "" || !hasOrg {
+		t.Fatal("integration tests require MASSDRIVER_API_KEY and MASSDRIVER_ORGANIZATION_ID (or MASSDRIVER_ORG_ID)")
 	}
 	c, err := massdriver.NewClient()
 	if err != nil {
@@ -75,6 +76,10 @@ func Client(t *testing.T) *massdriver.Client {
 //
 //	id := inttest.FixtureName(t, "project")
 //	// → "inttest-project-2f9c1b3a"
+//
+// Note: project IDs are capped at 20 characters, which the default
+// FixtureName format exceeds. Project integration tests use a fixed
+// name (`inttest`) instead — see projects_integration_test.go.
 func FixtureName(t *testing.T, kind string) string {
 	t.Helper()
 	return FixturePrefix + sanitizeKind(kind) + "-" + randomSuffix()

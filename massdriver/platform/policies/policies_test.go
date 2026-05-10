@@ -1,6 +1,7 @@
 package policies_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
@@ -333,7 +334,7 @@ func TestCreate_AttributeConditions(t *testing.T) {
 					"id":         "p-2",
 					"effect":     "ALLOW",
 					"actions":    []string{"project:create"},
-					"conditions": map[string]any{"md-environment": []string{"dev", "staging"}},
+					"conditions": `{"md-environment":["dev","staging"]}`,
 					"group":      map[string]any{"id": "g-1", "name": "Platform"},
 				},
 				"successful": true,
@@ -371,10 +372,7 @@ func TestCreate_PerKeyWildcard(t *testing.T) {
 					"id":      "p-3",
 					"effect":  "ALLOW",
 					"actions": []string{"project:view"},
-					"conditions": map[string]any{
-						"md-project": "*",
-						"md-team":    []string{"platform"},
-					},
+					"conditions": `{"md-project":"*","md-team":["platform"]}`,
 					"group": map[string]any{"id": "g-1", "name": "Platform"},
 				},
 				"successful": true,
@@ -405,7 +403,15 @@ func TestCreate_PerKeyWildcard(t *testing.T) {
 
 	reqs := gqlClient.Requests()
 	input, _ := reqs[0].Variables["input"].(map[string]any)
-	conds, _ := input["conditions"].(map[string]any)
+	// conditions arrives on the wire as a JSON-encoded string.
+	condsStr, ok := input["conditions"].(string)
+	if !ok {
+		t.Fatalf("wire conditions = %T %v, want JSON-encoded string", input["conditions"], input["conditions"])
+	}
+	var conds map[string]any
+	if err := json.Unmarshal([]byte(condsStr), &conds); err != nil {
+		t.Fatalf("decode wire conditions: %v", err)
+	}
 	if conds["md-project"] != "*" {
 		t.Errorf("wire conditions[md-project] = %v, want \"*\"", conds["md-project"])
 	}

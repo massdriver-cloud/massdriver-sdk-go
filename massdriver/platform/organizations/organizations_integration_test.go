@@ -31,8 +31,8 @@ func TestIntegration_Organizations_Get(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
-	if org.ID != c.OrganizationID() {
-		t.Errorf("Get returned ID %q, want configured org id %q", org.ID, c.OrganizationID())
+	if org.ID != c.Config.OrganizationID {
+		t.Errorf("Get returned ID %q, want configured org id %q", org.ID, c.Config.OrganizationID)
 	}
 }
 

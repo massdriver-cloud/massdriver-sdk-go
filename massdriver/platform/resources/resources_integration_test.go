@@ -27,7 +27,10 @@ func TestIntegration_Resources_CRUD_Imported(t *testing.T) {
 	created, err := c.Resources.Create(ctx, "aws-iam-role", resources.CreateInput{
 		Name: name,
 		Payload: map[string]any{
-			"arn": "arn:aws:iam::123456789012:role/inttest",
+			"data": map[string]any{
+				"arn":         "arn:aws:iam::123456789012:role/inttest",
+				"external_id": "00000000-0000-0000-0000-000000000000",
+			},
 		},
 	})
 	if err != nil {
@@ -52,7 +55,10 @@ func TestIntegration_Resources_CRUD_Imported(t *testing.T) {
 	updated, err := c.Resources.Update(ctx, id, resources.UpdateInput{
 		Name: updatedName,
 		Payload: map[string]any{
-			"arn": "arn:aws:iam::123456789012:role/inttest-renamed",
+			"data": map[string]any{
+				"arn":         "arn:aws:iam::123456789012:role/inttest-renamed",
+				"external_id": "11111111-1111-1111-1111-111111111111",
+			},
 		},
 	})
 	if err != nil {

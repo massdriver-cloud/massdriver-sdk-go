@@ -13,29 +13,25 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/projects"
 )
 
-// newProjectFixture creates a parent project for an environment fixture.
-// Environments are sub-resources of projects, so every CRUD-style test
-// must own a project to scope the environment under. The returned
-// project ID is registered for cleanup; callers register their
-// environment cleanup separately so a crash mid-test still tears
-// everything down in the right order (env first, then project).
+// projectFixtureID is the parent project for environment fixtures.
+// Fixed short name (project IDs are capped at 20 chars); different
+// per package so parallel package runs don't collide.
+const projectFixtureID = "inttestenv"
+
 func newProjectFixture(t *testing.T, ctx context.Context) string {
 	t.Helper()
 	c := inttest.Client(t)
-	id := inttest.FixtureName(t, "project")
+	_, _ = c.Projects.Delete(ctx, projectFixtureID) // best-effort pre-clean
 	if _, err := c.Projects.Create(ctx, projects.CreateInput{
-		ID:          id,
-		Name:        "Integration test parent " + id,
-		Description: "Parent project for environments integration test; safe to delete.",
+		ID:   projectFixtureID,
+		Name: "Integration test parent",
 	}); err != nil {
 		t.Fatalf("create parent project: %v", err)
 	}
 	t.Cleanup(func() {
-		if _, err := c.Projects.Delete(ctx, id); err != nil && !errors.Is(err, gql.ErrNotFound) {
-			t.Logf("cleanup: failed to delete parent project %s: %v", id, err)
-		}
+		_, _ = c.Projects.Delete(ctx, projectFixtureID)
 	})
-	return id
+	return projectFixtureID
 }
 
 // TestIntegration_Environments_CRUD walks Create → Get → Update → Delete
@@ -47,24 +43,19 @@ func TestIntegration_Environments_CRUD(t *testing.T) {
 	ctx := context.Background()
 
 	projectID := newProjectFixture(t, ctx)
-	envID := inttest.FixtureName(t, "env")
 
 	created, err := c.Environments.Create(ctx, projectID, environments.CreateInput{
-		ID:          envID,
-		Name:        "Integration test " + envID,
+		ID:          "inttestenv",
+		Name:        "Integration test env",
 		Description: "Created by SDK integration test; safe to delete.",
 	})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
+	envID := created.ID
 	t.Cleanup(func() {
-		if _, err := c.Environments.Delete(ctx, envID); err != nil && !errors.Is(err, gql.ErrNotFound) {
-			t.Logf("cleanup: failed to delete fixture %s: %v", envID, err)
-		}
+		_, _ = c.Environments.Delete(ctx, envID)
 	})
-	if created.ID != envID {
-		t.Errorf("Create returned ID %q, want %q", created.ID, envID)
-	}
 
 	got, err := c.Environments.Get(ctx, envID)
 	if err != nil {
@@ -75,7 +66,7 @@ func TestIntegration_Environments_CRUD(t *testing.T) {
 	}
 
 	updated, err := c.Environments.Update(ctx, envID, environments.UpdateInput{
-		Name:        "Integration test (renamed) " + envID,
+		Name:        "Integration test (renamed)",
 		Description: "Updated by SDK integration test.",
 	})
 	if err != nil {
@@ -106,14 +97,15 @@ func TestIntegration_Environments_List(t *testing.T) {
 	ctx := context.Background()
 
 	projectID := newProjectFixture(t, ctx)
-	envID := inttest.FixtureName(t, "env")
 
-	if _, err := c.Environments.Create(ctx, projectID, environments.CreateInput{
-		ID:   envID,
-		Name: "List-test fixture " + envID,
-	}); err != nil {
+	created, err := c.Environments.Create(ctx, projectID, environments.CreateInput{
+		ID:   "inttestenv",
+		Name: "List-test fixture",
+	})
+	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
+	envID := created.ID
 	t.Cleanup(func() {
 		_, _ = c.Environments.Delete(ctx, envID)
 	})

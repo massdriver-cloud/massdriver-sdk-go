@@ -43,8 +43,8 @@ func TestNewClient_WithAPIKeyOverridesEnv(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
-	if c.AuthSource() != "option" {
-		t.Errorf("AuthSource = %q, want option (override should be tagged)", c.AuthSource())
+	if got := string(c.Config.Credentials.Source); got != "option" {
+		t.Errorf("Config.Credentials.Source = %q, want option (override should be tagged)", got)
 	}
 }
 
@@ -57,7 +57,7 @@ func TestNewClient_AuthMethodForPATPrefix(t *testing.T) {
 	cases := []struct {
 		name string
 		key  string
-		want string // expected AuthMethod()
+		want string // expected Config.Credentials.Method
 	}{
 		{"mds_ prefix", "mds_abc123", "personal_access_token"},
 		{"md_ prefix", "md_xyz789", "personal_access_token"},
@@ -72,8 +72,8 @@ func TestNewClient_AuthMethodForPATPrefix(t *testing.T) {
 			if err != nil {
 				t.Fatalf("NewClient: %v", err)
 			}
-			if got := c.AuthMethod(); got != tc.want {
-				t.Errorf("AuthMethod = %q, want %q", got, tc.want)
+			if got := string(c.Config.Credentials.Method); got != tc.want {
+				t.Errorf("Config.Credentials.Method = %q, want %q", got, tc.want)
 			}
 		})
 	}
@@ -90,8 +90,8 @@ func TestNewClient_EnvSourceTracking(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
-	if c.AuthSource() != "env" {
-		t.Errorf("AuthSource = %q, want env", c.AuthSource())
+	if got := string(c.Config.Credentials.Source); got != "env" {
+		t.Errorf("Config.Credentials.Source = %q, want env", got)
 	}
 }
 
@@ -141,21 +141,21 @@ func TestNewClient_WithGQLClientBypassesAuth(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewClient with mock GQL must not require auth: %v", err)
 	}
-	if c.OrganizationID() != "test-org" {
-		t.Errorf("OrganizationID = %q, want test-org", c.OrganizationID())
+	if c.Config.OrganizationID != "test-org" {
+		t.Errorf("Config.OrganizationID = %q, want test-org", c.Config.OrganizationID)
 	}
-	// AuthMethod/AuthSource are empty when auth is bypassed.
-	if c.AuthMethod() != "" {
-		t.Errorf("AuthMethod = %q, want empty (auth bypassed via WithGQLClient)", c.AuthMethod())
+	// Credentials.Method/Source are empty when auth is bypassed.
+	if got := string(c.Config.Credentials.Method); got != "" {
+		t.Errorf("Config.Credentials.Method = %q, want empty (auth bypassed via WithGQLClient)", got)
 	}
-	if c.AuthSource() != "" {
-		t.Errorf("AuthSource = %q, want empty (auth bypassed via WithGQLClient)", c.AuthSource())
+	if got := string(c.Config.Credentials.Source); got != "" {
+		t.Errorf("Config.Credentials.Source = %q, want empty (auth bypassed via WithGQLClient)", got)
 	}
 }
 
-// TestNewClient_BaseURLAccessor confirms the BaseURL accessor returns
-// what the caller passed via WithBaseURL.
-func TestNewClient_BaseURLAccessor(t *testing.T) {
+// TestNewClient_BaseURL confirms the resolved Config exposes the URL
+// the caller passed via WithBaseURL.
+func TestNewClient_BaseURL(t *testing.T) {
 	isolateEnv(t)
 
 	c, err := massdriver.NewClient(
@@ -166,8 +166,8 @@ func TestNewClient_BaseURLAccessor(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
-	if got := c.BaseURL(); got != "https://md.internal.acme.com" {
-		t.Errorf("BaseURL = %q, want https://md.internal.acme.com", got)
+	if got := c.Config.URL; got != "https://md.internal.acme.com" {
+		t.Errorf("Config.URL = %q, want https://md.internal.acme.com", got)
 	}
 }
 

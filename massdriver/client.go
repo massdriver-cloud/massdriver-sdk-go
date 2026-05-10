@@ -25,14 +25,13 @@ import (
 // Client is the top-level SDK client. Each domain service is a field;
 // access is just `c.<Service>.<Method>(ctx, ...)`. Construct with
 // [NewClient].
-//
-// The transport (HTTP, GraphQL, credentials) is held on an unexported
-// inner client — callers do not interact with it directly. Use the
-// accessor methods on this type ([Client.OrganizationID],
-// [Client.BaseURL], [Client.AuthMethod], [Client.AuthSource]) to
-// inspect resolved configuration.
 type Client struct {
-	inner *client.Client
+	// Config is the resolved configuration this client uses —
+	// organization id, base URL, the credential, the source it
+	// came from. Read-only after construction; mutating it has no
+	// effect on subsequent service calls because each service has
+	// already captured its own transport client.
+	Config config.Config
 
 	// AccessTokens manages personal access tokens (PATs) for the
 	// authenticated identity.
@@ -77,33 +76,6 @@ type Client struct {
 	// Viewer reports the currently-authenticated identity.
 	Viewer *viewer.Service
 }
-
-// OrganizationID returns the organization id this client is configured
-// to operate against.
-func (c *Client) OrganizationID() string { return c.inner.Config.OrganizationID }
-
-// BaseURL returns the Massdriver API base URL this client is
-// configured against (e.g. "https://api.massdriver.cloud").
-func (c *Client) BaseURL() string { return c.inner.Config.URL }
-
-// AuthMethod returns the kind of credential this client authenticates
-// with — one of "personal_access_token", "api_key", or "deployment".
-// Empty when no auth has been resolved (typically the test path that
-// uses [WithGQLClient]).
-//
-// Pair with [Client.AuthSource] to answer the full question:
-// "what kind of credential, and where did it come from?"
-func (c *Client) AuthMethod() string { return string(c.inner.Config.Credentials.Method) }
-
-// AuthSource reports which configuration layer supplied the
-// credential the SDK is using — "option" (a [WithAPIKey] override at
-// construction time), "env" (a MASSDRIVER_* environment variable),
-// or "profile" (the active config-file profile). Empty when no auth
-// has been resolved.
-//
-// Useful for diagnostics: when troubleshooting "why is the SDK using
-// these credentials?" the source pinpoints which layer to inspect.
-func (c *Client) AuthSource() string { return string(c.inner.Config.Credentials.Source) }
 
 // NewClient constructs the SDK client.
 //
@@ -163,11 +135,11 @@ func NewClient(opts ...Option) (*Client, error) {
 }
 
 // wrap returns a [*Client] with every domain service pre-wired around
-// the supplied low-level client. Internal — used by [NewClient] and by
-// internal tests.
+// the supplied transport client, and Config populated from it.
+// Internal — used by [NewClient] and by internal tests.
 func wrap(c *client.Client) *Client {
 	return &Client{
-		inner:           c,
+		Config:          c.Config,
 		AccessTokens:    accesstokens.New(c),
 		AuditLogs:       auditlogs.New(c),
 		Bundles:         bundles.New(c),

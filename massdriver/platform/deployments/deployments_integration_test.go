@@ -24,7 +24,11 @@ func TestIntegration_Deployments_NotFoundClassification(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
-	_, err := c.Deployments.Get(ctx, "definitely-not-a-real-deployment-12345")
+	// Deployment IDs are UUIDs server-side; passing a non-UUID string
+	// trips the GraphQL input validator before the not-found check
+	// runs, masking the signal we're trying to test. Use the all-zero
+	// UUID — well-formed, structurally valid, and never a real id.
+	_, err := c.Deployments.Get(ctx, "00000000-0000-0000-0000-000000000000")
 	if !errors.Is(err, gql.ErrNotFound) {
 		t.Errorf("Get nonexistent: got %v, want errors.Is(err, gql.ErrNotFound)", err)
 	}
@@ -72,7 +76,7 @@ func TestIntegration_Deployments_GetLogs_NotFound(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
-	_, err := c.Deployments.GetLogs(ctx, "definitely-not-a-real-deployment-12345")
+	_, err := c.Deployments.GetLogs(ctx, "00000000-0000-0000-0000-000000000000")
 	if !errors.Is(err, gql.ErrNotFound) {
 		t.Errorf("GetLogs nonexistent: got %v, want errors.Is(err, gql.ErrNotFound)", err)
 	}

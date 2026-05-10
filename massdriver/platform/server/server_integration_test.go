@@ -25,10 +25,11 @@ func TestIntegration_Server_Get(t *testing.T) {
 	if got.Version == "" {
 		t.Errorf("Server.Version is empty; want a non-empty semver string")
 	}
+	// ServerMode enum values per schema: SELF_HOSTED, MANAGED.
 	switch got.Mode {
-	case "self_hosted", "cloud":
+	case "SELF_HOSTED", "MANAGED":
 		// ok
 	default:
-		t.Errorf("Server.Mode = %q, want one of %q or %q", got.Mode, "self_hosted", "cloud")
+		t.Errorf("Server.Mode = %q, want one of %q or %q", got.Mode, "SELF_HOSTED", "MANAGED")
 	}
 }

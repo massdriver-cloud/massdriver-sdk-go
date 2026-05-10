@@ -68,26 +68,19 @@ type GroupInvitation struct {
 // matches entities that have any md-project AND whose md-environment
 // is dev or staging.
 //
-// On the wire the type is polymorphic: the JSON string `"*"` for the
-// whole-policy wildcard, otherwise an object whose values are either
-// `"*"` (per-key wildcard) or arrays of strings. [PolicyConditions]
-// implements [json.Marshaler] and [json.Unmarshaler] so this
-// translation is invisible — both genqlient and mapstructure see a
-// regular Go map.
+// On the wire the value is always a JSON-encoded string — either the
+// literal `"*"` for the whole-policy wildcard, or a JSON-encoded
+// object like `"{\"team\":[\"eng\"]}"`. [PolicyConditions] implements
+// [json.Marshaler] and [json.Unmarshaler] so callers see a regular
+// Go map.
 type PolicyConditions map[string][]string
 
-// wildcardWire is the on-wire JSON encoding of the wildcard sentinel:
-// the JSON-encoded string `"*"`. Used both for the whole-policy
-// wildcard and for per-key wildcards.
-var wildcardWire = []byte(`"*"`)
-
-// MarshalJSON encodes c into the polymorphic wire form. A nil map
-// becomes the wildcard sentinel `"*"`; a populated map becomes an
-// object literal whose values are either `"*"` (for nil/empty
-// per-key slices) or arrays of strings.
+// MarshalJSON encodes c into the wire form: a JSON-encoded string.
+// Nil map → `"*"`; populated map → JSON-encoded object literal whose
+// per-key values are `"*"` (nil/empty slices) or arrays of strings.
 func (c PolicyConditions) MarshalJSON() ([]byte, error) {
 	if c == nil {
-		return append([]byte(nil), wildcardWire...), nil
+		return []byte(`"*"`), nil
 	}
 	raw := make(map[string]any, len(c))
 	for k, v := range c {
@@ -97,24 +90,45 @@ func (c PolicyConditions) MarshalJSON() ([]byte, error) {
 			raw[k] = v
 		}
 	}
-	return json.Marshal(raw)
+	inner, err := json.Marshal(raw)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(string(inner))
 }
 
-// UnmarshalJSON decodes the polymorphic wire form. The wildcard
-// sentinel `"*"` becomes a nil map; per-key `"*"` values become nil
-// slices; arrays decode into the slice positions.
+// UnmarshalJSON decodes the wire form. The platform is asymmetric:
+// inputs must be a JSON-encoded string, but responses come back as
+// raw JSON objects. We accept both shapes here so callers don't see
+// the inconsistency.
 func (c *PolicyConditions) UnmarshalJSON(data []byte) error {
-	if bytes.Equal(bytes.TrimSpace(data), wildcardWire) {
-		*c = nil
-		return nil
+	trimmed := bytes.TrimSpace(data)
+	if len(trimmed) == 0 {
+		return fmt.Errorf("PolicyConditions: empty input")
 	}
+
+	// Peel one layer of string-encoding if present (input-side wire
+	// shape). Object-shape responses skip this.
+	body := trimmed
+	if trimmed[0] == '"' {
+		var s string
+		if err := json.Unmarshal(trimmed, &s); err != nil {
+			return fmt.Errorf("PolicyConditions: %w", err)
+		}
+		if s == "*" {
+			*c = nil
+			return nil
+		}
+		body = []byte(s)
+	}
+
 	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(data, &raw); err != nil {
+	if err := json.Unmarshal(body, &raw); err != nil {
 		return fmt.Errorf("PolicyConditions: %w", err)
 	}
 	out := make(PolicyConditions, len(raw))
 	for k, v := range raw {
-		if bytes.Equal(bytes.TrimSpace(v), wildcardWire) {
+		if bytes.Equal(bytes.TrimSpace(v), []byte(`"*"`)) {
 			out[k] = nil
 			continue
 		}

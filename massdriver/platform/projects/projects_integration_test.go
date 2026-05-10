@@ -12,34 +12,46 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/projects"
 )
 
+// projectFixtureID is the project ID used by every integration test
+// in this package. Project IDs are capped at 20 characters, which the
+// default inttest.FixtureName format exceeds — using a fixed name
+// keeps the tests within that limit while remaining grep-able as a
+// fixture (`inttest-` prefix). Pre-test cleanup removes any orphan
+// from a previous crashed run.
+const projectFixtureID = "inttest"
+
 // TestIntegration_Projects_CRUD walks Create → Get → Update → Delete
-// against a live API. Every fixture is created with the inttest-
-// prefix and removed in t.Cleanup so a crash mid-test still leaves
-// the sandbox grep-able for orphans.
+// against a live API. The fixture is removed in t.Cleanup so a crash
+// mid-test still leaves the sandbox in a recoverable state.
 func TestIntegration_Projects_CRUD(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
-	id := inttest.FixtureName(t, "project")
+	// Pre-clean: previous crashed run may have left an orphan.
+	// Pre-clean is best-effort. The platform surfaces "not found" on a
+	// Delete mutation as *gql.MutationFailed (not gql.ErrNotFound), so
+	// we don't try to classify and simply proceed — Create will fail
+	// loudly if there's an actual problem.
+	_, _ = c.Projects.Delete(ctx, projectFixtureID)
 
 	created, err := c.Projects.Create(ctx, projects.CreateInput{
-		ID:          id,
-		Name:        "Integration test " + id,
+		ID:          projectFixtureID,
+		Name:        "Integration test",
 		Description: "Created by SDK integration test; safe to delete.",
 	})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
 	t.Cleanup(func() {
-		if _, err := c.Projects.Delete(ctx, id); err != nil && !errors.Is(err, gql.ErrNotFound) {
-			t.Logf("cleanup: failed to delete fixture %s: %v", id, err)
+		if _, err := c.Projects.Delete(ctx, projectFixtureID); err != nil && !errors.Is(err, gql.ErrNotFound) {
+			t.Logf("cleanup: failed to delete fixture %s: %v", projectFixtureID, err)
 		}
 	})
-	if created.ID != id {
-		t.Errorf("Create returned ID %q, want %q", created.ID, id)
+	if created.ID != projectFixtureID {
+		t.Errorf("Create returned ID %q, want %q", created.ID, projectFixtureID)
 	}
 
-	got, err := c.Projects.Get(ctx, id)
+	got, err := c.Projects.Get(ctx, projectFixtureID)
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
@@ -47,8 +59,8 @@ func TestIntegration_Projects_CRUD(t *testing.T) {
 		t.Errorf("Get description = %q, want the create-time value", got.Description)
 	}
 
-	updated, err := c.Projects.Update(ctx, id, projects.UpdateInput{
-		Name:        "Integration test (renamed) " + id,
+	updated, err := c.Projects.Update(ctx, projectFixtureID, projects.UpdateInput{
+		Name:        "Integration test (renamed)",
 		Description: "Updated by SDK integration test.",
 	})
 	if err != nil {
@@ -58,13 +70,13 @@ func TestIntegration_Projects_CRUD(t *testing.T) {
 		t.Errorf("Update description = %q, want the updated value", updated.Description)
 	}
 
-	if _, err := c.Projects.Delete(ctx, id); err != nil {
+	if _, err := c.Projects.Delete(ctx, projectFixtureID); err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
 
 	// Subsequent Get should now return ErrNotFound — the SDK's
 	// not-found classification working end-to-end.
-	if _, err := c.Projects.Get(ctx, id); !errors.Is(err, gql.ErrNotFound) {
+	if _, err := c.Projects.Get(ctx, projectFixtureID); !errors.Is(err, gql.ErrNotFound) {
 		t.Errorf("Get after Delete: got %v, want errors.Is(err, gql.ErrNotFound)", err)
 	}
 }
@@ -76,15 +88,20 @@ func TestIntegration_Projects_List(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
-	id := inttest.FixtureName(t, "project")
+	// Pre-clean is best-effort. The platform surfaces "not found" on a
+	// Delete mutation as *gql.MutationFailed (not gql.ErrNotFound), so
+	// we don't try to classify and simply proceed — Create will fail
+	// loudly if there's an actual problem.
+	_, _ = c.Projects.Delete(ctx, projectFixtureID)
+
 	if _, err := c.Projects.Create(ctx, projects.CreateInput{
-		ID:   id,
-		Name: "List-test fixture " + id,
+		ID:   projectFixtureID,
+		Name: "List-test fixture",
 	}); err != nil {
 		t.Fatalf("Create: %v", err)
 	}
 	t.Cleanup(func() {
-		_, _ = c.Projects.Delete(ctx, id)
+		_, _ = c.Projects.Delete(ctx, projectFixtureID)
 	})
 
 	all, err := c.Projects.List(ctx)
@@ -94,13 +111,13 @@ func TestIntegration_Projects_List(t *testing.T) {
 
 	var found bool
 	for _, p := range all {
-		if p.ID == id {
+		if p.ID == projectFixtureID {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Errorf("List did not contain freshly-created project %s; got %d projects total", id, len(all))
+		t.Errorf("List did not contain freshly-created project %s; got %d projects total", projectFixtureID, len(all))
 	}
 }
 

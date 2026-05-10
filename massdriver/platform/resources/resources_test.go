@@ -375,7 +375,7 @@ func TestCreateGrant_AttributeRecipients(t *testing.T) {
 				"result": map[string]any{
 					"id":                  "g-2",
 					"action":              "resource:export",
-					"recipientConditions": map[string]any{"md-environment": []string{"prod"}},
+					"recipientConditions": `{"md-environment":["prod"]}`,
 				},
 				"successful": true,
 			},

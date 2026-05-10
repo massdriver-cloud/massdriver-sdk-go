@@ -27,18 +27,18 @@ func TestPolicyConditions_Roundtrip(t *testing.T) {
 		{
 			name: "per-key wildcard via nil slice",
 			c:    types.PolicyConditions{"md-project": nil},
-			wire: `{"md-project":"*"}`,
+			wire: `"{\"md-project\":\"*\"}"`,
 		},
 		{
 			name: "per-key wildcard via empty slice",
 			c:    types.PolicyConditions{"md-project": {}},
 			// Empty slice marshals identically to nil — both mean "any value of this key."
-			wire: `{"md-project":"*"}`,
+			wire: `"{\"md-project\":\"*\"}"`,
 		},
 		{
 			name: "closed set per key",
 			c:    types.PolicyConditions{"md-environment": {"dev", "staging"}},
-			wire: `{"md-environment":["dev","staging"]}`,
+			wire: `"{\"md-environment\":[\"dev\",\"staging\"]}"`,
 		},
 	}
 
