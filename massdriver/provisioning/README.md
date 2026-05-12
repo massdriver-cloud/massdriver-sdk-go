@@ -16,6 +16,22 @@ deployment, you want [`massdriver/platform`](../platform) instead —
 the GraphQL SDK that accepts personal access tokens and
 service-account keys.
 
+## Usage
+
+```go
+import "github.com/massdriver-cloud/massdriver-sdk-go/massdriver/provisioning"
+
+pc, err := provisioning.NewClient()
+if err != nil {
+    log.Fatal(err)
+}
+res, err := pc.Resources.CreateResource(ctx, &resources.Resource{ ... })
+```
+
+`provisioning.NewClient()` resolves deployment-token credentials from
+`MASSDRIVER_DEPLOYMENT_ID` + `MASSDRIVER_TOKEN`, which the platform
+injects into the provisioner container at deployment time.
+
 ## Packages
 
 - `deployments` — report deployment status back to the platform.
