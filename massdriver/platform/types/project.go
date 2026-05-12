@@ -23,6 +23,7 @@ type Project struct {
 	Attributes  map[string]any `json:"attributes,omitempty" mapstructure:"attributes,omitempty"`
 	CreatedAt   time.Time      `json:"createdAt,omitzero" mapstructure:"createdAt"`
 	UpdatedAt   time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
+	Cost        *CostSummary   `json:"cost,omitempty" mapstructure:"cost,omitempty"`
 
 	// Environments are the deployment contexts (production, staging, ...) in
 	// the project. Populated by projects.Get/projects.List when the wrapper

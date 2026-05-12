@@ -584,6 +584,12 @@ query GetEnvironment($organizationId: ID!, $id: ID!) {
     attributes
     createdAt
     updatedAt
+    cost {
+      lastMonth { amount currency }
+      monthlyAverage { amount currency }
+      lastDay { amount currency }
+      dailyAverage { amount currency }
+    }
     project {
       id
       name
@@ -604,6 +610,12 @@ query ListEnvironments($organizationId: ID!) {
       attributes
       createdAt
       updatedAt
+      cost {
+        lastMonth { amount currency }
+        monthlyAverage { amount currency }
+        lastDay { amount currency }
+        dailyAverage { amount currency }
+      }
       project {
         id
         name
@@ -910,6 +922,12 @@ query GetInstance($organizationId: ID!, $id: ID!) {
     attributes
     createdAt
     updatedAt
+    cost {
+      lastMonth { amount currency }
+      monthlyAverage { amount currency }
+      lastDay { amount currency }
+      dailyAverage { amount currency }
+    }
     statePaths {
       stepName
       stateUrl
@@ -1002,6 +1020,12 @@ query ListInstances(
       attributes
       createdAt
       updatedAt
+      cost {
+        lastMonth { amount currency }
+        monthlyAverage { amount currency }
+        lastDay { amount currency }
+        dailyAverage { amount currency }
+      }
       environment {
         id
         name
@@ -1643,6 +1667,12 @@ query GetProject($organizationId: ID!, $id: ID!) {
     attributes
     createdAt
     updatedAt
+    cost {
+      lastMonth { amount currency }
+      monthlyAverage { amount currency }
+      lastDay { amount currency }
+      dailyAverage { amount currency }
+    }
     environments {
       items {
         id
@@ -1697,6 +1727,12 @@ query ListProjects($organizationId: ID!) {
       attributes
       createdAt
       updatedAt
+      cost {
+        lastMonth { amount currency }
+        monthlyAverage { amount currency }
+        lastDay { amount currency }
+        dailyAverage { amount currency }
+      }
       environments {
         items {
           id

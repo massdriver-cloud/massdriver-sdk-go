@@ -14,6 +14,7 @@ type Environment struct {
 	Attributes  map[string]any `json:"attributes,omitempty" mapstructure:"attributes,omitempty"`
 	CreatedAt   time.Time      `json:"createdAt,omitzero" mapstructure:"createdAt"`
 	UpdatedAt   time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
+	Cost        *CostSummary   `json:"cost,omitempty" mapstructure:"cost,omitempty"`
 
 	// Project is the parent project this environment belongs to. Populated by
 	// environments.Get/environments.List with id/name/description/attributes

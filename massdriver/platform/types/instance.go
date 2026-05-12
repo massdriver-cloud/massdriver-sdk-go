@@ -26,6 +26,7 @@ type Instance struct {
 	Attributes       map[string]any `json:"attributes,omitempty" mapstructure:"attributes,omitempty"`
 	CreatedAt        time.Time      `json:"createdAt,omitzero" mapstructure:"createdAt"`
 	UpdatedAt        time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
+	Cost             *CostSummary   `json:"cost,omitempty" mapstructure:"cost,omitempty"`
 
 	Environment *Environment `json:"environment,omitempty" mapstructure:"environment,omitempty"`
 	Bundle      *Bundle      `json:"bundle,omitempty" mapstructure:"bundle,omitempty"`

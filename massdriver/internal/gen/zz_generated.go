@@ -3371,7 +3371,8 @@ type CreateInstanceAlarmResponse struct {
 	// Monitoring, Alertmanager) back to this alarm — it must be unique within
 	// the instance.
 	//
-	// Requires `environment:update` on the alarm's environment.
+	// Requires `environment:update` on the alarm's environment, or the
+	// deployment subject that owns the underlying instance.
 	CreateInstanceAlarm CreateInstanceAlarmCreateInstanceAlarmAlarmPayload `json:"createInstanceAlarm"`
 }
 
@@ -6007,7 +6008,8 @@ type DeleteInstanceAlarmResponse struct {
 	// Removes the alarm and any recorded state transitions. The underlying cloud
 	// provider alarm is unaffected.
 	//
-	// Requires `environment:update` on the alarm's environment.
+	// Requires `environment:update` on the alarm's environment, or the
+	// deployment subject that owns the underlying instance.
 	DeleteInstanceAlarm DeleteInstanceAlarmDeleteInstanceAlarmAlarmPayload `json:"deleteInstanceAlarm"`
 }
 
@@ -8724,6 +8726,8 @@ type GetEnvironmentEnvironment struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// When this environment was last modified (UTC).
 	UpdatedAt time.Time `json:"updatedAt"`
+	// Aggregated cloud-provider cost metrics for all instances in this environment.
+	Cost GetEnvironmentEnvironmentCostCostSummary `json:"cost"`
 	// The parent project that this environment belongs to.
 	Project GetEnvironmentEnvironmentProject `json:"project"`
 }
@@ -8745,6 +8749,9 @@ func (v *GetEnvironmentEnvironment) GetCreatedAt() time.Time { return v.CreatedA
 
 // GetUpdatedAt returns GetEnvironmentEnvironment.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *GetEnvironmentEnvironment) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+// GetCost returns GetEnvironmentEnvironment.Cost, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironment) GetCost() GetEnvironmentEnvironmentCostCostSummary { return v.Cost }
 
 // GetProject returns GetEnvironmentEnvironment.Project, and is useful for accessing the field via an interface.
 func (v *GetEnvironmentEnvironment) GetProject() GetEnvironmentEnvironmentProject { return v.Project }
@@ -8795,6 +8802,8 @@ type __premarshalGetEnvironmentEnvironment struct {
 
 	UpdatedAt time.Time `json:"updatedAt"`
 
+	Cost GetEnvironmentEnvironmentCostCostSummary `json:"cost"`
+
 	Project GetEnvironmentEnvironmentProject `json:"project"`
 }
 
@@ -8826,8 +8835,158 @@ func (v *GetEnvironmentEnvironment) __premarshalJSON() (*__premarshalGetEnvironm
 	}
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
+	retval.Cost = v.Cost
 	retval.Project = v.Project
 	return &retval, nil
+}
+
+// GetEnvironmentEnvironmentCostCostSummary includes the requested fields of the GraphQL type CostSummary.
+// The GraphQL type's documentation follows.
+//
+// Aggregated cloud-provider cost metrics for a project or environment.
+//
+// Cost data is sourced from your cloud provider's billing APIs and refreshed periodically.
+// Each metric is a `CostSample` containing an amount and currency. All four metrics are
+// always present, but their inner `amount` and `currency` may be null if billing data has
+// not yet been ingested.
+//
+// - **last_month** -- Total spend for the most recent complete billing cycle.
+// - **monthly_average** -- Average monthly spend across all available billing cycles.
+// - **last_day** -- Total spend for the most recent 24-hour period.
+// - **daily_average** -- Average daily spend over the last 7 days.
+type GetEnvironmentEnvironmentCostCostSummary struct {
+	// Total cost for the most recent complete billing cycle.
+	LastMonth GetEnvironmentEnvironmentCostCostSummaryLastMonthCostSample `json:"lastMonth"`
+	// Average monthly cost across all available billing cycles.
+	MonthlyAverage GetEnvironmentEnvironmentCostCostSummaryMonthlyAverageCostSample `json:"monthlyAverage"`
+	// Total cost for the most recent 24-hour period.
+	LastDay GetEnvironmentEnvironmentCostCostSummaryLastDayCostSample `json:"lastDay"`
+	// Average daily cost over the last 7 days.
+	DailyAverage GetEnvironmentEnvironmentCostCostSummaryDailyAverageCostSample `json:"dailyAverage"`
+}
+
+// GetLastMonth returns GetEnvironmentEnvironmentCostCostSummary.LastMonth, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentCostCostSummary) GetLastMonth() GetEnvironmentEnvironmentCostCostSummaryLastMonthCostSample {
+	return v.LastMonth
+}
+
+// GetMonthlyAverage returns GetEnvironmentEnvironmentCostCostSummary.MonthlyAverage, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentCostCostSummary) GetMonthlyAverage() GetEnvironmentEnvironmentCostCostSummaryMonthlyAverageCostSample {
+	return v.MonthlyAverage
+}
+
+// GetLastDay returns GetEnvironmentEnvironmentCostCostSummary.LastDay, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentCostCostSummary) GetLastDay() GetEnvironmentEnvironmentCostCostSummaryLastDayCostSample {
+	return v.LastDay
+}
+
+// GetDailyAverage returns GetEnvironmentEnvironmentCostCostSummary.DailyAverage, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentCostCostSummary) GetDailyAverage() GetEnvironmentEnvironmentCostCostSummaryDailyAverageCostSample {
+	return v.DailyAverage
+}
+
+// GetEnvironmentEnvironmentCostCostSummaryDailyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type GetEnvironmentEnvironmentCostCostSummaryDailyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetEnvironmentEnvironmentCostCostSummaryDailyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentCostCostSummaryDailyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns GetEnvironmentEnvironmentCostCostSummaryDailyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentCostCostSummaryDailyAverageCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// GetEnvironmentEnvironmentCostCostSummaryLastDayCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type GetEnvironmentEnvironmentCostCostSummaryLastDayCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetEnvironmentEnvironmentCostCostSummaryLastDayCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentCostCostSummaryLastDayCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns GetEnvironmentEnvironmentCostCostSummaryLastDayCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentCostCostSummaryLastDayCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// GetEnvironmentEnvironmentCostCostSummaryLastMonthCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type GetEnvironmentEnvironmentCostCostSummaryLastMonthCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetEnvironmentEnvironmentCostCostSummaryLastMonthCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentCostCostSummaryLastMonthCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns GetEnvironmentEnvironmentCostCostSummaryLastMonthCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentCostCostSummaryLastMonthCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// GetEnvironmentEnvironmentCostCostSummaryMonthlyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type GetEnvironmentEnvironmentCostCostSummaryMonthlyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetEnvironmentEnvironmentCostCostSummaryMonthlyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentCostCostSummaryMonthlyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns GetEnvironmentEnvironmentCostCostSummaryMonthlyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentCostCostSummaryMonthlyAverageCostSample) GetCurrency() string {
+	return v.Currency
 }
 
 // GetEnvironmentEnvironmentProject includes the requested fields of the GraphQL type Project.
@@ -9297,6 +9456,8 @@ type GetInstanceInstance struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// When this instance was last modified (UTC).
 	UpdatedAt time.Time `json:"updatedAt"`
+	// Cloud provider cost summary for this instance, including daily and monthly breakdowns.
+	Cost GetInstanceInstanceCostCostSummary `json:"cost"`
 	// Terraform/OpenTofu state paths for each provisioning step, ordered by the bundle's step definition.
 	//
 	// Each bundle can define multiple steps (e.g., `core`, `iam`, `monitoring`). Use the
@@ -9351,6 +9512,9 @@ func (v *GetInstanceInstance) GetCreatedAt() time.Time { return v.CreatedAt }
 
 // GetUpdatedAt returns GetInstanceInstance.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *GetInstanceInstance) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+// GetCost returns GetInstanceInstance.Cost, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstance) GetCost() GetInstanceInstanceCostCostSummary { return v.Cost }
 
 // GetStatePaths returns GetInstanceInstance.StatePaths, and is useful for accessing the field via an interface.
 func (v *GetInstanceInstance) GetStatePaths() []GetInstanceInstanceStatePathsInstanceStatePath {
@@ -9443,6 +9607,8 @@ type __premarshalGetInstanceInstance struct {
 
 	UpdatedAt time.Time `json:"updatedAt"`
 
+	Cost GetInstanceInstanceCostCostSummary `json:"cost"`
+
 	StatePaths []GetInstanceInstanceStatePathsInstanceStatePath `json:"statePaths"`
 
 	Environment GetInstanceInstanceEnvironment `json:"environment"`
@@ -9499,6 +9665,7 @@ func (v *GetInstanceInstance) __premarshalJSON() (*__premarshalGetInstanceInstan
 	}
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
+	retval.Cost = v.Cost
 	retval.StatePaths = v.StatePaths
 	retval.Environment = v.Environment
 	retval.Bundle = v.Bundle
@@ -9702,6 +9869,149 @@ func (v *GetInstanceInstanceComponent) __premarshalJSON() (*__premarshalGetInsta
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
 	return &retval, nil
+}
+
+// GetInstanceInstanceCostCostSummary includes the requested fields of the GraphQL type CostSummary.
+// The GraphQL type's documentation follows.
+//
+// Aggregated cloud-provider cost metrics for a project or environment.
+//
+// Cost data is sourced from your cloud provider's billing APIs and refreshed periodically.
+// Each metric is a `CostSample` containing an amount and currency. All four metrics are
+// always present, but their inner `amount` and `currency` may be null if billing data has
+// not yet been ingested.
+//
+// - **last_month** -- Total spend for the most recent complete billing cycle.
+// - **monthly_average** -- Average monthly spend across all available billing cycles.
+// - **last_day** -- Total spend for the most recent 24-hour period.
+// - **daily_average** -- Average daily spend over the last 7 days.
+type GetInstanceInstanceCostCostSummary struct {
+	// Total cost for the most recent complete billing cycle.
+	LastMonth GetInstanceInstanceCostCostSummaryLastMonthCostSample `json:"lastMonth"`
+	// Average monthly cost across all available billing cycles.
+	MonthlyAverage GetInstanceInstanceCostCostSummaryMonthlyAverageCostSample `json:"monthlyAverage"`
+	// Total cost for the most recent 24-hour period.
+	LastDay GetInstanceInstanceCostCostSummaryLastDayCostSample `json:"lastDay"`
+	// Average daily cost over the last 7 days.
+	DailyAverage GetInstanceInstanceCostCostSummaryDailyAverageCostSample `json:"dailyAverage"`
+}
+
+// GetLastMonth returns GetInstanceInstanceCostCostSummary.LastMonth, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceCostCostSummary) GetLastMonth() GetInstanceInstanceCostCostSummaryLastMonthCostSample {
+	return v.LastMonth
+}
+
+// GetMonthlyAverage returns GetInstanceInstanceCostCostSummary.MonthlyAverage, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceCostCostSummary) GetMonthlyAverage() GetInstanceInstanceCostCostSummaryMonthlyAverageCostSample {
+	return v.MonthlyAverage
+}
+
+// GetLastDay returns GetInstanceInstanceCostCostSummary.LastDay, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceCostCostSummary) GetLastDay() GetInstanceInstanceCostCostSummaryLastDayCostSample {
+	return v.LastDay
+}
+
+// GetDailyAverage returns GetInstanceInstanceCostCostSummary.DailyAverage, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceCostCostSummary) GetDailyAverage() GetInstanceInstanceCostCostSummaryDailyAverageCostSample {
+	return v.DailyAverage
+}
+
+// GetInstanceInstanceCostCostSummaryDailyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type GetInstanceInstanceCostCostSummaryDailyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetInstanceInstanceCostCostSummaryDailyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceCostCostSummaryDailyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns GetInstanceInstanceCostCostSummaryDailyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceCostCostSummaryDailyAverageCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// GetInstanceInstanceCostCostSummaryLastDayCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type GetInstanceInstanceCostCostSummaryLastDayCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetInstanceInstanceCostCostSummaryLastDayCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceCostCostSummaryLastDayCostSample) GetAmount() float64 { return v.Amount }
+
+// GetCurrency returns GetInstanceInstanceCostCostSummaryLastDayCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceCostCostSummaryLastDayCostSample) GetCurrency() string { return v.Currency }
+
+// GetInstanceInstanceCostCostSummaryLastMonthCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type GetInstanceInstanceCostCostSummaryLastMonthCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetInstanceInstanceCostCostSummaryLastMonthCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceCostCostSummaryLastMonthCostSample) GetAmount() float64 { return v.Amount }
+
+// GetCurrency returns GetInstanceInstanceCostCostSummaryLastMonthCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceCostCostSummaryLastMonthCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// GetInstanceInstanceCostCostSummaryMonthlyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type GetInstanceInstanceCostCostSummaryMonthlyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetInstanceInstanceCostCostSummaryMonthlyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceCostCostSummaryMonthlyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns GetInstanceInstanceCostCostSummaryMonthlyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceCostCostSummaryMonthlyAverageCostSample) GetCurrency() string {
+	return v.Currency
 }
 
 // GetInstanceInstanceEnvironment includes the requested fields of the GraphQL type Environment.
@@ -10482,6 +10792,8 @@ type GetProjectProject struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// When this project was last modified (UTC).
 	UpdatedAt time.Time `json:"updatedAt"`
+	// Aggregated cloud-provider cost metrics for all instances in this project.
+	Cost GetProjectProjectCostCostSummary `json:"cost"`
 	// Paginated list of environments in this project (e.g., staging, production).
 	Environments GetProjectProjectEnvironmentsEnvironmentsPage `json:"environments"`
 	// Components that make up the project's infrastructure architecture.
@@ -10507,6 +10819,9 @@ func (v *GetProjectProject) GetCreatedAt() time.Time { return v.CreatedAt }
 
 // GetUpdatedAt returns GetProjectProject.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *GetProjectProject) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+// GetCost returns GetProjectProject.Cost, and is useful for accessing the field via an interface.
+func (v *GetProjectProject) GetCost() GetProjectProjectCostCostSummary { return v.Cost }
 
 // GetEnvironments returns GetProjectProject.Environments, and is useful for accessing the field via an interface.
 func (v *GetProjectProject) GetEnvironments() GetProjectProjectEnvironmentsEnvironmentsPage {
@@ -10567,6 +10882,8 @@ type __premarshalGetProjectProject struct {
 
 	UpdatedAt time.Time `json:"updatedAt"`
 
+	Cost GetProjectProjectCostCostSummary `json:"cost"`
+
 	Environments GetProjectProjectEnvironmentsEnvironmentsPage `json:"environments"`
 
 	Components []GetProjectProjectComponentsComponent `json:"components"`
@@ -10602,6 +10919,7 @@ func (v *GetProjectProject) __premarshalJSON() (*__premarshalGetProjectProject, 
 	}
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
+	retval.Cost = v.Cost
 	retval.Environments = v.Environments
 	retval.Components = v.Components
 	retval.Links = v.Links
@@ -10810,6 +11128,145 @@ func (v *GetProjectProjectComponentsComponentPosition) GetX() int { return v.X }
 
 // GetY returns GetProjectProjectComponentsComponentPosition.Y, and is useful for accessing the field via an interface.
 func (v *GetProjectProjectComponentsComponentPosition) GetY() int { return v.Y }
+
+// GetProjectProjectCostCostSummary includes the requested fields of the GraphQL type CostSummary.
+// The GraphQL type's documentation follows.
+//
+// Aggregated cloud-provider cost metrics for a project or environment.
+//
+// Cost data is sourced from your cloud provider's billing APIs and refreshed periodically.
+// Each metric is a `CostSample` containing an amount and currency. All four metrics are
+// always present, but their inner `amount` and `currency` may be null if billing data has
+// not yet been ingested.
+//
+// - **last_month** -- Total spend for the most recent complete billing cycle.
+// - **monthly_average** -- Average monthly spend across all available billing cycles.
+// - **last_day** -- Total spend for the most recent 24-hour period.
+// - **daily_average** -- Average daily spend over the last 7 days.
+type GetProjectProjectCostCostSummary struct {
+	// Total cost for the most recent complete billing cycle.
+	LastMonth GetProjectProjectCostCostSummaryLastMonthCostSample `json:"lastMonth"`
+	// Average monthly cost across all available billing cycles.
+	MonthlyAverage GetProjectProjectCostCostSummaryMonthlyAverageCostSample `json:"monthlyAverage"`
+	// Total cost for the most recent 24-hour period.
+	LastDay GetProjectProjectCostCostSummaryLastDayCostSample `json:"lastDay"`
+	// Average daily cost over the last 7 days.
+	DailyAverage GetProjectProjectCostCostSummaryDailyAverageCostSample `json:"dailyAverage"`
+}
+
+// GetLastMonth returns GetProjectProjectCostCostSummary.LastMonth, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectCostCostSummary) GetLastMonth() GetProjectProjectCostCostSummaryLastMonthCostSample {
+	return v.LastMonth
+}
+
+// GetMonthlyAverage returns GetProjectProjectCostCostSummary.MonthlyAverage, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectCostCostSummary) GetMonthlyAverage() GetProjectProjectCostCostSummaryMonthlyAverageCostSample {
+	return v.MonthlyAverage
+}
+
+// GetLastDay returns GetProjectProjectCostCostSummary.LastDay, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectCostCostSummary) GetLastDay() GetProjectProjectCostCostSummaryLastDayCostSample {
+	return v.LastDay
+}
+
+// GetDailyAverage returns GetProjectProjectCostCostSummary.DailyAverage, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectCostCostSummary) GetDailyAverage() GetProjectProjectCostCostSummaryDailyAverageCostSample {
+	return v.DailyAverage
+}
+
+// GetProjectProjectCostCostSummaryDailyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type GetProjectProjectCostCostSummaryDailyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetProjectProjectCostCostSummaryDailyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectCostCostSummaryDailyAverageCostSample) GetAmount() float64 { return v.Amount }
+
+// GetCurrency returns GetProjectProjectCostCostSummaryDailyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectCostCostSummaryDailyAverageCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// GetProjectProjectCostCostSummaryLastDayCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type GetProjectProjectCostCostSummaryLastDayCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetProjectProjectCostCostSummaryLastDayCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectCostCostSummaryLastDayCostSample) GetAmount() float64 { return v.Amount }
+
+// GetCurrency returns GetProjectProjectCostCostSummaryLastDayCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectCostCostSummaryLastDayCostSample) GetCurrency() string { return v.Currency }
+
+// GetProjectProjectCostCostSummaryLastMonthCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type GetProjectProjectCostCostSummaryLastMonthCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetProjectProjectCostCostSummaryLastMonthCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectCostCostSummaryLastMonthCostSample) GetAmount() float64 { return v.Amount }
+
+// GetCurrency returns GetProjectProjectCostCostSummaryLastMonthCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectCostCostSummaryLastMonthCostSample) GetCurrency() string { return v.Currency }
+
+// GetProjectProjectCostCostSummaryMonthlyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type GetProjectProjectCostCostSummaryMonthlyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns GetProjectProjectCostCostSummaryMonthlyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectCostCostSummaryMonthlyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns GetProjectProjectCostCostSummaryMonthlyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectCostCostSummaryMonthlyAverageCostSample) GetCurrency() string {
+	return v.Currency
+}
 
 // GetProjectProjectEnvironmentsEnvironmentsPage includes the requested fields of the GraphQL type EnvironmentsPage.
 type GetProjectProjectEnvironmentsEnvironmentsPage struct {
@@ -13239,6 +13696,8 @@ type ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// When this environment was last modified (UTC).
 	UpdatedAt time.Time `json:"updatedAt"`
+	// Aggregated cloud-provider cost metrics for all instances in this environment.
+	Cost ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary `json:"cost"`
 	// The parent project that this environment belongs to.
 	Project ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentProject `json:"project"`
 }
@@ -13269,6 +13728,11 @@ func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment) GetCreate
 // GetUpdatedAt returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment) GetUpdatedAt() time.Time {
 	return v.UpdatedAt
+}
+
+// GetCost returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment.Cost, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment) GetCost() ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary {
+	return v.Cost
 }
 
 // GetProject returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment.Project, and is useful for accessing the field via an interface.
@@ -13322,6 +13786,8 @@ type __premarshalListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment st
 
 	UpdatedAt time.Time `json:"updatedAt"`
 
+	Cost ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary `json:"cost"`
+
 	Project ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentProject `json:"project"`
 }
 
@@ -13353,8 +13819,158 @@ func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment) __premars
 	}
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
+	retval.Cost = v.Cost
 	retval.Project = v.Project
 	return &retval, nil
+}
+
+// ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary includes the requested fields of the GraphQL type CostSummary.
+// The GraphQL type's documentation follows.
+//
+// Aggregated cloud-provider cost metrics for a project or environment.
+//
+// Cost data is sourced from your cloud provider's billing APIs and refreshed periodically.
+// Each metric is a `CostSample` containing an amount and currency. All four metrics are
+// always present, but their inner `amount` and `currency` may be null if billing data has
+// not yet been ingested.
+//
+// - **last_month** -- Total spend for the most recent complete billing cycle.
+// - **monthly_average** -- Average monthly spend across all available billing cycles.
+// - **last_day** -- Total spend for the most recent 24-hour period.
+// - **daily_average** -- Average daily spend over the last 7 days.
+type ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary struct {
+	// Total cost for the most recent complete billing cycle.
+	LastMonth ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastMonthCostSample `json:"lastMonth"`
+	// Average monthly cost across all available billing cycles.
+	MonthlyAverage ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryMonthlyAverageCostSample `json:"monthlyAverage"`
+	// Total cost for the most recent 24-hour period.
+	LastDay ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastDayCostSample `json:"lastDay"`
+	// Average daily cost over the last 7 days.
+	DailyAverage ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryDailyAverageCostSample `json:"dailyAverage"`
+}
+
+// GetLastMonth returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary.LastMonth, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary) GetLastMonth() ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastMonthCostSample {
+	return v.LastMonth
+}
+
+// GetMonthlyAverage returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary.MonthlyAverage, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary) GetMonthlyAverage() ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryMonthlyAverageCostSample {
+	return v.MonthlyAverage
+}
+
+// GetLastDay returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary.LastDay, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary) GetLastDay() ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastDayCostSample {
+	return v.LastDay
+}
+
+// GetDailyAverage returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary.DailyAverage, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummary) GetDailyAverage() ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryDailyAverageCostSample {
+	return v.DailyAverage
+}
+
+// ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryDailyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryDailyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryDailyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryDailyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryDailyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryDailyAverageCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastDayCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastDayCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastDayCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastDayCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastDayCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastDayCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastMonthCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastMonthCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastMonthCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastMonthCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastMonthCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryLastMonthCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryMonthlyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryMonthlyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryMonthlyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryMonthlyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryMonthlyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentCostCostSummaryMonthlyAverageCostSample) GetCurrency() string {
+	return v.Currency
 }
 
 // ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironmentProject includes the requested fields of the GraphQL type Project.
@@ -13935,6 +14551,8 @@ type ListInstancesInstancesInstancesPageItemsInstance struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// When this instance was last modified (UTC).
 	UpdatedAt time.Time `json:"updatedAt"`
+	// Cloud provider cost summary for this instance, including daily and monthly breakdowns.
+	Cost ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary `json:"cost"`
 	// The environment this instance is deployed in.
 	Environment ListInstancesInstancesInstancesPageItemsInstanceEnvironment `json:"environment"`
 	// The bundle release currently resolved for this instance.
@@ -13990,6 +14608,11 @@ func (v *ListInstancesInstancesInstancesPageItemsInstance) GetCreatedAt() time.T
 // GetUpdatedAt returns ListInstancesInstancesInstancesPageItemsInstance.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *ListInstancesInstancesInstancesPageItemsInstance) GetUpdatedAt() time.Time {
 	return v.UpdatedAt
+}
+
+// GetCost returns ListInstancesInstancesInstancesPageItemsInstance.Cost, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstance) GetCost() ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary {
+	return v.Cost
 }
 
 // GetEnvironment returns ListInstancesInstancesInstancesPageItemsInstance.Environment, and is useful for accessing the field via an interface.
@@ -14063,6 +14686,8 @@ type __premarshalListInstancesInstancesInstancesPageItemsInstance struct {
 
 	UpdatedAt time.Time `json:"updatedAt"`
 
+	Cost ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary `json:"cost"`
+
 	Environment ListInstancesInstancesInstancesPageItemsInstanceEnvironment `json:"environment"`
 
 	Bundle ListInstancesInstancesInstancesPageItemsInstanceBundle `json:"bundle"`
@@ -14103,6 +14728,7 @@ func (v *ListInstancesInstancesInstancesPageItemsInstance) __premarshalJSON() (*
 	}
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
+	retval.Cost = v.Cost
 	retval.Environment = v.Environment
 	retval.Bundle = v.Bundle
 	retval.Component = v.Component
@@ -14185,6 +14811,155 @@ func (v *ListInstancesInstancesInstancesPageItemsInstanceComponent) GetName() st
 // GetDescription returns ListInstancesInstancesInstancesPageItemsInstanceComponent.Description, and is useful for accessing the field via an interface.
 func (v *ListInstancesInstancesInstancesPageItemsInstanceComponent) GetDescription() string {
 	return v.Description
+}
+
+// ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary includes the requested fields of the GraphQL type CostSummary.
+// The GraphQL type's documentation follows.
+//
+// Aggregated cloud-provider cost metrics for a project or environment.
+//
+// Cost data is sourced from your cloud provider's billing APIs and refreshed periodically.
+// Each metric is a `CostSample` containing an amount and currency. All four metrics are
+// always present, but their inner `amount` and `currency` may be null if billing data has
+// not yet been ingested.
+//
+// - **last_month** -- Total spend for the most recent complete billing cycle.
+// - **monthly_average** -- Average monthly spend across all available billing cycles.
+// - **last_day** -- Total spend for the most recent 24-hour period.
+// - **daily_average** -- Average daily spend over the last 7 days.
+type ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary struct {
+	// Total cost for the most recent complete billing cycle.
+	LastMonth ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastMonthCostSample `json:"lastMonth"`
+	// Average monthly cost across all available billing cycles.
+	MonthlyAverage ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryMonthlyAverageCostSample `json:"monthlyAverage"`
+	// Total cost for the most recent 24-hour period.
+	LastDay ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastDayCostSample `json:"lastDay"`
+	// Average daily cost over the last 7 days.
+	DailyAverage ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryDailyAverageCostSample `json:"dailyAverage"`
+}
+
+// GetLastMonth returns ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary.LastMonth, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary) GetLastMonth() ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastMonthCostSample {
+	return v.LastMonth
+}
+
+// GetMonthlyAverage returns ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary.MonthlyAverage, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary) GetMonthlyAverage() ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryMonthlyAverageCostSample {
+	return v.MonthlyAverage
+}
+
+// GetLastDay returns ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary.LastDay, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary) GetLastDay() ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastDayCostSample {
+	return v.LastDay
+}
+
+// GetDailyAverage returns ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary.DailyAverage, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstanceCostCostSummary) GetDailyAverage() ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryDailyAverageCostSample {
+	return v.DailyAverage
+}
+
+// ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryDailyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryDailyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryDailyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryDailyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryDailyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryDailyAverageCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastDayCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastDayCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastDayCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastDayCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastDayCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastDayCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastMonthCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastMonthCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastMonthCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastMonthCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastMonthCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryLastMonthCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryMonthlyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryMonthlyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryMonthlyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryMonthlyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryMonthlyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ListInstancesInstancesInstancesPageItemsInstanceCostCostSummaryMonthlyAverageCostSample) GetCurrency() string {
+	return v.Currency
 }
 
 // ListInstancesInstancesInstancesPageItemsInstanceEnvironment includes the requested fields of the GraphQL type Environment.
@@ -14729,6 +15504,8 @@ type ListProjectsProjectsProjectsPageItemsProject struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// When this project was last modified (UTC).
 	UpdatedAt time.Time `json:"updatedAt"`
+	// Aggregated cloud-provider cost metrics for all instances in this project.
+	Cost ListProjectsProjectsProjectsPageItemsProjectCostCostSummary `json:"cost"`
 	// Paginated list of environments in this project (e.g., staging, production).
 	Environments ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPage `json:"environments"`
 	// Components that make up the project's infrastructure architecture.
@@ -14756,6 +15533,11 @@ func (v *ListProjectsProjectsProjectsPageItemsProject) GetCreatedAt() time.Time 
 
 // GetUpdatedAt returns ListProjectsProjectsProjectsPageItemsProject.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *ListProjectsProjectsProjectsPageItemsProject) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+// GetCost returns ListProjectsProjectsProjectsPageItemsProject.Cost, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProject) GetCost() ListProjectsProjectsProjectsPageItemsProjectCostCostSummary {
+	return v.Cost
+}
 
 // GetEnvironments returns ListProjectsProjectsProjectsPageItemsProject.Environments, and is useful for accessing the field via an interface.
 func (v *ListProjectsProjectsProjectsPageItemsProject) GetEnvironments() ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPage {
@@ -14818,6 +15600,8 @@ type __premarshalListProjectsProjectsProjectsPageItemsProject struct {
 
 	UpdatedAt time.Time `json:"updatedAt"`
 
+	Cost ListProjectsProjectsProjectsPageItemsProjectCostCostSummary `json:"cost"`
+
 	Environments ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPage `json:"environments"`
 
 	Components []ListProjectsProjectsProjectsPageItemsProjectComponentsComponent `json:"components"`
@@ -14853,6 +15637,7 @@ func (v *ListProjectsProjectsProjectsPageItemsProject) __premarshalJSON() (*__pr
 	}
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
+	retval.Cost = v.Cost
 	retval.Environments = v.Environments
 	retval.Components = v.Components
 	retval.Links = v.Links
@@ -15080,6 +15865,155 @@ func (v *ListProjectsProjectsProjectsPageItemsProjectComponentsComponentPosition
 // GetY returns ListProjectsProjectsProjectsPageItemsProjectComponentsComponentPosition.Y, and is useful for accessing the field via an interface.
 func (v *ListProjectsProjectsProjectsPageItemsProjectComponentsComponentPosition) GetY() int {
 	return v.Y
+}
+
+// ListProjectsProjectsProjectsPageItemsProjectCostCostSummary includes the requested fields of the GraphQL type CostSummary.
+// The GraphQL type's documentation follows.
+//
+// Aggregated cloud-provider cost metrics for a project or environment.
+//
+// Cost data is sourced from your cloud provider's billing APIs and refreshed periodically.
+// Each metric is a `CostSample` containing an amount and currency. All four metrics are
+// always present, but their inner `amount` and `currency` may be null if billing data has
+// not yet been ingested.
+//
+// - **last_month** -- Total spend for the most recent complete billing cycle.
+// - **monthly_average** -- Average monthly spend across all available billing cycles.
+// - **last_day** -- Total spend for the most recent 24-hour period.
+// - **daily_average** -- Average daily spend over the last 7 days.
+type ListProjectsProjectsProjectsPageItemsProjectCostCostSummary struct {
+	// Total cost for the most recent complete billing cycle.
+	LastMonth ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastMonthCostSample `json:"lastMonth"`
+	// Average monthly cost across all available billing cycles.
+	MonthlyAverage ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryMonthlyAverageCostSample `json:"monthlyAverage"`
+	// Total cost for the most recent 24-hour period.
+	LastDay ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastDayCostSample `json:"lastDay"`
+	// Average daily cost over the last 7 days.
+	DailyAverage ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryDailyAverageCostSample `json:"dailyAverage"`
+}
+
+// GetLastMonth returns ListProjectsProjectsProjectsPageItemsProjectCostCostSummary.LastMonth, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectCostCostSummary) GetLastMonth() ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastMonthCostSample {
+	return v.LastMonth
+}
+
+// GetMonthlyAverage returns ListProjectsProjectsProjectsPageItemsProjectCostCostSummary.MonthlyAverage, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectCostCostSummary) GetMonthlyAverage() ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryMonthlyAverageCostSample {
+	return v.MonthlyAverage
+}
+
+// GetLastDay returns ListProjectsProjectsProjectsPageItemsProjectCostCostSummary.LastDay, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectCostCostSummary) GetLastDay() ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastDayCostSample {
+	return v.LastDay
+}
+
+// GetDailyAverage returns ListProjectsProjectsProjectsPageItemsProjectCostCostSummary.DailyAverage, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectCostCostSummary) GetDailyAverage() ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryDailyAverageCostSample {
+	return v.DailyAverage
+}
+
+// ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryDailyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryDailyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryDailyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryDailyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryDailyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryDailyAverageCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastDayCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastDayCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastDayCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastDayCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastDayCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastDayCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastMonthCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastMonthCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastMonthCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastMonthCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastMonthCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryLastMonthCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryMonthlyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryMonthlyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryMonthlyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryMonthlyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryMonthlyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectCostCostSummaryMonthlyAverageCostSample) GetCurrency() string {
+	return v.Currency
 }
 
 // ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPage includes the requested fields of the GraphQL type EnvironmentsPage.
@@ -19288,7 +20222,8 @@ type UpdateInstanceAlarmResponse struct {
 	//
 	// Omit a field from the input to leave it unchanged.
 	//
-	// Requires `environment:update` on the alarm's environment.
+	// Requires `environment:update` on the alarm's environment, or the
+	// deployment subject that owns the underlying instance.
 	UpdateInstanceAlarm UpdateInstanceAlarmUpdateInstanceAlarmAlarmPayload `json:"updateInstanceAlarm"`
 }
 
@@ -19507,11 +20442,11 @@ func (v *UpdateInstanceAlarmUpdateInstanceAlarmAlarmPayloadResultAlarmMetricDime
 	return v.Value
 }
 
-// Update an instance's version constraint or release strategy. Changes take effect on the next deployment.
+// Update an instance's version. Changes take effect on the next deployment.
 type UpdateInstanceInput struct {
-	// Whether to use stable or development releases
+	// Deprecated. Add `+dev` to `version` instead (e.g., `latest+dev`).
 	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
-	// Version constraint for the bundle (e.g., '~1.0', '1.2.3', 'latest'). Resolved against available releases.
+	// Bundle version to deploy. Accepts a pinned tag (`1.2.3`), a release channel (`latest`, `~1.2`), or a release channel with `+dev` to include pre-release builds (`latest+dev`, `~1.2+dev`).
 	Version string `json:"version"`
 }
 
@@ -24553,6 +25488,24 @@ query GetEnvironment ($organizationId: ID!, $id: ID!) {
 		attributes
 		createdAt
 		updatedAt
+		cost {
+			lastMonth {
+				amount
+				currency
+			}
+			monthlyAverage {
+				amount
+				currency
+			}
+			lastDay {
+				amount
+				currency
+			}
+			dailyAverage {
+				amount
+				currency
+			}
+		}
 		project {
 			id
 			name
@@ -24649,6 +25602,24 @@ query GetInstance ($organizationId: ID!, $id: ID!) {
 		attributes
 		createdAt
 		updatedAt
+		cost {
+			lastMonth {
+				amount
+				currency
+			}
+			monthlyAverage {
+				amount
+				currency
+			}
+			lastDay {
+				amount
+				currency
+			}
+			dailyAverage {
+				amount
+				currency
+			}
+		}
 		statePaths {
 			stepName
 			stateUrl
@@ -24885,6 +25856,24 @@ query GetProject ($organizationId: ID!, $id: ID!) {
 		attributes
 		createdAt
 		updatedAt
+		cost {
+			lastMonth {
+				amount
+				currency
+			}
+			monthlyAverage {
+				amount
+				currency
+			}
+			lastDay {
+				amount
+				currency
+			}
+			dailyAverage {
+				amount
+				currency
+			}
+		}
 		environments {
 			items {
 				id
@@ -25465,6 +26454,24 @@ query ListEnvironments ($organizationId: ID!) {
 			attributes
 			createdAt
 			updatedAt
+			cost {
+				lastMonth {
+					amount
+					currency
+				}
+				monthlyAverage {
+					amount
+					currency
+				}
+				lastDay {
+					amount
+					currency
+				}
+				dailyAverage {
+					amount
+					currency
+				}
+			}
 			project {
 				id
 				name
@@ -25631,6 +26638,24 @@ query ListInstances ($organizationId: ID!, $filter: InstancesFilter, $sort: Inst
 			attributes
 			createdAt
 			updatedAt
+			cost {
+				lastMonth {
+					amount
+					currency
+				}
+				monthlyAverage {
+					amount
+					currency
+				}
+				lastDay {
+					amount
+					currency
+				}
+				dailyAverage {
+					amount
+					currency
+				}
+			}
 			environment {
 				id
 				name
@@ -25826,6 +26851,24 @@ query ListProjects ($organizationId: ID!) {
 			attributes
 			createdAt
 			updatedAt
+			cost {
+				lastMonth {
+					amount
+					currency
+				}
+				monthlyAverage {
+					amount
+					currency
+				}
+				lastDay {
+					amount
+					currency
+				}
+				dailyAverage {
+					amount
+					currency
+				}
+			}
 			environments {
 				items {
 					id
