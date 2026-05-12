@@ -18,7 +18,6 @@ service-account keys.
 
 ## Packages
 
-- `artifacts` — publish/read deployment artifacts.
 - `deployments` — report deployment status back to the platform.
 - `resources` — read and write resources owned by the in-flight
   deployment.
