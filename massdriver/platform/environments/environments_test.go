@@ -114,7 +114,7 @@ func TestList(t *testing.T) {
 		}),
 	)
 
-	got, err := newService(gqlClient).List(t.Context())
+	got, err := newService(gqlClient).List(t.Context(), environments.ListInput{})
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

@@ -601,8 +601,18 @@ query GetEnvironment($organizationId: ID!, $id: ID!) {
   }
 }
 
-query ListEnvironments($organizationId: ID!) {
-  environments(organizationId: $organizationId) {
+# @genqlient(for: "EnvironmentsFilter.projectId", omitempty: true, pointer: true)
+# @genqlient(for: "EnvironmentsFilter.id", omitempty: true, pointer: true)
+# @genqlient(for: "IdFilter.eq", omitempty: true)
+# @genqlient(for: "IdFilter.in", omitempty: true)
+# @genqlient(for: "StringFilter.eq", omitempty: true)
+# @genqlient(for: "StringFilter.in", omitempty: true)
+query ListEnvironments(
+  $organizationId: ID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $filter: EnvironmentsFilter
+) {
+  environments(organizationId: $organizationId, filter: $filter) {
     items {
       id
       name

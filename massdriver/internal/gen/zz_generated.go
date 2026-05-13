@@ -6960,6 +6960,20 @@ var AllEmailAuthMethodType = []EmailAuthMethodType{
 	EmailAuthMethodTypePasskey,
 }
 
+// Filters for narrowing the environments list. All filters are optional and combine with AND logic.
+type EnvironmentsFilter struct {
+	// Filter to environments belonging to a specific project.
+	ProjectId *IdFilter `json:"projectId,omitempty"`
+	// Filter by environment identifier (supports exact match and `in` list).
+	Id *StringFilter `json:"id,omitempty"`
+}
+
+// GetProjectId returns EnvironmentsFilter.ProjectId, and is useful for accessing the field via an interface.
+func (v *EnvironmentsFilter) GetProjectId() *IdFilter { return v.ProjectId }
+
+// GetId returns EnvironmentsFilter.Id, and is useful for accessing the field via an interface.
+func (v *EnvironmentsFilter) GetId() *StringFilter { return v.Id }
+
 // EvaluatePoliciesEvaluatePoliciesPolicyDecision includes the requested fields of the GraphQL type PolicyDecision.
 // The GraphQL type's documentation follows.
 //
@@ -23025,11 +23039,15 @@ func (v *__ListDeploymentsInput) GetCursor() *scalars.Cursor { return v.Cursor }
 
 // __ListEnvironmentsInput is used internally by genqlient
 type __ListEnvironmentsInput struct {
-	OrganizationId string `json:"organizationId"`
+	OrganizationId string              `json:"organizationId"`
+	Filter         *EnvironmentsFilter `json:"filter,omitempty"`
 }
 
 // GetOrganizationId returns __ListEnvironmentsInput.OrganizationId, and is useful for accessing the field via an interface.
 func (v *__ListEnvironmentsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetFilter returns __ListEnvironmentsInput.Filter, and is useful for accessing the field via an interface.
+func (v *__ListEnvironmentsInput) GetFilter() *EnvironmentsFilter { return v.Filter }
 
 // __ListGroupsInput is used internally by genqlient
 type __ListGroupsInput struct {
@@ -26547,8 +26565,8 @@ func ListDeployments(
 
 // The query executed by ListEnvironments.
 const ListEnvironments_Operation = `
-query ListEnvironments ($organizationId: ID!) {
-	environments(organizationId: $organizationId) {
+query ListEnvironments ($organizationId: ID!, $filter: EnvironmentsFilter) {
+	environments(organizationId: $organizationId, filter: $filter) {
 		items {
 			id
 			name
@@ -26591,12 +26609,14 @@ func ListEnvironments(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	organizationId string,
+	filter *EnvironmentsFilter,
 ) (data_ *ListEnvironmentsResponse, err_ error) {
 	req_ := &graphql.Request{
 		OpName: "ListEnvironments",
 		Query:  ListEnvironments_Operation,
 		Variables: &__ListEnvironmentsInput{
 			OrganizationId: organizationId,
+			Filter:         filter,
 		},
 	}
 

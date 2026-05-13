@@ -78,6 +78,14 @@ type UpdateInput struct {
 	Attributes  map[string]any
 }
 
+// ListInput narrows what [Service.List] returns.
+type ListInput struct {
+	// ProjectID limits results to one project.
+	ProjectID string
+	// IDs limits results to the named environments.
+	IDs []string
+}
+
 // EnvironmentDefault is a resource pre-assigned to an environment so that
 // instances inherit it automatically when their connection schema matches the
 // resource type.
@@ -106,9 +114,9 @@ func (s *Service) Get(ctx context.Context, id string) (*Environment, error) {
 }
 
 // List returns every environment the caller can see in the configured
-// organization.
-func (s *Service) List(ctx context.Context) ([]Environment, error) {
-	resp, err := gen.ListEnvironments(ctx, s.client.GQLv2, s.client.Config.OrganizationID)
+// organization, narrowed by [ListInput].
+func (s *Service) List(ctx context.Context, input ListInput) ([]Environment, error) {
+	resp, err := gen.ListEnvironments(ctx, s.client.GQLv2, s.client.Config.OrganizationID, buildListFilter(input))
 	if err != nil {
 		return nil, gql.ClassifyError(fmt.Errorf("list environments: %w", err))
 	}
@@ -121,6 +129,23 @@ func (s *Service) List(ctx context.Context) ([]Environment, error) {
 		out = append(out, *e)
 	}
 	return out, nil
+}
+
+func buildListFilter(input ListInput) *gen.EnvironmentsFilter {
+	filter := &gen.EnvironmentsFilter{}
+	set := false
+	if input.ProjectID != "" {
+		filter.ProjectId = &gen.IdFilter{Eq: input.ProjectID}
+		set = true
+	}
+	if len(input.IDs) > 0 {
+		filter.Id = &gen.StringFilter{In: input.IDs}
+		set = true
+	}
+	if !set {
+		return nil
+	}
+	return filter
 }
 
 // Create creates a new environment under the named project. Returns a

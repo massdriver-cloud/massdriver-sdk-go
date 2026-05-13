@@ -110,7 +110,7 @@ func TestIntegration_Environments_List(t *testing.T) {
 		_, _ = c.Environments.Delete(ctx, envID)
 	})
 
-	all, err := c.Environments.List(ctx)
+	all, err := c.Environments.List(ctx, environments.ListInput{})
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
