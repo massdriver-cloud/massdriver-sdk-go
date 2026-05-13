@@ -313,7 +313,24 @@ func buildListFilter(input ListInput) *gen.OciReposFilter {
 	return &gen.OciReposFilter{
 		Name:         nameFilter,
 		Search:       input.Search,
-		ArtifactType: string(input.ArtifactType),
+		ArtifactType: wireArtifactType(input.ArtifactType),
+	}
+}
+
+// wireArtifactType maps the SDK's typed [ArtifactType] enum onto the OCI
+// media-type string the server's OciReposFilter.artifactType expects.
+// The platform's read field exposes the enum ("BUNDLE"); the filter
+// input demands the media type — translate at the wire so callers can
+// keep using the typed constants. Unknown values are passed through
+// verbatim for forward-compat with values the SDK doesn't know yet.
+func wireArtifactType(t ArtifactType) string {
+	switch t {
+	case "":
+		return ""
+	case ArtifactTypeBundle:
+		return "application/vnd.massdriver.bundle.v1+json"
+	default:
+		return string(t)
 	}
 }
 
