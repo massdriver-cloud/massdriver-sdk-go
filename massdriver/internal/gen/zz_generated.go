@@ -9206,6 +9206,119 @@ func (v *GetGroupGroup) GetCreatedAt() time.Time { return v.CreatedAt }
 // GetUpdatedAt returns GetGroupGroup.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *GetGroupGroup) GetUpdatedAt() time.Time { return v.UpdatedAt }
 
+// GetGroupPolicyGroupPolicy includes the requested fields of the GraphQL type Policy.
+// The GraphQL type's documentation follows.
+//
+// A single ABAC group policy: an effect (`ALLOW`/`DENY`), one or more actions,
+// optional attribute conditions, and the group whose members the policy
+// applies to.
+//
+// Conditions are evaluated AND within a policy and OR across policies on the
+// same group. A policy with no conditions is a wildcard — it matches any
+// resource of each action's entity. Deny policies win over allow policies. A
+// policy can list actions across different entities (for example
+// `project:view` together with `instance:deploy`); for each action, condition
+// keys whose registered attribute scope is unreachable for that action's
+// entity are skipped, and a policy whose conditions all skip for a given
+// action is a wildcard match for that action. See `docs/guides/abac.md` for
+// the full evaluation model.
+type GetGroupPolicyGroupPolicy struct {
+	// Unique identifier for this policy.
+	Id string `json:"id"`
+	// Whether this policy grants (`ALLOW`) or blocks (`DENY`) the actions.
+	Effect PolicyEffect `json:"effect"`
+	// The actions this policy authorizes, each in `{entity}:{verb}` form (for example `["repo:pull", "instance:deploy"]`). Always non-empty.
+	Actions []string `json:"actions"`
+	// Either `"*"` (the policy is a wildcard — every resource of the entity matches) or a JSON-encoded object of attribute conditions. Keys are attribute names; values are a string or list of strings.
+	Conditions types.PolicyConditions `json:"conditions"`
+	// When this policy was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// When this policy was last updated.
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The group this policy applies to.
+	Group GetGroupPolicyGroupPolicyGroup `json:"group"`
+}
+
+// GetId returns GetGroupPolicyGroupPolicy.Id, and is useful for accessing the field via an interface.
+func (v *GetGroupPolicyGroupPolicy) GetId() string { return v.Id }
+
+// GetEffect returns GetGroupPolicyGroupPolicy.Effect, and is useful for accessing the field via an interface.
+func (v *GetGroupPolicyGroupPolicy) GetEffect() PolicyEffect { return v.Effect }
+
+// GetActions returns GetGroupPolicyGroupPolicy.Actions, and is useful for accessing the field via an interface.
+func (v *GetGroupPolicyGroupPolicy) GetActions() []string { return v.Actions }
+
+// GetConditions returns GetGroupPolicyGroupPolicy.Conditions, and is useful for accessing the field via an interface.
+func (v *GetGroupPolicyGroupPolicy) GetConditions() types.PolicyConditions { return v.Conditions }
+
+// GetCreatedAt returns GetGroupPolicyGroupPolicy.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetGroupPolicyGroupPolicy) GetCreatedAt() time.Time { return v.CreatedAt }
+
+// GetUpdatedAt returns GetGroupPolicyGroupPolicy.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *GetGroupPolicyGroupPolicy) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+// GetGroup returns GetGroupPolicyGroupPolicy.Group, and is useful for accessing the field via an interface.
+func (v *GetGroupPolicyGroupPolicy) GetGroup() GetGroupPolicyGroupPolicyGroup { return v.Group }
+
+// GetGroupPolicyGroupPolicyGroup includes the requested fields of the GraphQL type Group.
+// The GraphQL type's documentation follows.
+//
+// A collection of users and service accounts that share the same access level within your organization.
+//
+// Groups are the primary mechanism for managing access control in Massdriver. Rather than
+// assigning permissions to individual users, you add them to groups that define what they
+// can see and do.
+//
+// ```mermaid
+// graph TD
+// O["Organization"] --> G1["Group: Admins"]
+// O --> G2["Group: Developers"]
+// O --> G3["Group: Custom"]
+// G1 --> U1["User: alice@co.com"]
+// G2 --> U2["User: bob@co.com"]
+// G2 --> SA1["Service Account: ci-bot"]
+// G3 -->|"project_admin"| P1["Project: backend"]
+// G3 -->|"project_viewer"| P2["Project: frontend"]
+// ```
+//
+// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
+// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+//
+// **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
+// Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
+//
+// **Members** — Both human users and service accounts can be group members. Users live under
+// `members` and are added via `addAccountToGroup` (auto-adds existing org members or sends an
+// invitation otherwise). Service accounts live under `serviceAccounts` and are added via
+// `addServiceAccountToGroup`.
+type GetGroupPolicyGroupPolicyGroup struct {
+	// Unique identifier for this group.
+	Id string `json:"id"`
+	// Human-readable name displayed in the UI and API responses.
+	Name string `json:"name"`
+}
+
+// GetId returns GetGroupPolicyGroupPolicyGroup.Id, and is useful for accessing the field via an interface.
+func (v *GetGroupPolicyGroupPolicyGroup) GetId() string { return v.Id }
+
+// GetName returns GetGroupPolicyGroupPolicyGroup.Name, and is useful for accessing the field via an interface.
+func (v *GetGroupPolicyGroupPolicyGroup) GetName() string { return v.Name }
+
+// GetGroupPolicyResponse is returned by GetGroupPolicy on success.
+type GetGroupPolicyResponse struct {
+	// Fetch a single ABAC group policy by its unique identifier.
+	//
+	// Returns `null` with a `NOT_FOUND` error if the policy does not exist in
+	// your organization. Use this when you already know the policy's id — for
+	// example, when the terraform provider needs to read a policy it previously
+	// created. To browse policies attached to a group, query the nested
+	// `Group.policies` field instead.
+	GroupPolicy GetGroupPolicyGroupPolicy `json:"groupPolicy"`
+}
+
+// GetGroupPolicy returns GetGroupPolicyResponse.GroupPolicy, and is useful for accessing the field via an interface.
+func (v *GetGroupPolicyResponse) GetGroupPolicy() GetGroupPolicyGroupPolicy { return v.GroupPolicy }
+
 // GetGroupResponse is returned by GetGroup on success.
 type GetGroupResponse struct {
 	// Retrieve a single group by its identifier.
@@ -9443,9 +9556,9 @@ type GetInstanceInstance struct {
 	Name string `json:"name"`
 	// Current lifecycle state of the instance.
 	Status InstanceStatus `json:"status"`
-	// Version constraint that controls which bundle releases are eligible. Supports semver constraints like `~1.0`, exact versions like `1.2.3`, or `latest`.
+	// The version constraint controlling which bundle releases are eligible for deployment. Accepts any value accepted by the `VersionConstraint` scalar: a pinned semver (e.g., `1.2.3`) or a release channel name as listed by `ociRepo.releaseChannels` (e.g., `latest`, `~1.2`, `~1.2+dev`). Round-trips: the value returned here is valid input for the next `updateInstance` mutation.
 	Version string `json:"version"`
-	// Whether to include development (pre-release) builds when resolving the version constraint.
+	// Deprecated. Derived from `version`: `:development` when `version` is a development release channel, otherwise `:stable`. Will be removed.
 	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
 	// The concrete bundle version resolved from the version constraint and release strategy.
 	//
@@ -14631,9 +14744,9 @@ type ListInstancesInstancesInstancesPageItemsInstance struct {
 	Name string `json:"name"`
 	// Current lifecycle state of the instance.
 	Status InstanceStatus `json:"status"`
-	// Version constraint that controls which bundle releases are eligible. Supports semver constraints like `~1.0`, exact versions like `1.2.3`, or `latest`.
+	// The version constraint controlling which bundle releases are eligible for deployment. Accepts any value accepted by the `VersionConstraint` scalar: a pinned semver (e.g., `1.2.3`) or a release channel name as listed by `ociRepo.releaseChannels` (e.g., `latest`, `~1.2`, `~1.2+dev`). Round-trips: the value returned here is valid input for the next `updateInstance` mutation.
 	Version string `json:"version"`
-	// Whether to include development (pre-release) builds when resolving the version constraint.
+	// Deprecated. Derived from `version`: `:development` when `version` is a development release channel, otherwise `:stable`. Will be removed.
 	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
 	// The concrete bundle version resolved from the version constraint and release strategy.
 	//
@@ -15273,6 +15386,11 @@ type ListOciReposOciReposOciReposPageItemsOciRepo struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// Timestamp when this repository was last modified (UTC).
 	UpdatedAt time.Time `json:"updatedAt"`
+	// Paginated list of release channels for this repository.
+	//
+	// Each channel is a version constraint that auto-resolves to the latest matching
+	// tag. Use the `stable` filter to show only stable or only development channels.
+	ReleaseChannels ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPage `json:"releaseChannels"`
 }
 
 // GetId returns ListOciReposOciReposOciReposPageItemsOciRepo.Id, and is useful for accessing the field via an interface.
@@ -15308,6 +15426,11 @@ func (v *ListOciReposOciReposOciReposPageItemsOciRepo) GetCreatedAt() time.Time 
 
 // GetUpdatedAt returns ListOciReposOciReposOciReposPageItemsOciRepo.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *ListOciReposOciReposOciReposPageItemsOciRepo) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+// GetReleaseChannels returns ListOciReposOciReposOciReposPageItemsOciRepo.ReleaseChannels, and is useful for accessing the field via an interface.
+func (v *ListOciReposOciReposOciReposPageItemsOciRepo) GetReleaseChannels() ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPage {
+	return v.ReleaseChannels
+}
 
 func (v *ListOciReposOciReposOciReposPageItemsOciRepo) UnmarshalJSON(b []byte) error {
 
@@ -15362,6 +15485,8 @@ type __premarshalListOciReposOciReposOciReposPageItemsOciRepo struct {
 	CreatedAt time.Time `json:"createdAt"`
 
 	UpdatedAt time.Time `json:"updatedAt"`
+
+	ReleaseChannels ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPage `json:"releaseChannels"`
 }
 
 func (v *ListOciReposOciReposOciReposPageItemsOciRepo) MarshalJSON() ([]byte, error) {
@@ -15396,7 +15521,48 @@ func (v *ListOciReposOciReposOciReposPageItemsOciRepo) __premarshalJSON() (*__pr
 	retval.SourceUrl = v.SourceUrl
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
+	retval.ReleaseChannels = v.ReleaseChannels
 	return &retval, nil
+}
+
+// ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPage includes the requested fields of the GraphQL type OciRepoReleaseChannelsPage.
+type ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPage struct {
+	// A list of type oci_repo_release_channel.
+	Items []ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel `json:"items"`
+}
+
+// GetItems returns ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPage.Items, and is useful for accessing the field via an interface.
+func (v *ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPage) GetItems() []ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel {
+	return v.Items
+}
+
+// ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel includes the requested fields of the GraphQL type OciRepoReleaseChannel.
+// The GraphQL type's documentation follows.
+//
+// A release channel within an OCI repository.
+//
+// Release channels are auto-resolving version constraints. Each channel points to
+// the latest published tag that matches its constraint. As new versions are
+// published, channels automatically update to point to the newest match.
+//
+// For example, channel `~1` always resolves to the highest `1.x.x` stable tag.
+// If `1.2.3` is the latest, the channel points there. When `1.3.0` is published,
+// the channel automatically advances.
+type ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel struct {
+	// The channel constraint expression (e.g., `~1`, `~1.2`, `latest`, `latest+dev`).
+	Name string `json:"name"`
+	// The fully resolved semver version this channel currently points to.
+	Tag string `json:"tag"`
+}
+
+// GetName returns ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel.Name, and is useful for accessing the field via an interface.
+func (v *ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel) GetName() string {
+	return v.Name
+}
+
+// GetTag returns ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel.Tag, and is useful for accessing the field via an interface.
+func (v *ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel) GetTag() string {
+	return v.Tag
 }
 
 // ListOciReposResponse is returned by ListOciRepos on success.
@@ -20547,11 +20713,11 @@ func (v *UpdateInstanceAlarmUpdateInstanceAlarmAlarmPayloadResultAlarmMetricDime
 	return v.Value
 }
 
-// Update an instance's version constraint or release strategy. Changes take effect on the next deployment.
+// Update an instance's version. Changes take effect on the next deployment.
 type UpdateInstanceInput struct {
-	// Whether to use stable or development releases
+	// Deprecated. Add `+dev` to `version` instead (e.g., `latest+dev`).
 	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
-	// Version constraint for the bundle (e.g., '~1.0', '1.2.3', 'latest'). Resolved against available releases.
+	// Bundle version to deploy. Accepts a pinned tag (`1.2.3`), a release channel (`latest`, `~1.2`), or a release channel with `+dev` to include pre-release builds (`latest+dev`, `~1.2+dev`).
 	Version string `json:"version"`
 }
 
@@ -20563,18 +20729,23 @@ func (v *UpdateInstanceInput) GetVersion() string { return v.Version }
 
 // UpdateInstanceResponse is returned by UpdateInstance on success.
 type UpdateInstanceResponse struct {
-	// Update an instance's version constraint or release strategy.
+	// Update an instance's version constraint.
 	//
-	// Changes are staged and take effect on the **next** deployment. The
-	// `resolvedVersion` field will reflect the new constraint immediately,
-	// while `deployedVersion` remains unchanged until a deploy runs.
+	// `version` is a `VersionConstraint` scalar: a pinned semver
+	// (e.g., `1.2.3`) or a release channel name as listed by
+	// `ociRepo.releaseChannels` (e.g., `latest`, `~1.2`, `~1.2+dev`).
+	// See the `VersionConstraint` scalar for the full grammar.
+	//
+	// Changes are staged and take effect on the **next** deployment.
+	// `resolvedVersion` reflects the new constraint immediately;
+	// `deployedVersion` stays put until a deploy runs.
 	//
 	// ```graphql
 	// mutation {
 	// updateInstance(
 	// organizationId: "my-org"
 	// id: "my-database"
-	// input: { version: "~2.0", releaseStrategy: stable }
+	// input: { version: "~2.0" }
 	// ) {
 	// result { id resolvedVersion }
 	// successful
@@ -20702,9 +20873,9 @@ type UpdateInstanceUpdateInstanceInstancePayloadResultInstance struct {
 	Name string `json:"name"`
 	// Current lifecycle state of the instance.
 	Status InstanceStatus `json:"status"`
-	// Version constraint that controls which bundle releases are eligible. Supports semver constraints like `~1.0`, exact versions like `1.2.3`, or `latest`.
+	// The version constraint controlling which bundle releases are eligible for deployment. Accepts any value accepted by the `VersionConstraint` scalar: a pinned semver (e.g., `1.2.3`) or a release channel name as listed by `ociRepo.releaseChannels` (e.g., `latest`, `~1.2`, `~1.2+dev`). Round-trips: the value returned here is valid input for the next `updateInstance` mutation.
 	Version string `json:"version"`
-	// Whether to include development (pre-release) builds when resolving the version constraint.
+	// Deprecated. Derived from `version`: `:development` when `version` is a development release channel, otherwise `:stable`. Will be removed.
 	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
 	// The concrete bundle version resolved from the version constraint and release strategy.
 	//
@@ -22856,6 +23027,18 @@ func (v *__GetGroupInput) GetOrganizationId() string { return v.OrganizationId }
 
 // GetId returns __GetGroupInput.Id, and is useful for accessing the field via an interface.
 func (v *__GetGroupInput) GetId() string { return v.Id }
+
+// __GetGroupPolicyInput is used internally by genqlient
+type __GetGroupPolicyInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __GetGroupPolicyInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__GetGroupPolicyInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __GetGroupPolicyInput.Id, and is useful for accessing the field via an interface.
+func (v *__GetGroupPolicyInput) GetId() string { return v.Id }
 
 // __GetInstanceAlarmInput is used internally by genqlient
 type __GetInstanceAlarmInput struct {
@@ -25695,6 +25878,51 @@ func GetGroup(
 	return data_, err_
 }
 
+// The query executed by GetGroupPolicy.
+const GetGroupPolicy_Operation = `
+query GetGroupPolicy ($organizationId: ID!, $id: UUID!) {
+	groupPolicy(organizationId: $organizationId, id: $id) {
+		id
+		effect
+		actions
+		conditions
+		createdAt
+		updatedAt
+		group {
+			id
+			name
+		}
+	}
+}
+`
+
+func GetGroupPolicy(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *GetGroupPolicyResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetGroupPolicy",
+		Query:  GetGroupPolicy_Operation,
+		Variables: &__GetGroupPolicyInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &GetGroupPolicyResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The query executed by GetInstance.
 const GetInstance_Operation = `
 query GetInstance ($organizationId: ID!, $id: ID!) {
@@ -26851,6 +27079,12 @@ query ListOciRepos ($organizationId: ID!, $filter: OciReposFilter, $sort: OciRep
 			sourceUrl
 			createdAt
 			updatedAt
+			releaseChannels(filter: {stable:true}, sort: {field:NAME,order:ASC}, cursor: {limit:1}) {
+				items {
+					name
+					tag
+				}
+			}
 		}
 	}
 }

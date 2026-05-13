@@ -1354,6 +1354,12 @@ query ListOciRepos(
       sourceUrl
       createdAt
       updatedAt
+      releaseChannels(filter: {stable: true}, sort: {field: NAME, order: ASC}, cursor: {limit: 1}) {
+        items {
+          name
+          tag
+        }
+      }
     }
   }
 }
@@ -1560,6 +1566,21 @@ mutation DeleteCustomAttribute($organizationId: ID!, $id: UUID!) {
 #
 # Policy CRUD (createGroupPolicy, updatePolicy, deletePolicy) plus the
 # catalog/evaluator/explainer queries that back massdriver/platform/policies/.
+
+query GetGroupPolicy($organizationId: ID!, $id: UUID!) {
+  groupPolicy(organizationId: $organizationId, id: $id) {
+    id
+    effect
+    actions
+    conditions
+    createdAt
+    updatedAt
+    group {
+      id
+      name
+    }
+  }
+}
 
 mutation CreateGroupPolicy($organizationId: ID!, $groupId: UUID!, $input: CreateGroupPolicyInput!) {
   createGroupPolicy(organizationId: $organizationId, groupId: $groupId, input: $input) {

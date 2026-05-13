@@ -290,6 +290,12 @@ func toOciRepo(v any) (*OciRepo, error) {
 		}
 		if w.ReleaseChannels != nil {
 			r.ReleaseChannels = w.ReleaseChannels.Items
+			for _, ch := range w.ReleaseChannels.Items {
+				if ch.Name == "latest" {
+					r.LatestVersion = ch.Tag
+					break
+				}
+			}
 		}
 	}
 	return &r, nil

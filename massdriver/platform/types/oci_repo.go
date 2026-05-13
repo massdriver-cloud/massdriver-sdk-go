@@ -23,10 +23,11 @@ type OciRepo struct {
 	Description  string         `json:"description,omitempty" mapstructure:"description"`
 	Icon         string         `json:"icon,omitempty" mapstructure:"icon"`
 	SourceURL    string         `json:"sourceUrl,omitempty" mapstructure:"sourceUrl"`
-	CreatedAt       time.Time              `json:"createdAt,omitzero" mapstructure:"createdAt"`
-	UpdatedAt       time.Time              `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
-	Tags            []string               `json:"tags,omitempty" mapstructure:"-"`
+	CreatedAt       time.Time               `json:"createdAt,omitzero" mapstructure:"createdAt"`
+	UpdatedAt       time.Time               `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
+	Tags            []string                `json:"tags,omitempty" mapstructure:"-"`
 	ReleaseChannels []OciRepoReleaseChannel `json:"releaseChannels,omitempty" mapstructure:"-"`
+	LatestVersion   string                  `json:"latestVersion,omitempty" mapstructure:"-"`
 }
 
 // OciRepoReleaseChannel is an auto-resolving version constraint on an

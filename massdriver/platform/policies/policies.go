@@ -137,6 +137,21 @@ func WildcardConditions() *PolicyConditions {
 	return &c
 }
 
+// Get retrieves a single policy by its ID.
+//
+// Returns [gql.ErrNotFound] (wrapped, match with [errors.Is]) when no
+// policy with the given ID exists in the configured organization.
+func (s *Service) Get(ctx context.Context, policyID string) (*Policy, error) {
+	resp, err := gen.GetGroupPolicy(ctx, s.client.GQLv2, s.client.Config.OrganizationID, policyID)
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("get policy %s: %w", policyID, err))
+	}
+	if resp.GroupPolicy.Id == "" {
+		return nil, fmt.Errorf("get policy %s: %w", policyID, gql.ErrNotFound)
+	}
+	return toPolicy(resp.GroupPolicy)
+}
+
 // Create attaches an ABAC policy to the named group.
 //
 // Pass nil for [CreatePolicyInput.Conditions] to create a wildcard
