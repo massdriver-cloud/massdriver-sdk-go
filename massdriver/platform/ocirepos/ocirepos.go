@@ -292,7 +292,7 @@ func toOciRepo(v any) (*OciRepo, error) {
 			r.ReleaseChannels = w.ReleaseChannels.Items
 			for _, ch := range w.ReleaseChannels.Items {
 				if ch.Name == "latest" {
-					r.LatestVersion = ch.Tag
+					r.LatestTag = ch.Tag
 					break
 				}
 			}

@@ -27,7 +27,7 @@ type OciRepo struct {
 	UpdatedAt       time.Time               `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
 	Tags            []string                `json:"tags,omitempty" mapstructure:"-"`
 	ReleaseChannels []OciRepoReleaseChannel `json:"releaseChannels,omitempty" mapstructure:"-"`
-	LatestVersion   string                  `json:"latestVersion,omitempty" mapstructure:"-"`
+	LatestTag       string                  `json:"latestTag,omitempty" mapstructure:"-"`
 }
 
 // OciRepoReleaseChannel is an auto-resolving version constraint on an
