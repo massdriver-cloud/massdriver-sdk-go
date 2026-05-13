@@ -59,16 +59,6 @@ const (
 	StatusFailed Status = "FAILED"
 )
 
-// ReleaseStrategy controls which bundle releases are eligible for deployment.
-type ReleaseStrategy string
-
-const (
-	// ReleaseStable uses only stable releases. Recommended for prod.
-	ReleaseStable ReleaseStrategy = "STABLE"
-	// ReleaseDevelopment includes pre-release builds.
-	ReleaseDevelopment ReleaseStrategy = "DEVELOPMENT"
-)
-
 // SortField is the field a [Service.List] result can be ordered by.
 type SortField string
 
@@ -111,12 +101,11 @@ type ListInput struct {
 	PageSize int
 }
 
-// UpdateInput is the input for [Service.Update]. Only Version and ReleaseStrategy
-// are mutable on an instance directly — everything else (params, secrets,
-// connections) is changed through deployments or sub-resource mutations.
+// UpdateInput is the input for [Service.Update]. Only Version is mutable
+// on an instance directly — everything else (params, secrets, connections)
+// is changed through deployments or sub-resource mutations.
 type UpdateInput struct {
-	Version         string
-	ReleaseStrategy ReleaseStrategy
+	Version string
 }
 
 // Get retrieves an instance by ID. The returned [Instance] includes
@@ -260,14 +249,13 @@ func (s *Service) List(ctx context.Context, input ListInput) ([]Instance, error)
 	return out, nil
 }
 
-// Update updates an instance's version constraint or release strategy.
-// Changes take effect on the next deployment — the instance's
-// `ResolvedVersion` will reflect the new constraint immediately, but
-// `DeployedVersion` only changes once a deployment runs.
+// Update updates an instance's version constraint. Changes take effect
+// on the next deployment — the instance's `ResolvedVersion` will reflect
+// the new constraint immediately, but `DeployedVersion` only changes
+// once a deployment runs.
 func (s *Service) Update(ctx context.Context, id string, input UpdateInput) (*Instance, error) {
 	resp, err := gen.UpdateInstance(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id, gen.UpdateInstanceInput{
-		Version:         input.Version,
-		ReleaseStrategy: gen.ReleaseStrategy(input.ReleaseStrategy),
+		Version: input.Version,
 	})
 	if err != nil {
 		return nil, gql.ClassifyError(fmt.Errorf("update instance %s: %w", id, err))

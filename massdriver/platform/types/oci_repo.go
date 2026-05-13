@@ -25,9 +25,15 @@ type OciRepo struct {
 	SourceURL    string         `json:"sourceUrl,omitempty" mapstructure:"sourceUrl"`
 	CreatedAt       time.Time               `json:"createdAt,omitzero" mapstructure:"createdAt"`
 	UpdatedAt       time.Time               `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
-	Tags            []string                `json:"tags,omitempty" mapstructure:"-"`
+	Tags            []OciRepoTag            `json:"tags,omitempty" mapstructure:"-"`
 	ReleaseChannels []OciRepoReleaseChannel `json:"releaseChannels,omitempty" mapstructure:"-"`
 	LatestTag       string                  `json:"latestTag,omitempty" mapstructure:"-"`
+}
+
+// OciRepoTag is one published version in an [OciRepo].
+type OciRepoTag struct {
+	Tag       string    `json:"tag" mapstructure:"tag"`
+	CreatedAt time.Time `json:"createdAt,omitzero" mapstructure:"createdAt"`
 }
 
 // OciRepoReleaseChannel is an auto-resolving version constraint on an

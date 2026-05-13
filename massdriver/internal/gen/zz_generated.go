@@ -9558,8 +9558,6 @@ type GetInstanceInstance struct {
 	Status InstanceStatus `json:"status"`
 	// The version constraint controlling which bundle releases are eligible for deployment. Accepts any value accepted by the `VersionConstraint` scalar: a pinned semver (e.g., `1.2.3`) or a release channel name as listed by `ociRepo.releaseChannels` (e.g., `latest`, `~1.2`, `~1.2+dev`). Round-trips: the value returned here is valid input for the next `updateInstance` mutation.
 	Version string `json:"version"`
-	// Deprecated. Derived from `version`: `:development` when `version` is a development release channel, otherwise `:stable`. Will be removed.
-	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
 	// The concrete bundle version resolved from the version constraint and release strategy.
 	//
 	// This is the version that will be used on the **next** deployment. Compare
@@ -9615,9 +9613,6 @@ func (v *GetInstanceInstance) GetStatus() InstanceStatus { return v.Status }
 
 // GetVersion returns GetInstanceInstance.Version, and is useful for accessing the field via an interface.
 func (v *GetInstanceInstance) GetVersion() string { return v.Version }
-
-// GetReleaseStrategy returns GetInstanceInstance.ReleaseStrategy, and is useful for accessing the field via an interface.
-func (v *GetInstanceInstance) GetReleaseStrategy() ReleaseStrategy { return v.ReleaseStrategy }
 
 // GetResolvedVersion returns GetInstanceInstance.ResolvedVersion, and is useful for accessing the field via an interface.
 func (v *GetInstanceInstance) GetResolvedVersion() string { return v.ResolvedVersion }
@@ -9718,8 +9713,6 @@ type __premarshalGetInstanceInstance struct {
 
 	Version string `json:"version"`
 
-	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
-
 	ResolvedVersion string `json:"resolvedVersion"`
 
 	DeployedVersion string `json:"deployedVersion"`
@@ -9762,7 +9755,6 @@ func (v *GetInstanceInstance) __premarshalJSON() (*__premarshalGetInstanceInstan
 	retval.Name = v.Name
 	retval.Status = v.Status
 	retval.Version = v.Version
-	retval.ReleaseStrategy = v.ReleaseStrategy
 	retval.ResolvedVersion = v.ResolvedVersion
 	retval.DeployedVersion = v.DeployedVersion
 	retval.AvailableUpgrade = v.AvailableUpgrade
@@ -10854,10 +10846,17 @@ func (v *GetOciRepoOciRepoTagsOciRepoTagsPage) GetItems() []GetOciRepoOciRepoTag
 type GetOciRepoOciRepoTagsOciRepoTagsPageItemsOciRepoTag struct {
 	// The semantic version string (e.g., `1.2.3` or `1.2.3-dev.20060102T150405Z`).
 	Tag string `json:"tag"`
+	// Timestamp when this version was published (UTC).
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 // GetTag returns GetOciRepoOciRepoTagsOciRepoTagsPageItemsOciRepoTag.Tag, and is useful for accessing the field via an interface.
 func (v *GetOciRepoOciRepoTagsOciRepoTagsPageItemsOciRepoTag) GetTag() string { return v.Tag }
+
+// GetCreatedAt returns GetOciRepoOciRepoTagsOciRepoTagsPageItemsOciRepoTag.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetOciRepoOciRepoTagsOciRepoTagsPageItemsOciRepoTag) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
 
 // GetOciRepoResponse is returned by GetOciRepo on success.
 type GetOciRepoResponse struct {
@@ -14746,8 +14745,6 @@ type ListInstancesInstancesInstancesPageItemsInstance struct {
 	Status InstanceStatus `json:"status"`
 	// The version constraint controlling which bundle releases are eligible for deployment. Accepts any value accepted by the `VersionConstraint` scalar: a pinned semver (e.g., `1.2.3`) or a release channel name as listed by `ociRepo.releaseChannels` (e.g., `latest`, `~1.2`, `~1.2+dev`). Round-trips: the value returned here is valid input for the next `updateInstance` mutation.
 	Version string `json:"version"`
-	// Deprecated. Derived from `version`: `:development` when `version` is a development release channel, otherwise `:stable`. Will be removed.
-	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
 	// The concrete bundle version resolved from the version constraint and release strategy.
 	//
 	// This is the version that will be used on the **next** deployment. Compare
@@ -14792,11 +14789,6 @@ func (v *ListInstancesInstancesInstancesPageItemsInstance) GetStatus() InstanceS
 
 // GetVersion returns ListInstancesInstancesInstancesPageItemsInstance.Version, and is useful for accessing the field via an interface.
 func (v *ListInstancesInstancesInstancesPageItemsInstance) GetVersion() string { return v.Version }
-
-// GetReleaseStrategy returns ListInstancesInstancesInstancesPageItemsInstance.ReleaseStrategy, and is useful for accessing the field via an interface.
-func (v *ListInstancesInstancesInstancesPageItemsInstance) GetReleaseStrategy() ReleaseStrategy {
-	return v.ReleaseStrategy
-}
 
 // GetResolvedVersion returns ListInstancesInstancesInstancesPageItemsInstance.ResolvedVersion, and is useful for accessing the field via an interface.
 func (v *ListInstancesInstancesInstancesPageItemsInstance) GetResolvedVersion() string {
@@ -14890,8 +14882,6 @@ type __premarshalListInstancesInstancesInstancesPageItemsInstance struct {
 
 	Version string `json:"version"`
 
-	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
-
 	ResolvedVersion string `json:"resolvedVersion"`
 
 	DeployedVersion string `json:"deployedVersion"`
@@ -14928,7 +14918,6 @@ func (v *ListInstancesInstancesInstancesPageItemsInstance) __premarshalJSON() (*
 	retval.Name = v.Name
 	retval.Status = v.Status
 	retval.Version = v.Version
-	retval.ReleaseStrategy = v.ReleaseStrategy
 	retval.ResolvedVersion = v.ResolvedVersion
 	retval.DeployedVersion = v.DeployedVersion
 	retval.AvailableUpgrade = v.AvailableUpgrade
@@ -20875,8 +20864,6 @@ type UpdateInstanceUpdateInstanceInstancePayloadResultInstance struct {
 	Status InstanceStatus `json:"status"`
 	// The version constraint controlling which bundle releases are eligible for deployment. Accepts any value accepted by the `VersionConstraint` scalar: a pinned semver (e.g., `1.2.3`) or a release channel name as listed by `ociRepo.releaseChannels` (e.g., `latest`, `~1.2`, `~1.2+dev`). Round-trips: the value returned here is valid input for the next `updateInstance` mutation.
 	Version string `json:"version"`
-	// Deprecated. Derived from `version`: `:development` when `version` is a development release channel, otherwise `:stable`. Will be removed.
-	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
 	// The concrete bundle version resolved from the version constraint and release strategy.
 	//
 	// This is the version that will be used on the **next** deployment. Compare
@@ -20898,11 +20885,6 @@ func (v *UpdateInstanceUpdateInstanceInstancePayloadResultInstance) GetStatus() 
 // GetVersion returns UpdateInstanceUpdateInstanceInstancePayloadResultInstance.Version, and is useful for accessing the field via an interface.
 func (v *UpdateInstanceUpdateInstanceInstancePayloadResultInstance) GetVersion() string {
 	return v.Version
-}
-
-// GetReleaseStrategy returns UpdateInstanceUpdateInstanceInstancePayloadResultInstance.ReleaseStrategy, and is useful for accessing the field via an interface.
-func (v *UpdateInstanceUpdateInstanceInstancePayloadResultInstance) GetReleaseStrategy() ReleaseStrategy {
-	return v.ReleaseStrategy
 }
 
 // GetResolvedVersion returns UpdateInstanceUpdateInstanceInstancePayloadResultInstance.ResolvedVersion, and is useful for accessing the field via an interface.
@@ -25931,7 +25913,6 @@ query GetInstance ($organizationId: ID!, $id: ID!) {
 		name
 		status
 		version
-		releaseStrategy
 		resolvedVersion
 		deployedVersion
 		availableUpgrade
@@ -26116,6 +26097,7 @@ query GetOciRepo ($organizationId: ID!, $id: ID!) {
 		tags {
 			items {
 				tag
+				createdAt
 			}
 		}
 		releaseChannels {
@@ -26981,7 +26963,6 @@ query ListInstances ($organizationId: ID!, $filter: InstancesFilter, $sort: Inst
 			name
 			status
 			version
-			releaseStrategy
 			resolvedVersion
 			deployedVersion
 			availableUpgrade
@@ -28178,7 +28159,6 @@ mutation UpdateInstance ($organizationId: ID!, $id: ID!, $input: UpdateInstanceI
 			name
 			status
 			version
-			releaseStrategy
 			resolvedVersion
 		}
 		successful

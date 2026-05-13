@@ -924,7 +924,6 @@ query GetInstance($organizationId: ID!, $id: ID!) {
     name
     status
     version
-    releaseStrategy
     resolvedVersion
     deployedVersion
     availableUpgrade
@@ -1023,7 +1022,6 @@ query ListInstances(
       name
       status
       version
-      releaseStrategy
       resolvedVersion
       deployedVersion
       availableUpgrade
@@ -1065,7 +1063,6 @@ mutation UpdateInstance($organizationId: ID!, $id: ID!, $input: UpdateInstanceIn
       name
       status
       version
-      releaseStrategy
       resolvedVersion
     }
     successful
@@ -1312,6 +1309,7 @@ query GetOciRepo($organizationId: ID!, $id: ID!) {
     tags {
       items {
         tag
+        createdAt
       }
     }
     releaseChannels {

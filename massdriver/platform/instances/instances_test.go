@@ -27,7 +27,6 @@ func TestGet(t *testing.T) {
 				"name":            "Primary Database",
 				"status":          "PROVISIONED",
 				"version":         "~1.0",
-				"releaseStrategy": "STABLE",
 				"resolvedVersion": "1.2.3",
 				"deployedVersion": "1.2.3",
 				"params":          map[string]any{"size": "small", "version": 14},
@@ -206,7 +205,6 @@ func TestUpdate(t *testing.T) {
 					"name":            "Primary Database",
 					"status":          "PROVISIONED",
 					"version":         "~2.0",
-					"releaseStrategy": "STABLE",
 					"resolvedVersion": "2.1.0",
 				},
 				"successful": true,
@@ -215,8 +213,7 @@ func TestUpdate(t *testing.T) {
 	)
 
 	got, err := newService(gqlClient).Update(t.Context(), "ecomm-prod-database", instances.UpdateInput{
-		Version:         "~2.0",
-		ReleaseStrategy: instances.ReleaseStable,
+		Version: "~2.0",
 	})
 	if err != nil {
 		t.Fatalf("Update: %v", err)

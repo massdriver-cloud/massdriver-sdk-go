@@ -18,7 +18,6 @@ type Instance struct {
 	Name             string         `json:"name" mapstructure:"name"`
 	Status           string         `json:"status" mapstructure:"status"`
 	Version          string         `json:"version" mapstructure:"version"`
-	ReleaseStrategy  string         `json:"releaseStrategy" mapstructure:"releaseStrategy"`
 	ResolvedVersion  string         `json:"resolvedVersion,omitempty" mapstructure:"resolvedVersion"`
 	DeployedVersion  string         `json:"deployedVersion,omitempty" mapstructure:"deployedVersion"`
 	AvailableUpgrade string         `json:"availableUpgrade,omitempty" mapstructure:"availableUpgrade"`

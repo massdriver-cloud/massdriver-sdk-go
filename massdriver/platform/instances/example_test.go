@@ -38,8 +38,7 @@ func ExampleService_Update() {
 	// next deployment — ResolvedVersion updates immediately;
 	// DeployedVersion only changes once a deploy runs.
 	inst, err := c.Instances.Update(context.Background(), "ecomm-prod-database", instances.UpdateInput{
-		Version:         "~2.0",
-		ReleaseStrategy: instances.ReleaseStable,
+		Version: "~2.0",
 	})
 	if err != nil {
 		log.Fatal(err)

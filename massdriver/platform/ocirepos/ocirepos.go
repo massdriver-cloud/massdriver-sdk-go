@@ -267,11 +267,8 @@ func toOciRepo(v any) (*OciRepo, error) {
 	// Second-pass unwrap of the paginated `tags.items` and
 	// `releaseChannels.items` envelopes into the type's flat slices. Get
 	// selects these; List doesn't.
-	type tagItem struct {
-		Tag string `mapstructure:"tag"`
-	}
 	type tagsPage struct {
-		Items []tagItem `mapstructure:"items"`
+		Items []types.OciRepoTag `mapstructure:"items"`
 	}
 	type channelsPage struct {
 		Items []types.OciRepoReleaseChannel `mapstructure:"items"`
@@ -283,10 +280,7 @@ func toOciRepo(v any) (*OciRepo, error) {
 	var w wrapper
 	if err := decode.Decode(v, &w); err == nil {
 		if w.Tags != nil {
-			r.Tags = make([]string, 0, len(w.Tags.Items))
-			for _, t := range w.Tags.Items {
-				r.Tags = append(r.Tags, t.Tag)
-			}
+			r.Tags = w.Tags.Items
 		}
 		if w.ReleaseChannels != nil {
 			r.ReleaseChannels = w.ReleaseChannels.Items
