@@ -1299,6 +1299,11 @@ query GetOciRepo($organizationId: ID!, $id: ID!) {
     sourceUrl
     createdAt
     updatedAt
+    tags {
+      items {
+        tag
+      }
+    }
   }
 }
 

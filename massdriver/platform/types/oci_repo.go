@@ -25,4 +25,5 @@ type OciRepo struct {
 	SourceURL    string         `json:"sourceUrl,omitempty" mapstructure:"sourceUrl"`
 	CreatedAt    time.Time      `json:"createdAt,omitzero" mapstructure:"createdAt"`
 	UpdatedAt    time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
+	Tags         []string       `json:"tags,omitempty" mapstructure:"-"`
 }

@@ -263,6 +263,25 @@ func toOciRepo(v any) (*OciRepo, error) {
 	if err := decode.Decode(v, &r); err != nil {
 		return nil, fmt.Errorf("decode oci repo: %w", err)
 	}
+
+	// Second-pass unwrap of the paginated `tags.items` envelope into the
+	// type's flat Tags slice. Get selects this; List doesn't.
+	type tagItem struct {
+		Tag string `mapstructure:"tag"`
+	}
+	type page struct {
+		Items []tagItem `mapstructure:"items"`
+	}
+	type wrapper struct {
+		Tags *page `mapstructure:"tags"`
+	}
+	var w wrapper
+	if err := decode.Decode(v, &w); err == nil && w.Tags != nil {
+		r.Tags = make([]string, 0, len(w.Tags.Items))
+		for _, t := range w.Tags.Items {
+			r.Tags = append(r.Tags, t.Tag)
+		}
+	}
 	return &r, nil
 }
 

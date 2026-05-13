@@ -10519,6 +10519,11 @@ type GetOciRepoOciRepo struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// Timestamp when this repository was last modified (UTC).
 	UpdatedAt time.Time `json:"updatedAt"`
+	// Paginated list of published version tags in this repository.
+	//
+	// Each tag represents a single immutable bundle release. Defaults to newest
+	// version first (`version` descending).
+	Tags GetOciRepoOciRepoTagsOciRepoTagsPage `json:"tags"`
 }
 
 // GetId returns GetOciRepoOciRepo.Id, and is useful for accessing the field via an interface.
@@ -10550,6 +10555,9 @@ func (v *GetOciRepoOciRepo) GetCreatedAt() time.Time { return v.CreatedAt }
 
 // GetUpdatedAt returns GetOciRepoOciRepo.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *GetOciRepoOciRepo) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+// GetTags returns GetOciRepoOciRepo.Tags, and is useful for accessing the field via an interface.
+func (v *GetOciRepoOciRepo) GetTags() GetOciRepoOciRepoTagsOciRepoTagsPage { return v.Tags }
 
 func (v *GetOciRepoOciRepo) UnmarshalJSON(b []byte) error {
 
@@ -10604,6 +10612,8 @@ type __premarshalGetOciRepoOciRepo struct {
 	CreatedAt time.Time `json:"createdAt"`
 
 	UpdatedAt time.Time `json:"updatedAt"`
+
+	Tags GetOciRepoOciRepoTagsOciRepoTagsPage `json:"tags"`
 }
 
 func (v *GetOciRepoOciRepo) MarshalJSON() ([]byte, error) {
@@ -10638,8 +10648,36 @@ func (v *GetOciRepoOciRepo) __premarshalJSON() (*__premarshalGetOciRepoOciRepo, 
 	retval.SourceUrl = v.SourceUrl
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
+	retval.Tags = v.Tags
 	return &retval, nil
 }
+
+// GetOciRepoOciRepoTagsOciRepoTagsPage includes the requested fields of the GraphQL type OciRepoTagsPage.
+type GetOciRepoOciRepoTagsOciRepoTagsPage struct {
+	// A list of type oci_repo_tag.
+	Items []GetOciRepoOciRepoTagsOciRepoTagsPageItemsOciRepoTag `json:"items"`
+}
+
+// GetItems returns GetOciRepoOciRepoTagsOciRepoTagsPage.Items, and is useful for accessing the field via an interface.
+func (v *GetOciRepoOciRepoTagsOciRepoTagsPage) GetItems() []GetOciRepoOciRepoTagsOciRepoTagsPageItemsOciRepoTag {
+	return v.Items
+}
+
+// GetOciRepoOciRepoTagsOciRepoTagsPageItemsOciRepoTag includes the requested fields of the GraphQL type OciRepoTag.
+// The GraphQL type's documentation follows.
+//
+// A published version tag in an OCI repository.
+//
+// Each tag corresponds to a single bundle release. Tags are immutable -- once
+// a version is published, its contents cannot change. Development tags use
+// a `-dev.TIMESTAMP` suffix (e.g., `1.2.3-dev.20060102T150405Z`).
+type GetOciRepoOciRepoTagsOciRepoTagsPageItemsOciRepoTag struct {
+	// The semantic version string (e.g., `1.2.3` or `1.2.3-dev.20060102T150405Z`).
+	Tag string `json:"tag"`
+}
+
+// GetTag returns GetOciRepoOciRepoTagsOciRepoTagsPageItemsOciRepoTag.Tag, and is useful for accessing the field via an interface.
+func (v *GetOciRepoOciRepoTagsOciRepoTagsPageItemsOciRepoTag) GetTag() string { return v.Tag }
 
 // GetOciRepoResponse is returned by GetOciRepo on success.
 type GetOciRepoResponse struct {
@@ -20442,11 +20480,11 @@ func (v *UpdateInstanceAlarmUpdateInstanceAlarmAlarmPayloadResultAlarmMetricDime
 	return v.Value
 }
 
-// Update an instance's version. Changes take effect on the next deployment.
+// Update an instance's version constraint or release strategy. Changes take effect on the next deployment.
 type UpdateInstanceInput struct {
-	// Deprecated. Add `+dev` to `version` instead (e.g., `latest+dev`).
+	// Whether to use stable or development releases
 	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
-	// Bundle version to deploy. Accepts a pinned tag (`1.2.3`), a release channel (`latest`, `~1.2`), or a release channel with `+dev` to include pre-release builds (`latest+dev`, `~1.2+dev`).
+	// Version constraint for the bundle (e.g., '~1.0', '1.2.3', 'latest'). Resolved against available releases.
 	Version string `json:"version"`
 }
 
@@ -25776,6 +25814,11 @@ query GetOciRepo ($organizationId: ID!, $id: ID!) {
 		sourceUrl
 		createdAt
 		updatedAt
+		tags {
+			items {
+				tag
+			}
+		}
 	}
 }
 `
