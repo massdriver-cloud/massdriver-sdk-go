@@ -1304,6 +1304,12 @@ query GetOciRepo($organizationId: ID!, $id: ID!) {
         tag
       }
     }
+    releaseChannels {
+      items {
+        name
+        tag
+      }
+    }
   }
 }
 

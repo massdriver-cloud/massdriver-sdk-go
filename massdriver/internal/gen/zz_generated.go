@@ -10524,6 +10524,11 @@ type GetOciRepoOciRepo struct {
 	// Each tag represents a single immutable bundle release. Defaults to newest
 	// version first (`version` descending).
 	Tags GetOciRepoOciRepoTagsOciRepoTagsPage `json:"tags"`
+	// Paginated list of release channels for this repository.
+	//
+	// Each channel is a version constraint that auto-resolves to the latest matching
+	// tag. Use the `stable` filter to show only stable or only development channels.
+	ReleaseChannels GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPage `json:"releaseChannels"`
 }
 
 // GetId returns GetOciRepoOciRepo.Id, and is useful for accessing the field via an interface.
@@ -10558,6 +10563,11 @@ func (v *GetOciRepoOciRepo) GetUpdatedAt() time.Time { return v.UpdatedAt }
 
 // GetTags returns GetOciRepoOciRepo.Tags, and is useful for accessing the field via an interface.
 func (v *GetOciRepoOciRepo) GetTags() GetOciRepoOciRepoTagsOciRepoTagsPage { return v.Tags }
+
+// GetReleaseChannels returns GetOciRepoOciRepo.ReleaseChannels, and is useful for accessing the field via an interface.
+func (v *GetOciRepoOciRepo) GetReleaseChannels() GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPage {
+	return v.ReleaseChannels
+}
 
 func (v *GetOciRepoOciRepo) UnmarshalJSON(b []byte) error {
 
@@ -10614,6 +10624,8 @@ type __premarshalGetOciRepoOciRepo struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 
 	Tags GetOciRepoOciRepoTagsOciRepoTagsPage `json:"tags"`
+
+	ReleaseChannels GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPage `json:"releaseChannels"`
 }
 
 func (v *GetOciRepoOciRepo) MarshalJSON() ([]byte, error) {
@@ -10649,7 +10661,48 @@ func (v *GetOciRepoOciRepo) __premarshalJSON() (*__premarshalGetOciRepoOciRepo, 
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
 	retval.Tags = v.Tags
+	retval.ReleaseChannels = v.ReleaseChannels
 	return &retval, nil
+}
+
+// GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPage includes the requested fields of the GraphQL type OciRepoReleaseChannelsPage.
+type GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPage struct {
+	// A list of type oci_repo_release_channel.
+	Items []GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel `json:"items"`
+}
+
+// GetItems returns GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPage.Items, and is useful for accessing the field via an interface.
+func (v *GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPage) GetItems() []GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel {
+	return v.Items
+}
+
+// GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel includes the requested fields of the GraphQL type OciRepoReleaseChannel.
+// The GraphQL type's documentation follows.
+//
+// A release channel within an OCI repository.
+//
+// Release channels are auto-resolving version constraints. Each channel points to
+// the latest published tag that matches its constraint. As new versions are
+// published, channels automatically update to point to the newest match.
+//
+// For example, channel `~1` always resolves to the highest `1.x.x` stable tag.
+// If `1.2.3` is the latest, the channel points there. When `1.3.0` is published,
+// the channel automatically advances.
+type GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel struct {
+	// The channel constraint expression (e.g., `~1`, `~1.2`, `latest`, `latest+dev`).
+	Name string `json:"name"`
+	// The fully resolved semver version this channel currently points to.
+	Tag string `json:"tag"`
+}
+
+// GetName returns GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel.Name, and is useful for accessing the field via an interface.
+func (v *GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel) GetName() string {
+	return v.Name
+}
+
+// GetTag returns GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel.Tag, and is useful for accessing the field via an interface.
+func (v *GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPageItemsOciRepoReleaseChannel) GetTag() string {
+	return v.Tag
 }
 
 // GetOciRepoOciRepoTagsOciRepoTagsPage includes the requested fields of the GraphQL type OciRepoTagsPage.
@@ -25816,6 +25869,12 @@ query GetOciRepo ($organizationId: ID!, $id: ID!) {
 		updatedAt
 		tags {
 			items {
+				tag
+			}
+		}
+		releaseChannels {
+			items {
+				name
 				tag
 			}
 		}
