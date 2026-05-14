@@ -117,10 +117,10 @@ Every wrapper returns errors that callers can classify with
 
 For mutations that fail server-side validation (the response says
 `successful: false` with field-scoped messages), use
-[gql.AsMutationFailed] to inspect each [gql.MutationMessage]:
+[gql.AsMutationFailedError] to inspect each [gql.MutationMessage]:
 
 	_, err := c.Projects.Create(ctx, projects.CreateInput{ID: ""})
-	if mf, ok := gql.AsMutationFailed(err); ok {
+	if mf, ok := gql.AsMutationFailedError(err); ok {
 	    for _, m := range mf.Messages {
 	        log.Printf("%s: %s (%s)", m.Field, m.Message, m.Code)
 	    }
@@ -152,7 +152,7 @@ asks for the next item. Break out to stop, or cancel ctx.
 Most Create/Update/Delete methods return the mutated record so callers
 can inspect server-assigned fields (timestamps, generated IDs) without
 a follow-up Get. When the server reports `successful: false`, the
-returned error is a [*gql.MutationFailed] — the result pointer is nil.
+returned error is a [*gql.MutationFailedError] — the result pointer is nil.
 
 # Streaming
 

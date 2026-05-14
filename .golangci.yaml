@@ -165,14 +165,6 @@ linters:
           - errorlint
           - testifylint
 
-      # MutationFailed is the user-facing error type for failed
-      # mutations; renaming to MutationFailedError reads worse and
-      # would be a breaking-change in the public API.
-      - path: massdriver/gql/errors\.go
-        text: "error type name `MutationFailed`"
-        linters:
-          - errname
-
       # absinthe.Subscription.Close uses its own short timeout
       # internally (it's invoked from a goroutine watching ctx.Done).
       # Threading the parent ctx would deadlock during cancellation.

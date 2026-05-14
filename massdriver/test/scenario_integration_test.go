@@ -56,9 +56,10 @@ func TestIntegration_Scenario_ProjectEnvComponentInstance(t *testing.T) {
 		t.Fatalf("create environment: %v", err)
 	}
 
-	compCreated, err := c.Components.Add(ctx, scenarioProjectID, scenarioOCIRepoName, components.AddInput{
-		ID:   scenarioCompID,
-		Name: "Scenario component",
+	compCreated, err := c.Components.Add(ctx, scenarioProjectID, components.AddInput{
+		OciRepoName: scenarioOCIRepoName,
+		ID:          scenarioCompID,
+		Name:        "Scenario component",
 	})
 	if err != nil {
 		t.Fatalf("add component (sandbox missing %q OCI repo?): %v", scenarioOCIRepoName, err)

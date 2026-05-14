@@ -29,7 +29,7 @@ func TestIntegration_Projects_CRUD(t *testing.T) {
 
 	// Pre-clean: previous crashed run may have left an orphan.
 	// Pre-clean is best-effort. The platform surfaces "not found" on a
-	// Delete mutation as *gql.MutationFailed (not gql.ErrNotFound), so
+	// Delete mutation as *gql.MutationFailedError (not gql.ErrNotFound), so
 	// we don't try to classify and simply proceed — Create will fail
 	// loudly if there's an actual problem.
 	_, _ = c.Projects.Delete(ctx, projectFixtureID)
@@ -89,7 +89,7 @@ func TestIntegration_Projects_List(t *testing.T) {
 	ctx := context.Background()
 
 	// Pre-clean is best-effort. The platform surfaces "not found" on a
-	// Delete mutation as *gql.MutationFailed (not gql.ErrNotFound), so
+	// Delete mutation as *gql.MutationFailedError (not gql.ErrNotFound), so
 	// we don't try to classify and simply proceed — Create will fail
 	// loudly if there's an actual problem.
 	_, _ = c.Projects.Delete(ctx, projectFixtureID)
@@ -104,7 +104,7 @@ func TestIntegration_Projects_List(t *testing.T) {
 		_, _ = c.Projects.Delete(ctx, projectFixtureID)
 	})
 
-	all, err := c.Projects.List(ctx)
+	all, err := c.Projects.List(ctx, projects.ListInput{})
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

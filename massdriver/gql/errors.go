@@ -106,14 +106,14 @@ func classify(err error) error {
 	return nil
 }
 
-// MutationFailed is returned by a mutation wrapper when the GraphQL response
+// MutationFailedError is returned by a mutation wrapper when the GraphQL response
 // reports `successful: false`. It carries the per-field validation messages
 // the API produced.
 //
 // Callers can type-assert (or `errors.As`) to inspect the messages
 // programmatically — for example, to surface field-level errors back into a
 // form UI or a Terraform diagnostic.
-type MutationFailed struct {
+type MutationFailedError struct {
 	// Op is a short human-readable label for the operation that failed
 	// (e.g. "create project"). It is rendered as the prefix of Error().
 	Op string
@@ -134,7 +134,7 @@ type MutationMessage struct {
 
 // Error implements the error interface, formatting each message on its own
 // indented line under the operation prefix.
-func (e *MutationFailed) Error() string {
+func (e *MutationFailedError) Error() string {
 	if len(e.Messages) == 0 {
 		return "unable to " + e.Op
 	}
@@ -149,16 +149,16 @@ func (e *MutationFailed) Error() string {
 	return sb.String()
 }
 
-// NewMutationFailed builds a *MutationFailed for the given operation. The
+// NewMutationFailedError builds a *MutationFailedError for the given operation. The
 // `messages` slice is copied so callers can safely reuse the source.
-func NewMutationFailed(op string, messages []MutationMessage) error {
-	return &MutationFailed{Op: op, Messages: append([]MutationMessage(nil), messages...)}
+func NewMutationFailedError(op string, messages []MutationMessage) error {
+	return &MutationFailedError{Op: op, Messages: append([]MutationMessage(nil), messages...)}
 }
 
-// AsMutationFailed unwraps err to a *MutationFailed if one is in the chain.
+// AsMutationFailedError unwraps err to a *MutationFailedError if one is in the chain.
 // Returns nil and false otherwise.
-func AsMutationFailed(err error) (*MutationFailed, bool) {
-	var mf *MutationFailed
+func AsMutationFailedError(err error) (*MutationFailedError, bool) {
+	var mf *MutationFailedError
 	if errors.As(err, &mf) {
 		return mf, true
 	}
@@ -174,7 +174,7 @@ type validationMessage interface {
 	GetMessage() string
 }
 
-// CheckMutation builds a [*MutationFailed] from a mutation payload. Returns
+// CheckMutation builds a [*MutationFailedError] from a mutation payload. Returns
 // nil when `successful` is true; otherwise wraps the validation messages.
 //
 // The accessor methods are pointer-receiver in genqlient's output, so the
@@ -200,5 +200,5 @@ func CheckMutation[M any, PM interface {
 			Message: p.GetMessage(),
 		})
 	}
-	return NewMutationFailed(op, out)
+	return NewMutationFailedError(op, out)
 }

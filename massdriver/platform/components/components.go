@@ -54,6 +54,9 @@ type Link = types.Link
 
 // AddInput is the input for [Service.Add].
 type AddInput struct {
+	// OciRepoName is the catalog repository whose latest published
+	// bundle this component should resolve. Required.
+	OciRepoName string
 	// ID is a short, memorable identifier (max 20 chars, lowercase
 	// alphanumeric) — the third segment of package identifiers like
 	// "ecomm-prod-db". Immutable after creation.
@@ -92,6 +95,12 @@ type AddLinkInput struct {
 	ToVersion string
 }
 
+// ListInput narrows what [Service.List] returns.
+type ListInput struct {
+	// ProjectID is the project whose components to return. Required.
+	ProjectID string
+}
+
 // Get retrieves a component by ID. The returned component includes its parent
 // project and its source OCI repository.
 func (s *Service) Get(ctx context.Context, id string) (*Component, error) {
@@ -105,10 +114,32 @@ func (s *Service) Get(ctx context.Context, id string) (*Component, error) {
 	return toComponent(resp.Component)
 }
 
-// Add adds a new component to a project's blueprint, sourcing it from the
-// named OCI repository.
-func (s *Service) Add(ctx context.Context, projectID, ociRepoName string, input AddInput) (*Component, error) {
-	resp, err := gen.AddComponent(ctx, s.client.GQLv2, s.client.Config.OrganizationID, projectID, ociRepoName, gen.AddComponentInput{
+// List returns every component in the named project, sorted alphabetically
+// by name. Returns [gql.ErrNotFound] (wrapped) if the project does not
+// exist.
+func (s *Service) List(ctx context.Context, input ListInput) ([]Component, error) {
+	resp, err := gen.ListComponents(ctx, s.client.GQLv2, s.client.Config.OrganizationID, input.ProjectID)
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("list components in project %s: %w", input.ProjectID, err))
+	}
+	if resp.Project.Id == "" {
+		return nil, fmt.Errorf("list components in project %s: %w", input.ProjectID, gql.ErrNotFound)
+	}
+	out := make([]Component, 0, len(resp.Project.Components))
+	for _, item := range resp.Project.Components {
+		c, cerr := toComponent(item)
+		if cerr != nil {
+			return nil, fmt.Errorf("decode component: %w", cerr)
+		}
+		out = append(out, *c)
+	}
+	return out, nil
+}
+
+// Add adds a new component to a project's blueprint, sourcing it from
+// [AddInput.OciRepoName]'s latest published bundle.
+func (s *Service) Add(ctx context.Context, projectID string, input AddInput) (*Component, error) {
+	resp, err := gen.AddComponent(ctx, s.client.GQLv2, s.client.Config.OrganizationID, projectID, input.OciRepoName, gen.AddComponentInput{
 		Id:          input.ID,
 		Name:        input.Name,
 		Description: input.Description,

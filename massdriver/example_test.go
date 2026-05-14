@@ -61,7 +61,7 @@ func ExampleClient_mutationValidation() {
 	_, err = c.Projects.Create(context.Background(), projects.CreateInput{
 		// Intentionally invalid: missing required fields.
 	})
-	if mf, ok := gql.AsMutationFailed(err); ok {
+	if mf, ok := gql.AsMutationFailedError(err); ok {
 		for _, m := range mf.Messages {
 			fmt.Printf("%s: %s (%s)\n", m.Field, m.Message, m.Code)
 		}

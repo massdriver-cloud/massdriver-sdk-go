@@ -149,7 +149,7 @@ func buildListFilter(input ListInput) *gen.EnvironmentsFilter {
 }
 
 // Create creates a new environment under the named project. Returns a
-// [*gql.MutationFailed] (wrapped) if the server reports `successful: false`.
+// [*gql.MutationFailedError] (wrapped) if the server reports `successful: false`.
 func (s *Service) Create(ctx context.Context, projectID string, input CreateInput) (*Environment, error) {
 	resp, err := gen.CreateEnvironment(ctx, s.client.GQLv2, s.client.Config.OrganizationID, projectID, gen.CreateEnvironmentInput{
 		Id:          input.ID,

@@ -83,6 +83,43 @@ func TestGet_NotFound(t *testing.T) {
 	}
 }
 
+func TestList(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"project": map[string]any{
+				"id": "ecomm",
+				"components": []map[string]any{
+					{"id": "ecomm-database", "name": "Primary Database",
+						"ociRepo": map[string]any{"id": "aws-aurora-postgres", "name": "aws-aurora-postgres"}},
+					{"id": "ecomm-cache", "name": "Cache",
+						"ociRepo": map[string]any{"id": "redis", "name": "redis"}},
+				},
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).List(t.Context(), components.ListInput{ProjectID: "ecomm"})
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("len = %d, want 2", len(got))
+	}
+	if got[0].ID != "ecomm-database" {
+		t.Errorf("got[0].ID = %q, want ecomm-database", got[0].ID)
+	}
+}
+
+func TestList_NotFound(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{"project": nil}),
+	)
+	_, err := newService(gqlClient).List(t.Context(), components.ListInput{ProjectID: "nope"})
+	if !errors.Is(err, gql.ErrNotFound) {
+		t.Errorf("err = %v, want it to wrap gql.ErrNotFound", err)
+	}
+}
+
 func TestAdd(t *testing.T) {
 	gqlClient := gqltest.NewClient(
 		gqltest.RespondWithData(map[string]any{
@@ -100,9 +137,10 @@ func TestAdd(t *testing.T) {
 		}),
 	)
 
-	got, err := newService(gqlClient).Add(t.Context(), "ecomm", "redis", components.AddInput{
-		ID:   "cache",
-		Name: "Cache",
+	got, err := newService(gqlClient).Add(t.Context(), "ecomm", components.AddInput{
+		OciRepoName: "redis",
+		ID:          "cache",
+		Name:        "Cache",
 	})
 	if err != nil {
 		t.Fatalf("Add: %v", err)
@@ -236,9 +274,9 @@ func TestAddLink_ValidationFailure(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
-	mf, ok := gql.AsMutationFailed(err)
+	mf, ok := gql.AsMutationFailedError(err)
 	if !ok {
-		t.Fatalf("expected *gql.MutationFailed, got %T: %v", err, err)
+		t.Fatalf("expected *gql.MutationFailedError, got %T: %v", err, err)
 	}
 	if mf.Op != "link components" {
 		t.Errorf("Op = %q, want link components", mf.Op)

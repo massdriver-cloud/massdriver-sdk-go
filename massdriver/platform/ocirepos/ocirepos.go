@@ -180,7 +180,7 @@ func (s *Service) List(ctx context.Context, input ListInput) ([]OciRepo, error) 
 	return out, nil
 }
 
-// Create creates a new (empty) repository. Returns a [*gql.MutationFailed]
+// Create creates a new (empty) repository. Returns a [*gql.MutationFailedError]
 // (wrapped) if the server reports `successful: false`.
 func (s *Service) Create(ctx context.Context, input CreateInput) (*OciRepo, error) {
 	resp, err := gen.CreateOciRepo(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gen.CreateOciRepoInput{

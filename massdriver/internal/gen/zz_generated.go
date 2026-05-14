@@ -2079,7 +2079,7 @@ func (v *CreateDeploymentCreateDeploymentDeploymentPayloadResultDeployment) GetI
 // or check `availableUpgrade` for newer matching releases.
 type CreateDeploymentCreateDeploymentDeploymentPayloadResultDeploymentInstance struct {
 	Id string `json:"id"`
-	// Human-readable display name for the instance.
+	// Name of the instance.
 	Name string `json:"name"`
 }
 
@@ -8946,7 +8946,7 @@ func (v *GetDeploymentDeployment) __premarshalJSON() (*__premarshalGetDeployment
 // or check `availableUpgrade` for newer matching releases.
 type GetDeploymentDeploymentInstance struct {
 	Id string `json:"id"`
-	// Human-readable display name for the instance.
+	// Name of the instance.
 	Name string `json:"name"`
 	// Current lifecycle state of the instance.
 	Status InstanceStatus `json:"status"`
@@ -10110,7 +10110,7 @@ func (v *GetInstanceAlarmResponse) GetInstanceAlarm() GetInstanceAlarmInstanceAl
 // or check `availableUpgrade` for newer matching releases.
 type GetInstanceInstance struct {
 	Id string `json:"id"`
-	// Human-readable display name for the instance.
+	// Name of the instance.
 	Name string `json:"name"`
 	// Current lifecycle state of the instance.
 	Status InstanceStatus `json:"status"`
@@ -12515,7 +12515,7 @@ func (v *GetResourceResource) __premarshalJSON() (*__premarshalGetResourceResour
 // or check `availableUpgrade` for newer matching releases.
 type GetResourceResourceInstance struct {
 	Id string `json:"id"`
-	// Human-readable display name for the instance.
+	// Name of the instance.
 	Name string `json:"name"`
 }
 
@@ -14194,6 +14194,227 @@ type ListBundlesResponse struct {
 // GetBundles returns ListBundlesResponse.Bundles, and is useful for accessing the field via an interface.
 func (v *ListBundlesResponse) GetBundles() ListBundlesBundlesBundlesPage { return v.Bundles }
 
+// ListComponentsProject includes the requested fields of the GraphQL type Project.
+// The GraphQL type's documentation follows.
+//
+// A project organizes related infrastructure under a single blueprint.
+//
+// Each project contains a **Blueprint** that defines your infrastructure architecture -- which
+// bundles to use and how they connect -- and one or more **Environments** (like staging or
+// production) where that architecture is actually deployed.
+//
+// ```mermaid
+// graph LR
+// P["Project"] --> B["Blueprint"]
+// P --> E1["Environment: staging"]
+// P --> E2["Environment: production"]
+// B --> C1["Component: database"]
+// B --> C2["Component: cache"]
+// C1 -.->|"Link"| C2
+// ```
+//
+// Attributes set on a project are inherited by all environments and instances within it.
+type ListComponentsProject struct {
+	Id string `json:"id"`
+	// Components that make up the project's infrastructure architecture.
+	Components []ListComponentsProjectComponentsComponent `json:"components"`
+}
+
+// GetId returns ListComponentsProject.Id, and is useful for accessing the field via an interface.
+func (v *ListComponentsProject) GetId() string { return v.Id }
+
+// GetComponents returns ListComponentsProject.Components, and is useful for accessing the field via an interface.
+func (v *ListComponentsProject) GetComponents() []ListComponentsProjectComponentsComponent {
+	return v.Components
+}
+
+// ListComponentsProjectComponentsComponent includes the requested fields of the GraphQL type Component.
+// The GraphQL type's documentation follows.
+//
+// A bundle placed in a project's blueprint, representing a slot for deployable infrastructure.
+//
+// A component is the **design-time** building block of your architecture. It says
+// "I want a database here" or "I need a Kubernetes cluster there." The component
+// defines *what* to deploy; the actual running infrastructure lives in **instances**
+// -- one per environment the component is deployed to.
+//
+// Components are connected to each other via **links**, which declare that one
+// component's output (e.g., a connection string) should be wired into another
+// component's input.
+type ListComponentsProjectComponentsComponent struct {
+	Id string `json:"id"`
+	// Human-readable display name shown in the UI.
+	Name string `json:"name"`
+	// Optional free-text description of this component's purpose.
+	Description string `json:"description"`
+	// Key-value attributes assigned directly to this component.
+	Attributes map[string]any `json:"-"`
+	// When this component was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this component was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The OCI repository (bundle) this component is based on.
+	OciRepo ListComponentsProjectComponentsComponentOciRepo `json:"ociRepo"`
+}
+
+// GetId returns ListComponentsProjectComponentsComponent.Id, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponent) GetId() string { return v.Id }
+
+// GetName returns ListComponentsProjectComponentsComponent.Name, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponent) GetName() string { return v.Name }
+
+// GetDescription returns ListComponentsProjectComponentsComponent.Description, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponent) GetDescription() string { return v.Description }
+
+// GetAttributes returns ListComponentsProjectComponentsComponent.Attributes, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponent) GetAttributes() map[string]any {
+	return v.Attributes
+}
+
+// GetCreatedAt returns ListComponentsProjectComponentsComponent.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponent) GetCreatedAt() time.Time { return v.CreatedAt }
+
+// GetUpdatedAt returns ListComponentsProjectComponentsComponent.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponent) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+// GetOciRepo returns ListComponentsProjectComponentsComponent.OciRepo, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponent) GetOciRepo() ListComponentsProjectComponentsComponentOciRepo {
+	return v.OciRepo
+}
+
+func (v *ListComponentsProjectComponentsComponent) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ListComponentsProjectComponentsComponent
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ListComponentsProjectComponentsComponent = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListComponentsProjectComponentsComponent.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalListComponentsProjectComponentsComponent struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Description string `json:"description"`
+
+	Attributes json.RawMessage `json:"attributes"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	OciRepo ListComponentsProjectComponentsComponentOciRepo `json:"ociRepo"`
+}
+
+func (v *ListComponentsProjectComponentsComponent) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ListComponentsProjectComponentsComponent) __premarshalJSON() (*__premarshalListComponentsProjectComponentsComponent, error) {
+	var retval __premarshalListComponentsProjectComponentsComponent
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Description = v.Description
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListComponentsProjectComponentsComponent.Attributes: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	retval.OciRepo = v.OciRepo
+	return &retval, nil
+}
+
+// ListComponentsProjectComponentsComponentOciRepo includes the requested fields of the GraphQL type OciRepo.
+// The GraphQL type's documentation follows.
+//
+// An OCI repository in your organization's bundle catalog.
+//
+// An OCI repository is the container for all published versions of a single
+// infrastructure-as-code package. It is analogous to a Docker image repository
+// but for Massdriver bundles.
+//
+// Each repository has a unique `name` (e.g., `aws-aurora-postgres`) and contains:
+//
+// - **Tags** -- the individual published versions (`1.0.0`, `1.1.0`, `1.2.3`, etc.)
+// - **Release channels** -- auto-resolving version constraints (`latest`, `~1`, `~1.2`)
+// that always point to the newest matching tag
+//
+// To fetch a specific bundle version from a repository, use the `bundle` query
+// with a `BundleId` like `aws-aurora-postgres@1.2.3` or `aws-aurora-postgres@~1`.
+type ListComponentsProjectComponentsComponentOciRepo struct {
+	Id string `json:"id"`
+	// Repository name, unique within your organization (e.g., `aws-aurora-postgres`).
+	Name string `json:"name"`
+	// The bare [OCI reference](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#pulling-manifests)
+	// for this repository: `<registry>/<org>/<repo>` (for example,
+	// `api.massdriver.cloud/acme/aws-aurora-postgres`).
+	//
+	// Append `:<tag>` or `@<digest>` to address a specific manifest and use the
+	// result directly with `oras`, `docker`, or any OCI-compliant client:
+	//
+	// ```bash
+	// oras pull api.massdriver.cloud/acme/aws-aurora-postgres:1.2.3
+	// ```
+	Reference string `json:"reference"`
+}
+
+// GetId returns ListComponentsProjectComponentsComponentOciRepo.Id, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponentOciRepo) GetId() string { return v.Id }
+
+// GetName returns ListComponentsProjectComponentsComponentOciRepo.Name, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponentOciRepo) GetName() string { return v.Name }
+
+// GetReference returns ListComponentsProjectComponentsComponentOciRepo.Reference, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponentOciRepo) GetReference() string { return v.Reference }
+
+// ListComponentsResponse is returned by ListComponents on success.
+type ListComponentsResponse struct {
+	// Fetch a single project by its identifier.
+	Project ListComponentsProject `json:"project"`
+}
+
+// GetProject returns ListComponentsResponse.Project, and is useful for accessing the field via an interface.
+func (v *ListComponentsResponse) GetProject() ListComponentsProject { return v.Project }
+
 // ListDeploymentsDeploymentsDeploymentsPage includes the requested fields of the GraphQL type DeploymentsPage.
 type ListDeploymentsDeploymentsDeploymentsPage struct {
 	// Pagination cursors for navigating between pages.
@@ -14361,7 +14582,7 @@ func (v *ListDeploymentsDeploymentsDeploymentsPageItemsDeployment) GetInstance()
 // or check `availableUpgrade` for newer matching releases.
 type ListDeploymentsDeploymentsDeploymentsPageItemsDeploymentInstance struct {
 	Id string `json:"id"`
-	// Human-readable display name for the instance.
+	// Name of the instance.
 	Name string `json:"name"`
 }
 
@@ -15270,7 +15491,7 @@ func (v *ListInstancesInstancesInstancesPageCursorPaginationCursor) GetPrevious(
 // or check `availableUpgrade` for newer matching releases.
 type ListInstancesInstancesInstancesPageItemsInstance struct {
 	Id string `json:"id"`
-	// Human-readable display name for the instance.
+	// Name of the instance.
 	Name string `json:"name"`
 	// Current lifecycle state of the instance.
 	Status InstanceStatus `json:"status"`
@@ -17305,7 +17526,7 @@ func (v *ListResourcesResourcesResourcesPageItemsResource) __premarshalJSON() (*
 // or check `availableUpgrade` for newer matching releases.
 type ListResourcesResourcesResourcesPageItemsResourceInstance struct {
 	Id string `json:"id"`
-	// Human-readable display name for the instance.
+	// Name of the instance.
 	Name string `json:"name"`
 }
 
@@ -17997,7 +18218,7 @@ func (v *ProposeDeploymentProposeDeploymentDeploymentPayloadResultDeployment) Ge
 // or check `availableUpgrade` for newer matching releases.
 type ProposeDeploymentProposeDeploymentDeploymentPayloadResultDeploymentInstance struct {
 	Id string `json:"id"`
-	// Human-readable display name for the instance.
+	// Name of the instance.
 	Name string `json:"name"`
 }
 
@@ -21165,7 +21386,7 @@ func (v *UpdateInstanceUpdateInstanceInstancePayloadMessagesValidationMessage) G
 // or check `availableUpgrade` for newer matching releases.
 type UpdateInstanceUpdateInstanceInstancePayloadResultInstance struct {
 	Id string `json:"id"`
-	// Human-readable display name for the instance.
+	// Name of the instance.
 	Name string `json:"name"`
 	// Current lifecycle state of the instance.
 	Status InstanceStatus `json:"status"`
@@ -23641,6 +23862,18 @@ func (v *__ListBundlesInput) GetSort() *BundlesSort { return v.Sort }
 
 // GetCursor returns __ListBundlesInput.Cursor, and is useful for accessing the field via an interface.
 func (v *__ListBundlesInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+// __ListComponentsInput is used internally by genqlient
+type __ListComponentsInput struct {
+	OrganizationId string `json:"organizationId"`
+	ProjectId      string `json:"projectId"`
+}
+
+// GetOrganizationId returns __ListComponentsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListComponentsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetProjectId returns __ListComponentsInput.ProjectId, and is useful for accessing the field via an interface.
+func (v *__ListComponentsInput) GetProjectId() string { return v.ProjectId }
 
 // __ListDeploymentsInput is used internally by genqlient
 type __ListDeploymentsInput struct {
@@ -27144,6 +27377,55 @@ func ListBundles(
 	}
 
 	data_ = &ListBundlesResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListComponents.
+const ListComponents_Operation = `
+query ListComponents ($organizationId: ID!, $projectId: ID!) {
+	project(organizationId: $organizationId, id: $projectId) {
+		id
+		components {
+			id
+			name
+			description
+			attributes
+			createdAt
+			updatedAt
+			ociRepo {
+				id
+				name
+				reference
+			}
+		}
+	}
+}
+`
+
+func ListComponents(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	projectId string,
+) (data_ *ListComponentsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListComponents",
+		Query:  ListComponents_Operation,
+		Variables: &__ListComponentsInput{
+			OrganizationId: organizationId,
+			ProjectId:      projectId,
+		},
+	}
+
+	data_ = &ListComponentsResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

@@ -62,6 +62,11 @@ type UpdateInput struct {
 	Attributes  map[string]any
 }
 
+// ListInput controls a [Service.List] call. Reserved for future
+// filter/sort/page options — the zero value is the only supported
+// shape today.
+type ListInput struct{}
+
 // Get retrieves a project by ID. The returned [Project] has its Environments
 // slice populated.
 //
@@ -81,7 +86,7 @@ func (s *Service) Get(ctx context.Context, id string) (*Project, error) {
 // List returns every project the caller can see in the configured organization,
 // sorted by name ascending. Each returned [Project] has its Environments slice
 // populated.
-func (s *Service) List(ctx context.Context) ([]Project, error) {
+func (s *Service) List(ctx context.Context, _ ListInput) ([]Project, error) {
 	resp, err := gen.ListProjects(ctx, s.client.GQLv2, s.client.Config.OrganizationID)
 	if err != nil {
 		return nil, gql.ClassifyError(fmt.Errorf("list projects: %w", err))
@@ -97,8 +102,8 @@ func (s *Service) List(ctx context.Context) ([]Project, error) {
 	return out, nil
 }
 
-// Create creates a new project. Returns a [*gql.MutationFailed] (wrapped) if
-// the server reports `successful: false` — use [gql.AsMutationFailed] to
+// Create creates a new project. Returns a [*gql.MutationFailedError] (wrapped) if
+// the server reports `successful: false` — use [gql.AsMutationFailedError] to
 // inspect per-field validation messages. The returned project does not include
 // environments since none exist yet.
 func (s *Service) Create(ctx context.Context, input CreateInput) (*Project, error) {
@@ -117,7 +122,7 @@ func (s *Service) Create(ctx context.Context, input CreateInput) (*Project, erro
 	return toProject(resp.CreateProject.Result)
 }
 
-// Update updates a project's mutable fields. Returns a [*gql.MutationFailed]
+// Update updates a project's mutable fields. Returns a [*gql.MutationFailedError]
 // (wrapped) if the server reports `successful: false`.
 func (s *Service) Update(ctx context.Context, id string, input UpdateInput) (*Project, error) {
 	resp, err := gen.UpdateProject(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id, gen.UpdateProjectInput{

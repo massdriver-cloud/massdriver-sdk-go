@@ -186,7 +186,7 @@ func TestList(t *testing.T) {
 		}),
 	)
 
-	got, err := newService(gqlClient).List(t.Context())
+	got, err := newService(gqlClient).List(t.Context(), projects.ListInput{})
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -257,9 +257,9 @@ func TestCreate_ValidationFailure(t *testing.T) {
 		t.Fatal("expected error, got nil")
 	}
 
-	mf, ok := gql.AsMutationFailed(err)
+	mf, ok := gql.AsMutationFailedError(err)
 	if !ok {
-		t.Fatalf("expected *gql.MutationFailed, got %T: %v", err, err)
+		t.Fatalf("expected *gql.MutationFailedError, got %T: %v", err, err)
 	}
 	if mf.Op != "create project" {
 		t.Errorf("Op = %q, want create project", mf.Op)

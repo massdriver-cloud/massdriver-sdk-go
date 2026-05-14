@@ -142,7 +142,7 @@ func (s *Service) List(ctx context.Context, input ListInput) ([]Group, error) {
 	return out, nil
 }
 
-// Create creates a new custom group. Returns a [*gql.MutationFailed]
+// Create creates a new custom group. Returns a [*gql.MutationFailedError]
 // (wrapped) if the server reports `successful: false`.
 func (s *Service) Create(ctx context.Context, input CreateInput) (*Group, error) {
 	resp, err := gen.CreateGroup(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gen.CreateGroupInput{

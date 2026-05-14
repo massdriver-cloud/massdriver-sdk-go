@@ -11,16 +11,16 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-func TestMutationFailed_Error_NoMessages(t *testing.T) {
-	err := gql.NewMutationFailed("create project", nil)
+func TestMutationFailedError_Error_NoMessages(t *testing.T) {
+	err := gql.NewMutationFailedError("create project", nil)
 	want := "unable to create project"
 	if err.Error() != want {
 		t.Errorf("got %q, wanted %q", err.Error(), want)
 	}
 }
 
-func TestMutationFailed_Error_WithMessages(t *testing.T) {
-	err := gql.NewMutationFailed("create project", []gql.MutationMessage{
+func TestMutationFailedError_Error_WithMessages(t *testing.T) {
+	err := gql.NewMutationFailedError("create project", []gql.MutationMessage{
 		{Code: "required", Field: "name", Message: "name is required"},
 		{Code: "format", Field: "id", Message: "id must be lowercase"},
 	})
@@ -30,34 +30,34 @@ func TestMutationFailed_Error_WithMessages(t *testing.T) {
 	}
 }
 
-func TestAsMutationFailed_DirectAndWrapped(t *testing.T) {
-	original := gql.NewMutationFailed("delete project", []gql.MutationMessage{
+func TestAsMutationFailedError_DirectAndWrapped(t *testing.T) {
+	original := gql.NewMutationFailedError("delete project", []gql.MutationMessage{
 		{Field: "id", Message: "not found"},
 	})
 
-	mf, ok := gql.AsMutationFailed(original)
+	mf, ok := gql.AsMutationFailedError(original)
 	if !ok {
-		t.Fatal("expected to unwrap MutationFailed directly")
+		t.Fatal("expected to unwrap MutationFailedError directly")
 	}
 	if mf.Op != "delete project" {
 		t.Errorf("got Op %q, wanted delete project", mf.Op)
 	}
 
 	wrapped := fmt.Errorf("api call failed: %w", original)
-	mf2, ok := gql.AsMutationFailed(wrapped)
+	mf2, ok := gql.AsMutationFailedError(wrapped)
 	if !ok {
-		t.Fatal("expected to unwrap MutationFailed through fmt.Errorf wrapping")
+		t.Fatal("expected to unwrap MutationFailedError through fmt.Errorf wrapping")
 	}
 	if mf2.Op != "delete project" {
 		t.Errorf("got Op %q, wanted delete project", mf2.Op)
 	}
 }
 
-func TestAsMutationFailed_OtherError(t *testing.T) {
-	if _, ok := gql.AsMutationFailed(errors.New("network failure")); ok {
-		t.Error("expected ok=false for non-MutationFailed error")
+func TestAsMutationFailedError_OtherError(t *testing.T) {
+	if _, ok := gql.AsMutationFailedError(errors.New("network failure")); ok {
+		t.Error("expected ok=false for non-MutationFailedError error")
 	}
-	if _, ok := gql.AsMutationFailed(nil); ok {
+	if _, ok := gql.AsMutationFailedError(nil); ok {
 		t.Error("expected ok=false for nil error")
 	}
 }

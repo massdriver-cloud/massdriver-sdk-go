@@ -7131,7 +7131,7 @@ or check `availableUpgrade` for newer matching releases.
 type Instance {
   id: ID!
 
-  "Human-readable display name for the instance."
+  "Name of the instance."
   name: String!
 
   "Current lifecycle state of the instance."

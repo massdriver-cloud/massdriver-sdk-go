@@ -46,7 +46,8 @@ func TestIntegration_Components_CRUD(t *testing.T) {
 
 	projectID := newProjectFixture(t, ctx)
 
-	added, err := c.Components.Add(ctx, projectID, sandboxOCIRepoName, components.AddInput{
+	added, err := c.Components.Add(ctx, projectID, components.AddInput{
+		OciRepoName: sandboxOCIRepoName,
 		ID:          "inttestcomp",
 		Name:        "Integration test component",
 		Description: "Created by SDK integration test; safe to delete.",

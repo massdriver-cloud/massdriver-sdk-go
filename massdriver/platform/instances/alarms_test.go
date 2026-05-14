@@ -220,9 +220,9 @@ func TestCreateAlarm_ValidationFailure(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
-	mf, ok := gql.AsMutationFailed(err)
+	mf, ok := gql.AsMutationFailedError(err)
 	if !ok {
-		t.Fatalf("expected *gql.MutationFailed, got %T", err)
+		t.Fatalf("expected *gql.MutationFailedError, got %T", err)
 	}
 	if mf.Op != "create instance alarm" {
 		t.Errorf("Op = %q, want create instance alarm", mf.Op)

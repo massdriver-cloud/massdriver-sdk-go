@@ -240,6 +240,25 @@ query GetComponent($organizationId: ID!, $id: ID!) {
   }
 }
 
+query ListComponents($organizationId: ID!, $projectId: ID!) {
+  project(organizationId: $organizationId, id: $projectId) {
+    id
+    components {
+      id
+      name
+      description
+      attributes
+      createdAt
+      updatedAt
+      ociRepo {
+        id
+        name
+        reference
+      }
+    }
+  }
+}
+
 mutation AddComponent(
   $organizationId: ID!,
   $projectId: ID!,

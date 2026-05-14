@@ -209,9 +209,9 @@ func TestSetDefault_ValidationFailure(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
-	mf, ok := gql.AsMutationFailed(err)
+	mf, ok := gql.AsMutationFailedError(err)
 	if !ok {
-		t.Fatalf("expected *gql.MutationFailed, got %T: %v", err, err)
+		t.Fatalf("expected *gql.MutationFailedError, got %T: %v", err, err)
 	}
 	if mf.Op != "set environment default" {
 		t.Errorf("Op = %q, want set environment default", mf.Op)

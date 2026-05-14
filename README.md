@@ -119,10 +119,10 @@ case err != nil:                             // anything else
 ```
 
 For mutations that fail server-side validation, unwrap to
-`*gql.MutationFailed` for per-field messages:
+`*gql.MutationFailedError` for per-field messages:
 
 ```go
-if mf, ok := gql.AsMutationFailed(err); ok {
+if mf, ok := gql.AsMutationFailedError(err); ok {
     for _, m := range mf.Messages {
         log.Printf("%s: %s (%s)", m.Field, m.Message, m.Code)
     }
