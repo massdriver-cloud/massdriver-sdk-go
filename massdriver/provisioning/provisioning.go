@@ -30,7 +30,7 @@ import (
 // Client is the top-level provisioning SDK client. Construct with
 // [NewClient]; read the resolved configuration via [Client.Config].
 type Client struct {
-	config config.Config
+	config Config
 
 	Resources   *resources.Service
 	Deployments *deployments.Service
@@ -39,7 +39,7 @@ type Client struct {
 // Config returns the resolved configuration this client uses. The
 // returned value is a copy; mutating it has no effect on subsequent
 // service calls.
-func (c *Client) Config() config.Config { return c.config }
+func (c *Client) Config() Config { return c.config }
 
 // Option configures a [*Client] built by [NewClient]. Options override
 // values that would otherwise be sourced from environment variables.
@@ -67,18 +67,30 @@ func WithTimeout(d time.Duration) Option {
 // NewClient constructs a provisioning client. Credentials are resolved
 // from MASSDRIVER_DEPLOYMENT_ID + MASSDRIVER_TOKEN, which the platform
 // injects into the provisioner container at deployment time. Returns
-// an error if those credentials are missing or the configured URL is
-// malformed.
+// an error if those credentials are missing, any of the standard
+// MASSDRIVER_* deployment identifiers is unset, or the configured URL
+// is malformed.
 func NewClient(opts ...Option) (*Client, error) {
 	var o options
 	for _, opt := range opts {
 		opt(&o)
 	}
 
+	// config.Load resolves auth (deployment-token), URL with default,
+	// and OrganizationID — also produces the http client we hand to
+	// the services. We keep URL and OrganizationID and discard the rest;
+	// the rest of provisioning.Config is loaded from env directly.
 	cfg, err := config.Load(config.Overrides{URL: o.baseURL})
 	if err != nil {
 		return nil, err
 	}
+
+	var pcfg Config
+	if err := loadDeploymentEnvs(&pcfg); err != nil {
+		return nil, err
+	}
+	pcfg.URL = cfg.URL
+	pcfg.OrganizationID = cfg.OrganizationID
 
 	timeout := client.DefaultTimeout
 	if o.timeoutSet {
@@ -87,7 +99,7 @@ func NewClient(opts ...Option) (*Client, error) {
 	c := client.NewWithConfig(cfg, timeout)
 
 	return &Client{
-		config:      c.Config,
+		config:      pcfg,
 		Resources:   resources.NewService(c),
 		Deployments: deployments.NewService(c),
 	}, nil
