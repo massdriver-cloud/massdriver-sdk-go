@@ -55,7 +55,7 @@ func TestIntegration_Policies_CRUD(t *testing.T) {
 		t.Fatalf("Create policy: %v", err)
 	}
 	t.Cleanup(func() {
-		if err := c.Policies.Delete(ctx, created.ID); err != nil && !errors.Is(err, gql.ErrNotFound) {
+		if _, err := c.Policies.Delete(ctx, created.ID); err != nil && !errors.Is(err, gql.ErrNotFound) {
 			t.Logf("cleanup: failed to delete policy fixture %s: %v", created.ID, err)
 		}
 	})
@@ -86,7 +86,7 @@ func TestIntegration_Policies_CRUD(t *testing.T) {
 		t.Errorf("Update conditions[md-environment] = %v, want 2 entries", got)
 	}
 
-	if err := c.Policies.Delete(ctx, created.ID); err != nil {
+	if _, err := c.Policies.Delete(ctx, created.ID); err != nil {
 		t.Fatalf("Delete policy: %v", err)
 	}
 }

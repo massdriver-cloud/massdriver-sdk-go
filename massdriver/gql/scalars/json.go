@@ -9,7 +9,10 @@ import (
 )
 
 // MarshalJSON double-encodes a value into an escaped JSON string for transport
-// over Massdriver's `JSON`/`Map` GraphQL scalars.
+// over Massdriver's `JSON`/`Map` GraphQL scalars. It is the canonical
+// encoder for both scalars — hand-rolled callers building wire payloads
+// manually (not through genqlient) should use this instead of duplicating
+// the wrap/escape logic.
 //
 // Empty/nil maps return a nil byte slice. The wrapping json.RawMessage then
 // either gets elided (when the field has `omitempty`) or marshals as the bare
@@ -27,7 +30,8 @@ func MarshalJSON(v any) ([]byte, error) {
 	return json.Marshal(string(bytes))
 }
 
-// UnmarshalJSON unmarshals raw JSON bytes into the provided map.
+// UnmarshalJSON unmarshals raw JSON bytes into the provided map. Used
+// by both the `JSON` and `Map` scalar bindings.
 func UnmarshalJSON(data []byte, v *map[string]any) error {
 	return json.Unmarshal(data, v)
 }

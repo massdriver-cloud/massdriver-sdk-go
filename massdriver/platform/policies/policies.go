@@ -193,13 +193,17 @@ func (s *Service) Update(ctx context.Context, policyID string, input UpdatePolic
 	return toPolicy(resp.UpdatePolicy.Result)
 }
 
-// Delete deletes a policy by ID.
-func (s *Service) Delete(ctx context.Context, policyID string) error {
+// Delete deletes a policy by ID. The returned [*Policy] reflects the
+// record as it existed before deletion.
+func (s *Service) Delete(ctx context.Context, policyID string) (*Policy, error) {
 	resp, err := gen.DeletePolicy(ctx, s.client.GQLv2, s.client.Config.OrganizationID, policyID)
 	if err != nil {
-		return gql.ClassifyError(fmt.Errorf("delete policy %s: %w", policyID, err))
+		return nil, gql.ClassifyError(fmt.Errorf("delete policy %s: %w", policyID, err))
 	}
-	return gql.CheckMutation("delete policy", resp.DeletePolicy.Successful, resp.DeletePolicy.Messages)
+	if err := gql.CheckMutation("delete policy", resp.DeletePolicy.Successful, resp.DeletePolicy.Messages); err != nil {
+		return nil, err
+	}
+	return toPolicy(resp.DeletePolicy.Result)
 }
 
 // toPolicy decodes a genqlient policy result. The wire conditions

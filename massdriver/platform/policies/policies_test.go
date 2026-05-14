@@ -492,7 +492,11 @@ func TestDelete(t *testing.T) {
 		}),
 	)
 
-	if err := newService(gqlClient).Delete(t.Context(), "p-1"); err != nil {
+	got, err := newService(gqlClient).Delete(t.Context(), "p-1")
+	if err != nil {
 		t.Fatalf("Delete: %v", err)
+	}
+	if got.ID != "p-1" {
+		t.Errorf("Delete returned ID %q, want p-1", got.ID)
 	}
 }

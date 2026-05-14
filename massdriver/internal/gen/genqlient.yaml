@@ -55,8 +55,12 @@ bindings:
     type: github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars.Cursor
 
   # Conditions is polymorphic on the wire — either the JSON string `"*"`
-  # (wildcard) or a JSON object like `{"team":["eng"]}`. types.PolicyConditions
-  # implements json.Marshaler / json.Unmarshaler to translate both shapes
-  # transparently, so wrappers see a normal Go map.
+  # (wildcard) or a JSON object like `{"team":["eng"]}`. The marshalers in
+  # gql/scalars handle the wrap/unwrap so callers see a normal Go map;
+  # types.PolicyConditions's own MarshalJSON is the plain user-facing form
+  # (no wire wrapping) so json.Marshal round-trips intuitively at the app
+  # layer.
   Conditions:
     type: github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types.PolicyConditions
+    marshaler: github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars.MarshalConditions
+    unmarshaler: github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars.UnmarshalConditions

@@ -90,19 +90,23 @@ type PolicyDecision struct {
 // matches entities that have any md-project AND whose md-environment
 // is dev or staging.
 //
-// On the wire the value is always a JSON-encoded string — either the
-// literal `"*"` for the whole-policy wildcard, or a JSON-encoded
-// object like `"{\"team\":[\"eng\"]}"`. [PolicyConditions] implements
-// [json.Marshaler] and [json.Unmarshaler] so callers see a regular
-// Go map.
+// [PolicyConditions.MarshalJSON] produces the plain user-facing form
+// (`null` for the wildcard, `{"key": "*"}` or `{"key": [...]}` per
+// entry) so json.Marshal round-trips through jsonencode/decode without
+// surprises. The wire form (a JSON-encoded string the GraphQL scalar
+// requires) is handled by the genqlient binding in gql/scalars; SDK
+// callers never need to see it.
 type PolicyConditions map[string][]string
 
-// MarshalJSON encodes c into the wire form: a JSON-encoded string.
-// Nil map → `"*"`; populated map → JSON-encoded object literal whose
-// per-key values are `"*"` (nil/empty slices) or arrays of strings.
+// MarshalJSON encodes c into the plain user-facing form:
+//   - nil map → `null`
+//   - populated map → JSON object whose per-key values are `"*"` for
+//     nil/empty slices or `["a","b",...]` for closed sets
+//
+// This is NOT the GraphQL wire form — that lives in gql/scalars.
 func (c PolicyConditions) MarshalJSON() ([]byte, error) {
 	if c == nil {
-		return []byte(`"*"`), nil
+		return []byte("null"), nil
 	}
 	raw := make(map[string]any, len(c))
 	for k, v := range c {
@@ -112,40 +116,22 @@ func (c PolicyConditions) MarshalJSON() ([]byte, error) {
 			raw[k] = v
 		}
 	}
-	inner, err := json.Marshal(raw)
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(string(inner))
+	return json.Marshal(raw)
 }
 
-// UnmarshalJSON decodes the wire form. The platform is asymmetric:
-// inputs must be a JSON-encoded string, but responses come back as
-// raw JSON objects. We accept both shapes here so callers don't see
-// the inconsistency.
+// UnmarshalJSON decodes the plain user-facing form (the inverse of
+// MarshalJSON). The GraphQL wire form is peeled by the genqlient
+// binding in gql/scalars before this method runs, so by the time we
+// see the bytes they are either `null` or a JSON object.
 func (c *PolicyConditions) UnmarshalJSON(data []byte) error {
 	trimmed := bytes.TrimSpace(data)
-	if len(trimmed) == 0 {
-		return fmt.Errorf("PolicyConditions: empty input")
-	}
-
-	// Peel one layer of string-encoding if present (input-side wire
-	// shape). Object-shape responses skip this.
-	body := trimmed
-	if trimmed[0] == '"' {
-		var s string
-		if err := json.Unmarshal(trimmed, &s); err != nil {
-			return fmt.Errorf("PolicyConditions: %w", err)
-		}
-		if s == "*" {
-			*c = nil
-			return nil
-		}
-		body = []byte(s)
+	if len(trimmed) == 0 || bytes.Equal(trimmed, []byte("null")) {
+		*c = nil
+		return nil
 	}
 
 	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(body, &raw); err != nil {
+	if err := json.Unmarshal(trimmed, &raw); err != nil {
 		return fmt.Errorf("PolicyConditions: %w", err)
 	}
 	out := make(PolicyConditions, len(raw))

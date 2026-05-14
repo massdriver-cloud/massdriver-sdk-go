@@ -8,37 +8,35 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
-// TestPolicyConditions_Roundtrip locks in the wire format the rest of
-// the SDK depends on. This file is the single source of truth for the
-// Conditions scalar's encoding — both policies.Service and
-// resources.Service round-trip through these methods, so changes here
-// are wire-breaking for both packages.
+// TestPolicyConditions_Roundtrip locks in the plain user-facing JSON
+// form. The GraphQL wire form is a separate concern handled by
+// gql/scalars; application code that calls json.Marshal on a
+// PolicyConditions value gets the form tested here.
 func TestPolicyConditions_Roundtrip(t *testing.T) {
 	cases := []struct {
 		name string
 		c    types.PolicyConditions
-		wire string
+		json string
 	}{
 		{
-			name: "nil map → whole-policy wildcard",
+			name: "nil map → null",
 			c:    nil,
-			wire: `"*"`,
+			json: `null`,
 		},
 		{
 			name: "per-key wildcard via nil slice",
 			c:    types.PolicyConditions{"md-project": nil},
-			wire: `"{\"md-project\":\"*\"}"`,
+			json: `{"md-project":"*"}`,
 		},
 		{
 			name: "per-key wildcard via empty slice",
 			c:    types.PolicyConditions{"md-project": {}},
-			// Empty slice marshals identically to nil — both mean "any value of this key."
-			wire: `"{\"md-project\":\"*\"}"`,
+			json: `{"md-project":"*"}`,
 		},
 		{
 			name: "closed set per key",
 			c:    types.PolicyConditions{"md-environment": {"dev", "staging"}},
-			wire: `"{\"md-environment\":[\"dev\",\"staging\"]}"`,
+			json: `{"md-environment":["dev","staging"]}`,
 		},
 	}
 
@@ -48,12 +46,12 @@ func TestPolicyConditions_Roundtrip(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Marshal: %v", err)
 			}
-			if string(got) != tc.wire {
-				t.Errorf("wire = %s, want %s", got, tc.wire)
+			if string(got) != tc.json {
+				t.Errorf("json = %s, want %s", got, tc.json)
 			}
 
 			var back types.PolicyConditions
-			if err := json.Unmarshal([]byte(tc.wire), &back); err != nil {
+			if err := json.Unmarshal([]byte(tc.json), &back); err != nil {
 				t.Fatalf("Unmarshal: %v", err)
 			}
 			// nil-slice and empty-slice collapse to the same Go value
@@ -76,8 +74,7 @@ func TestPolicyConditions_Roundtrip(t *testing.T) {
 	}
 }
 
-// Mixed condition: one key wildcard, one key closed-set. Common shape
-// in real policies ("any project, but only these environments").
+// Mixed condition: one key wildcard, one key closed-set.
 func TestPolicyConditions_Mixed(t *testing.T) {
 	c := types.PolicyConditions{
 		"md-project":     nil,
@@ -87,7 +84,6 @@ func TestPolicyConditions_Mixed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Marshal: %v", err)
 	}
-	// Map key order isn't guaranteed; round-trip and inspect.
 	var back types.PolicyConditions
 	if err := json.Unmarshal(got, &back); err != nil {
 		t.Fatalf("Unmarshal: %v", err)

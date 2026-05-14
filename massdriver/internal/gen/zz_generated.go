@@ -2979,7 +2979,7 @@ type CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy struct {
 	// The actions this policy authorizes, each in `{entity}:{verb}` form (for example `["repo:pull", "instance:deploy"]`). Always non-empty.
 	Actions []string `json:"actions"`
 	// Either `"*"` (the policy is a wildcard — every resource of the entity matches) or a JSON-encoded object of attribute conditions. Keys are attribute names; values are a string or list of strings.
-	Conditions types.PolicyConditions `json:"conditions"`
+	Conditions types.PolicyConditions `json:"-"`
 	// When this policy was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// When this policy was last updated.
@@ -3019,6 +3019,87 @@ func (v *CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy) GetUpdated
 // GetGroup returns CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy.Group, and is useful for accessing the field via an interface.
 func (v *CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy) GetGroup() CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicyGroup {
 	return v.Group
+}
+
+func (v *CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy
+		Conditions json.RawMessage `json:"conditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Conditions
+		src := firstPass.Conditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy.Conditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy struct {
+	Id string `json:"id"`
+
+	Effect PolicyEffect `json:"effect"`
+
+	Actions []string `json:"actions"`
+
+	Conditions json.RawMessage `json:"conditions"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	Group CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicyGroup `json:"group"`
+}
+
+func (v *CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy) __premarshalJSON() (*__premarshalCreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy, error) {
+	var retval __premarshalCreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy
+
+	retval.Id = v.Id
+	retval.Effect = v.Effect
+	retval.Actions = v.Actions
+	{
+
+		dst := &retval.Conditions
+		src := v.Conditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy.Conditions: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	retval.Group = v.Group
+	return &retval, nil
 }
 
 // CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicyGroup includes the requested fields of the GraphQL type Group.
@@ -3074,7 +3155,7 @@ type CreateGroupPolicyInput struct {
 	// What members of this group can do. Pass one or more action ids in `{entity}:{verb}` form. Conditions apply to every action; actions whose entity does not support a given condition simply never match. Duplicate entries are rejected.
 	Actions []string `json:"actions"`
 	// Restrict the actions to entities whose attributes match every condition. Send the literal `"*"` to apply to all entities of each action's type. Per-key, send `"*"` to match any value or a non-empty list of strings to match a closed set. Within a policy all conditions are AND. Across policies, evaluation is OR.
-	Conditions types.PolicyConditions `json:"conditions"`
+	Conditions types.PolicyConditions `json:"-"`
 	// ALLOW grants the actions. DENY blocks them and wins over any matching ALLOW.
 	Effect PolicyEffect `json:"effect"`
 }
@@ -3087,6 +3168,75 @@ func (v *CreateGroupPolicyInput) GetConditions() types.PolicyConditions { return
 
 // GetEffect returns CreateGroupPolicyInput.Effect, and is useful for accessing the field via an interface.
 func (v *CreateGroupPolicyInput) GetEffect() PolicyEffect { return v.Effect }
+
+func (v *CreateGroupPolicyInput) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CreateGroupPolicyInput
+		Conditions json.RawMessage `json:"conditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CreateGroupPolicyInput = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Conditions
+		src := firstPass.Conditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CreateGroupPolicyInput.Conditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCreateGroupPolicyInput struct {
+	Actions []string `json:"actions"`
+
+	Conditions json.RawMessage `json:"conditions"`
+
+	Effect PolicyEffect `json:"effect"`
+}
+
+func (v *CreateGroupPolicyInput) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CreateGroupPolicyInput) __premarshalJSON() (*__premarshalCreateGroupPolicyInput, error) {
+	var retval __premarshalCreateGroupPolicyInput
+
+	retval.Actions = v.Actions
+	{
+
+		dst := &retval.Conditions
+		src := v.Conditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CreateGroupPolicyInput.Conditions: %w", err)
+		}
+	}
+	retval.Effect = v.Effect
+	return &retval, nil
+}
 
 // CreateGroupPolicyResponse is returned by CreateGroupPolicy on success.
 type CreateGroupPolicyResponse struct {
@@ -4565,7 +4715,7 @@ type CreateResourceGrantCreateResourceGrantGrantPayloadResultGrant struct {
 	// The action being granted on the source. Repo grants take `repo:view`/`repo:pull`/`repo:push`; resource grants take `resource:view`/`resource:export`.
 	Action string `json:"action"`
 	// Either `"*"` (the grant is a wildcard — every recipient in the org sees the source) or a JSON-encoded object of attribute conditions the recipient project / environment must satisfy. Keys are attribute names; values are a string or list of strings.
-	RecipientConditions types.PolicyConditions `json:"recipientConditions"`
+	RecipientConditions types.PolicyConditions `json:"-"`
 	// When this grant was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// When this grant was last updated.
@@ -4595,12 +4745,87 @@ func (v *CreateResourceGrantCreateResourceGrantGrantPayloadResultGrant) GetUpdat
 	return v.UpdatedAt
 }
 
+func (v *CreateResourceGrantCreateResourceGrantGrantPayloadResultGrant) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CreateResourceGrantCreateResourceGrantGrantPayloadResultGrant
+		RecipientConditions json.RawMessage `json:"recipientConditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CreateResourceGrantCreateResourceGrantGrantPayloadResultGrant = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.RecipientConditions
+		src := firstPass.RecipientConditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CreateResourceGrantCreateResourceGrantGrantPayloadResultGrant.RecipientConditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCreateResourceGrantCreateResourceGrantGrantPayloadResultGrant struct {
+	Id string `json:"id"`
+
+	Action string `json:"action"`
+
+	RecipientConditions json.RawMessage `json:"recipientConditions"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *CreateResourceGrantCreateResourceGrantGrantPayloadResultGrant) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CreateResourceGrantCreateResourceGrantGrantPayloadResultGrant) __premarshalJSON() (*__premarshalCreateResourceGrantCreateResourceGrantGrantPayloadResultGrant, error) {
+	var retval __premarshalCreateResourceGrantCreateResourceGrantGrantPayloadResultGrant
+
+	retval.Id = v.Id
+	retval.Action = v.Action
+	{
+
+		dst := &retval.RecipientConditions
+		src := v.RecipientConditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CreateResourceGrantCreateResourceGrantGrantPayloadResultGrant.RecipientConditions: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
 // Share a resource with recipient environments matching attribute conditions. The caller must have `resource:grant` on the source resource.
 type CreateResourceGrantInput struct {
 	// The action being granted on the resource. Currently the only grantable resource action is `resource:export` — resource visibility is inferred from any granted action.
 	Action string `json:"action"`
 	// Restrict this grant to recipient environments whose attributes match every condition. Send the literal `"*"` to apply to every environment in the organization. Per-key, send `"*"` to match any value or a non-empty list of strings to match a closed set.
-	RecipientConditions types.PolicyConditions `json:"recipientConditions"`
+	RecipientConditions types.PolicyConditions `json:"-"`
 }
 
 // GetAction returns CreateResourceGrantInput.Action, and is useful for accessing the field via an interface.
@@ -4609,6 +4834,72 @@ func (v *CreateResourceGrantInput) GetAction() string { return v.Action }
 // GetRecipientConditions returns CreateResourceGrantInput.RecipientConditions, and is useful for accessing the field via an interface.
 func (v *CreateResourceGrantInput) GetRecipientConditions() types.PolicyConditions {
 	return v.RecipientConditions
+}
+
+func (v *CreateResourceGrantInput) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CreateResourceGrantInput
+		RecipientConditions json.RawMessage `json:"recipientConditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CreateResourceGrantInput = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.RecipientConditions
+		src := firstPass.RecipientConditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CreateResourceGrantInput.RecipientConditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCreateResourceGrantInput struct {
+	Action string `json:"action"`
+
+	RecipientConditions json.RawMessage `json:"recipientConditions"`
+}
+
+func (v *CreateResourceGrantInput) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CreateResourceGrantInput) __premarshalJSON() (*__premarshalCreateResourceGrantInput, error) {
+	var retval __premarshalCreateResourceGrantInput
+
+	retval.Action = v.Action
+	{
+
+		dst := &retval.RecipientConditions
+		src := v.RecipientConditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CreateResourceGrantInput.RecipientConditions: %w", err)
+		}
+	}
+	return &retval, nil
 }
 
 // CreateResourceGrantResponse is returned by CreateResourceGrant on success.
@@ -5496,7 +5787,7 @@ type DeleteGrantDeleteGrantGrantPayloadResultGrant struct {
 	// The action being granted on the source. Repo grants take `repo:view`/`repo:pull`/`repo:push`; resource grants take `resource:view`/`resource:export`.
 	Action string `json:"action"`
 	// Either `"*"` (the grant is a wildcard — every recipient in the org sees the source) or a JSON-encoded object of attribute conditions the recipient project / environment must satisfy. Keys are attribute names; values are a string or list of strings.
-	RecipientConditions types.PolicyConditions `json:"recipientConditions"`
+	RecipientConditions types.PolicyConditions `json:"-"`
 	// When this grant was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// When this grant was last updated.
@@ -5519,6 +5810,81 @@ func (v *DeleteGrantDeleteGrantGrantPayloadResultGrant) GetCreatedAt() time.Time
 
 // GetUpdatedAt returns DeleteGrantDeleteGrantGrantPayloadResultGrant.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *DeleteGrantDeleteGrantGrantPayloadResultGrant) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+func (v *DeleteGrantDeleteGrantGrantPayloadResultGrant) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*DeleteGrantDeleteGrantGrantPayloadResultGrant
+		RecipientConditions json.RawMessage `json:"recipientConditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.DeleteGrantDeleteGrantGrantPayloadResultGrant = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.RecipientConditions
+		src := firstPass.RecipientConditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal DeleteGrantDeleteGrantGrantPayloadResultGrant.RecipientConditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalDeleteGrantDeleteGrantGrantPayloadResultGrant struct {
+	Id string `json:"id"`
+
+	Action string `json:"action"`
+
+	RecipientConditions json.RawMessage `json:"recipientConditions"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *DeleteGrantDeleteGrantGrantPayloadResultGrant) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *DeleteGrantDeleteGrantGrantPayloadResultGrant) __premarshalJSON() (*__premarshalDeleteGrantDeleteGrantGrantPayloadResultGrant, error) {
+	var retval __premarshalDeleteGrantDeleteGrantGrantPayloadResultGrant
+
+	retval.Id = v.Id
+	retval.Action = v.Action
+	{
+
+		dst := &retval.RecipientConditions
+		src := v.RecipientConditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal DeleteGrantDeleteGrantGrantPayloadResultGrant.RecipientConditions: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
 
 // DeleteGrantResponse is returned by DeleteGrant on success.
 type DeleteGrantResponse struct {
@@ -6354,10 +6720,173 @@ func (v *DeletePolicyDeletePolicyPolicyPayloadMessagesValidationMessage) GetMess
 type DeletePolicyDeletePolicyPolicyPayloadResultPolicy struct {
 	// Unique identifier for this policy.
 	Id string `json:"id"`
+	// Whether this policy grants (`ALLOW`) or blocks (`DENY`) the actions.
+	Effect PolicyEffect `json:"effect"`
+	// The actions this policy authorizes, each in `{entity}:{verb}` form (for example `["repo:pull", "instance:deploy"]`). Always non-empty.
+	Actions []string `json:"actions"`
+	// Either `"*"` (the policy is a wildcard — every resource of the entity matches) or a JSON-encoded object of attribute conditions. Keys are attribute names; values are a string or list of strings.
+	Conditions types.PolicyConditions `json:"-"`
+	// When this policy was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// When this policy was last updated.
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The group this policy applies to.
+	Group DeletePolicyDeletePolicyPolicyPayloadResultPolicyGroup `json:"group"`
 }
 
 // GetId returns DeletePolicyDeletePolicyPolicyPayloadResultPolicy.Id, and is useful for accessing the field via an interface.
 func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicy) GetId() string { return v.Id }
+
+// GetEffect returns DeletePolicyDeletePolicyPolicyPayloadResultPolicy.Effect, and is useful for accessing the field via an interface.
+func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicy) GetEffect() PolicyEffect { return v.Effect }
+
+// GetActions returns DeletePolicyDeletePolicyPolicyPayloadResultPolicy.Actions, and is useful for accessing the field via an interface.
+func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicy) GetActions() []string { return v.Actions }
+
+// GetConditions returns DeletePolicyDeletePolicyPolicyPayloadResultPolicy.Conditions, and is useful for accessing the field via an interface.
+func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicy) GetConditions() types.PolicyConditions {
+	return v.Conditions
+}
+
+// GetCreatedAt returns DeletePolicyDeletePolicyPolicyPayloadResultPolicy.CreatedAt, and is useful for accessing the field via an interface.
+func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicy) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns DeletePolicyDeletePolicyPolicyPayloadResultPolicy.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicy) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetGroup returns DeletePolicyDeletePolicyPolicyPayloadResultPolicy.Group, and is useful for accessing the field via an interface.
+func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicy) GetGroup() DeletePolicyDeletePolicyPolicyPayloadResultPolicyGroup {
+	return v.Group
+}
+
+func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicy) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*DeletePolicyDeletePolicyPolicyPayloadResultPolicy
+		Conditions json.RawMessage `json:"conditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.DeletePolicyDeletePolicyPolicyPayloadResultPolicy = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Conditions
+		src := firstPass.Conditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal DeletePolicyDeletePolicyPolicyPayloadResultPolicy.Conditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalDeletePolicyDeletePolicyPolicyPayloadResultPolicy struct {
+	Id string `json:"id"`
+
+	Effect PolicyEffect `json:"effect"`
+
+	Actions []string `json:"actions"`
+
+	Conditions json.RawMessage `json:"conditions"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	Group DeletePolicyDeletePolicyPolicyPayloadResultPolicyGroup `json:"group"`
+}
+
+func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicy) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicy) __premarshalJSON() (*__premarshalDeletePolicyDeletePolicyPolicyPayloadResultPolicy, error) {
+	var retval __premarshalDeletePolicyDeletePolicyPolicyPayloadResultPolicy
+
+	retval.Id = v.Id
+	retval.Effect = v.Effect
+	retval.Actions = v.Actions
+	{
+
+		dst := &retval.Conditions
+		src := v.Conditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal DeletePolicyDeletePolicyPolicyPayloadResultPolicy.Conditions: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	retval.Group = v.Group
+	return &retval, nil
+}
+
+// DeletePolicyDeletePolicyPolicyPayloadResultPolicyGroup includes the requested fields of the GraphQL type Group.
+// The GraphQL type's documentation follows.
+//
+// A collection of users and service accounts that share the same access level within your organization.
+//
+// Groups are the primary mechanism for managing access control in Massdriver. Rather than
+// assigning permissions to individual users, you add them to groups that define what they
+// can see and do.
+//
+// ```mermaid
+// graph TD
+// O["Organization"] --> G1["Group: Admins"]
+// O --> G2["Group: Developers"]
+// O --> G3["Group: Custom"]
+// G1 --> U1["User: alice@co.com"]
+// G2 --> U2["User: bob@co.com"]
+// G2 --> SA1["Service Account: ci-bot"]
+// G3 -->|"project_admin"| P1["Project: backend"]
+// G3 -->|"project_viewer"| P2["Project: frontend"]
+// ```
+//
+// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
+// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+//
+// **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
+// Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
+//
+// **Members** — Both human users and service accounts can be group members. Users live under
+// `members` and are added via `addAccountToGroup` (auto-adds existing org members or sends an
+// invitation otherwise). Service accounts live under `serviceAccounts` and are added via
+// `addServiceAccountToGroup`.
+type DeletePolicyDeletePolicyPolicyPayloadResultPolicyGroup struct {
+	// Unique identifier for this group.
+	Id string `json:"id"`
+	// Human-readable name displayed in the UI and API responses.
+	Name string `json:"name"`
+}
+
+// GetId returns DeletePolicyDeletePolicyPolicyPayloadResultPolicyGroup.Id, and is useful for accessing the field via an interface.
+func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicyGroup) GetId() string { return v.Id }
+
+// GetName returns DeletePolicyDeletePolicyPolicyPayloadResultPolicyGroup.Name, and is useful for accessing the field via an interface.
+func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicyGroup) GetName() string { return v.Name }
 
 // DeletePolicyResponse is returned by DeletePolicy on success.
 type DeletePolicyResponse struct {
@@ -9230,7 +9759,7 @@ type GetGroupPolicyGroupPolicy struct {
 	// The actions this policy authorizes, each in `{entity}:{verb}` form (for example `["repo:pull", "instance:deploy"]`). Always non-empty.
 	Actions []string `json:"actions"`
 	// Either `"*"` (the policy is a wildcard — every resource of the entity matches) or a JSON-encoded object of attribute conditions. Keys are attribute names; values are a string or list of strings.
-	Conditions types.PolicyConditions `json:"conditions"`
+	Conditions types.PolicyConditions `json:"-"`
 	// When this policy was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// When this policy was last updated.
@@ -9259,6 +9788,87 @@ func (v *GetGroupPolicyGroupPolicy) GetUpdatedAt() time.Time { return v.UpdatedA
 
 // GetGroup returns GetGroupPolicyGroupPolicy.Group, and is useful for accessing the field via an interface.
 func (v *GetGroupPolicyGroupPolicy) GetGroup() GetGroupPolicyGroupPolicyGroup { return v.Group }
+
+func (v *GetGroupPolicyGroupPolicy) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*GetGroupPolicyGroupPolicy
+		Conditions json.RawMessage `json:"conditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.GetGroupPolicyGroupPolicy = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Conditions
+		src := firstPass.Conditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetGroupPolicyGroupPolicy.Conditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalGetGroupPolicyGroupPolicy struct {
+	Id string `json:"id"`
+
+	Effect PolicyEffect `json:"effect"`
+
+	Actions []string `json:"actions"`
+
+	Conditions json.RawMessage `json:"conditions"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	Group GetGroupPolicyGroupPolicyGroup `json:"group"`
+}
+
+func (v *GetGroupPolicyGroupPolicy) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *GetGroupPolicyGroupPolicy) __premarshalJSON() (*__premarshalGetGroupPolicyGroupPolicy, error) {
+	var retval __premarshalGetGroupPolicyGroupPolicy
+
+	retval.Id = v.Id
+	retval.Effect = v.Effect
+	retval.Actions = v.Actions
+	{
+
+		dst := &retval.Conditions
+		src := v.Conditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetGroupPolicyGroupPolicy.Conditions: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	retval.Group = v.Group
+	return &retval, nil
+}
 
 // GetGroupPolicyGroupPolicyGroup includes the requested fields of the GraphQL type Group.
 // The GraphQL type's documentation follows.
@@ -21381,7 +21991,7 @@ type UpdatePolicyInput struct {
 	// Replace the policy's full action list. Pass one or more action ids in `{entity}:{verb}` form. Omit the field to leave the existing list unchanged. Duplicate entries are rejected.
 	Actions []string `json:"actions,omitempty"`
 	// Restrict the actions to entities whose attributes match every condition. Pass `"*"` to clear all conditions and make the policy a wildcard. Per-key, send `"*"` to match any value or a non-empty list of strings to match a closed set. Omit the field to leave conditions unchanged.
-	Conditions *types.PolicyConditions `json:"conditions,omitempty"`
+	Conditions *types.PolicyConditions `json:"-"`
 	// ALLOW grants the actions. DENY blocks them and wins over any matching ALLOW.
 	Effect PolicyEffect `json:"effect,omitempty"`
 }
@@ -21394,6 +22004,78 @@ func (v *UpdatePolicyInput) GetConditions() *types.PolicyConditions { return v.C
 
 // GetEffect returns UpdatePolicyInput.Effect, and is useful for accessing the field via an interface.
 func (v *UpdatePolicyInput) GetEffect() PolicyEffect { return v.Effect }
+
+func (v *UpdatePolicyInput) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*UpdatePolicyInput
+		Conditions json.RawMessage `json:"conditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.UpdatePolicyInput = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Conditions
+		src := firstPass.Conditions
+		if len(src) != 0 && string(src) != "null" {
+			*dst = new(types.PolicyConditions)
+			err = scalars.UnmarshalConditions(
+				src, *dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal UpdatePolicyInput.Conditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalUpdatePolicyInput struct {
+	Actions []string `json:"actions,omitempty"`
+
+	Conditions json.RawMessage `json:"conditions,omitempty"`
+
+	Effect PolicyEffect `json:"effect,omitempty"`
+}
+
+func (v *UpdatePolicyInput) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *UpdatePolicyInput) __premarshalJSON() (*__premarshalUpdatePolicyInput, error) {
+	var retval __premarshalUpdatePolicyInput
+
+	retval.Actions = v.Actions
+	{
+
+		dst := &retval.Conditions
+		src := v.Conditions
+		if src != nil {
+			var err error
+			*dst, err = scalars.MarshalConditions(
+				src)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"unable to marshal UpdatePolicyInput.Conditions: %w", err)
+			}
+		}
+	}
+	retval.Effect = v.Effect
+	return &retval, nil
+}
 
 // UpdatePolicyResponse is returned by UpdatePolicy on success.
 type UpdatePolicyResponse struct {
@@ -21514,7 +22196,7 @@ type UpdatePolicyUpdatePolicyPolicyPayloadResultPolicy struct {
 	// The actions this policy authorizes, each in `{entity}:{verb}` form (for example `["repo:pull", "instance:deploy"]`). Always non-empty.
 	Actions []string `json:"actions"`
 	// Either `"*"` (the policy is a wildcard — every resource of the entity matches) or a JSON-encoded object of attribute conditions. Keys are attribute names; values are a string or list of strings.
-	Conditions types.PolicyConditions `json:"conditions"`
+	Conditions types.PolicyConditions `json:"-"`
 	// When this policy was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// When this policy was last updated.
@@ -21550,6 +22232,87 @@ func (v *UpdatePolicyUpdatePolicyPolicyPayloadResultPolicy) GetUpdatedAt() time.
 // GetGroup returns UpdatePolicyUpdatePolicyPolicyPayloadResultPolicy.Group, and is useful for accessing the field via an interface.
 func (v *UpdatePolicyUpdatePolicyPolicyPayloadResultPolicy) GetGroup() UpdatePolicyUpdatePolicyPolicyPayloadResultPolicyGroup {
 	return v.Group
+}
+
+func (v *UpdatePolicyUpdatePolicyPolicyPayloadResultPolicy) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*UpdatePolicyUpdatePolicyPolicyPayloadResultPolicy
+		Conditions json.RawMessage `json:"conditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.UpdatePolicyUpdatePolicyPolicyPayloadResultPolicy = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Conditions
+		src := firstPass.Conditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal UpdatePolicyUpdatePolicyPolicyPayloadResultPolicy.Conditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalUpdatePolicyUpdatePolicyPolicyPayloadResultPolicy struct {
+	Id string `json:"id"`
+
+	Effect PolicyEffect `json:"effect"`
+
+	Actions []string `json:"actions"`
+
+	Conditions json.RawMessage `json:"conditions"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	Group UpdatePolicyUpdatePolicyPolicyPayloadResultPolicyGroup `json:"group"`
+}
+
+func (v *UpdatePolicyUpdatePolicyPolicyPayloadResultPolicy) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *UpdatePolicyUpdatePolicyPolicyPayloadResultPolicy) __premarshalJSON() (*__premarshalUpdatePolicyUpdatePolicyPolicyPayloadResultPolicy, error) {
+	var retval __premarshalUpdatePolicyUpdatePolicyPolicyPayloadResultPolicy
+
+	retval.Id = v.Id
+	retval.Effect = v.Effect
+	retval.Actions = v.Actions
+	{
+
+		dst := &retval.Conditions
+		src := v.Conditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal UpdatePolicyUpdatePolicyPolicyPayloadResultPolicy.Conditions: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	retval.Group = v.Group
+	return &retval, nil
 }
 
 // UpdatePolicyUpdatePolicyPolicyPayloadResultPolicyGroup includes the requested fields of the GraphQL type Group.
@@ -25133,6 +25896,15 @@ mutation DeletePolicy ($organizationId: ID!, $id: UUID!) {
 	deletePolicy(organizationId: $organizationId, id: $id) {
 		result {
 			id
+			effect
+			actions
+			conditions
+			createdAt
+			updatedAt
+			group {
+				id
+				name
+			}
 		}
 		successful
 		messages {

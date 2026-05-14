@@ -69,14 +69,12 @@ const (
 	SortDesc SortOrder = "DESC"
 )
 
-// ArtifactType narrows the catalog to a specific OCI artifact type. Empty in
-// [ListInput] means "any type."
-type ArtifactType string
+// ArtifactType narrows the catalog to a specific OCI artifact type.
+// Re-exported from [types] so callers don't have to import both packages.
+type ArtifactType = types.ArtifactType
 
-const (
-	// ArtifactTypeBundle is a Massdriver bundle.
-	ArtifactTypeBundle ArtifactType = "BUNDLE"
-)
+// ArtifactTypeBundle is a Massdriver bundle.
+const ArtifactTypeBundle = types.ArtifactTypeBundle
 
 // ListInput controls a [Service.List] call. Zero value lists every repository in the
 // configured organization, sorted alphabetically by name.
@@ -266,7 +264,9 @@ func toOciRepo(v any) (*OciRepo, error) {
 
 	// Second-pass unwrap of the paginated `tags.items` and
 	// `releaseChannels.items` envelopes into the type's flat slices. Get
-	// selects these; List doesn't.
+	// selects these; List doesn't. The artifactType is also normalized
+	// here because the platform returns it as either the enum name or
+	// the OCI media-type string depending on the resolver.
 	type tagsPage struct {
 		Items []types.OciRepoTag `mapstructure:"items"`
 	}
@@ -274,11 +274,13 @@ func toOciRepo(v any) (*OciRepo, error) {
 		Items []types.OciRepoReleaseChannel `mapstructure:"items"`
 	}
 	type wrapper struct {
+		ArtifactType    string        `mapstructure:"artifactType"`
 		Tags            *tagsPage     `mapstructure:"tags"`
 		ReleaseChannels *channelsPage `mapstructure:"releaseChannels"`
 	}
 	var w wrapper
 	if err := decode.Decode(v, &w); err == nil {
+		r.ArtifactType = normalizeArtifactType(w.ArtifactType)
 		if w.Tags != nil {
 			r.Tags = w.Tags.Items
 		}
@@ -293,6 +295,20 @@ func toOciRepo(v any) (*OciRepo, error) {
 		}
 	}
 	return &r, nil
+}
+
+// normalizeArtifactType maps the platform's wire representation of an
+// artifact type — either the enum name or the OCI media-type literal —
+// to the SDK's typed [types.ArtifactType] constant.
+func normalizeArtifactType(s string) types.ArtifactType {
+	switch s {
+	case "":
+		return ""
+	case string(types.ArtifactTypeBundle), "application/vnd.massdriver.bundle.v1+json":
+		return types.ArtifactTypeBundle
+	default:
+		return types.ArtifactType(s)
+	}
 }
 
 // buildListFilter compiles a ListInput's name/search/artifact filters into the

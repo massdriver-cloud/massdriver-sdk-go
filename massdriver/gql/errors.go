@@ -33,9 +33,10 @@ var (
 )
 
 // ClassifyError inspects err's chain for a transport-level error
-// ([*graphql.HTTPError] or [gqlerror.List]) and returns a wrapped error
-// with a sentinel ([ErrNotFound], [ErrUnauthenticated], [ErrForbidden])
-// joined into the chain so callers can match with [errors.Is].
+// ([*graphql.HTTPError] or [gqlerror.List]) and returns an error that
+// matches the appropriate sentinel ([ErrNotFound], [ErrUnauthenticated],
+// [ErrForbidden]) under [errors.Is]. The returned error's Error()
+// string is the original message — no duplicate "not found" lines.
 //
 // Recognized signals:
 //   - HTTP 401 → [ErrUnauthenticated]
@@ -51,9 +52,25 @@ func ClassifyError(err error) error {
 		return nil
 	}
 	if sentinel := classify(err); sentinel != nil {
-		return errors.Join(err, sentinel)
+		return &classifiedError{err: err, sentinel: sentinel}
 	}
 	return err
+}
+
+// classifiedError carries the original transport error alongside a
+// sentinel for [errors.Is] matching. Error() renders only the original
+// message so output doesn't duplicate the sentinel's text (e.g. the
+// trailing "not found" that an [errors.Join] chain would print on its
+// own line).
+type classifiedError struct {
+	err      error
+	sentinel error
+}
+
+func (e *classifiedError) Error() string { return e.err.Error() }
+func (e *classifiedError) Unwrap() error { return e.err }
+func (e *classifiedError) Is(target error) bool {
+	return target == e.sentinel
 }
 
 func classify(err error) error {

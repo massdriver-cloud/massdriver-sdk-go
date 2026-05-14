@@ -1637,6 +1637,15 @@ mutation DeletePolicy($organizationId: ID!, $id: UUID!) {
   deletePolicy(organizationId: $organizationId, id: $id) {
     result {
       id
+      effect
+      actions
+      conditions
+      createdAt
+      updatedAt
+      group {
+        id
+        name
+      }
     }
     successful
     messages {

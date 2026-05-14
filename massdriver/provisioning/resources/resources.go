@@ -9,6 +9,10 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 )
 
+// ErrNotFound is returned when the REST endpoint responds with HTTP 404.
+// Match with [errors.Is].
+var ErrNotFound = errors.New("not found")
+
 type Resource struct {
 	ID      string                 `json:"id"`
 	Field   string                 `json:"field"`
@@ -56,7 +60,7 @@ func (s *Service) GetResource(ctx context.Context, id string) (*Resource, error)
 		return nil, err
 	}
 	if resp.StatusCode() == http.StatusNotFound {
-		return nil, errors.New("not found")
+		return nil, fmt.Errorf("get resource %s: %w", id, ErrNotFound)
 	}
 	if resp.IsError() {
 		return nil, fmt.Errorf("get resource failed: %s", resp.Status())
@@ -77,7 +81,7 @@ func (s *Service) UpdateResource(ctx context.Context, id string, a *Resource) (*
 		return nil, err
 	}
 	if resp.StatusCode() == http.StatusNotFound {
-		return nil, errors.New("not found")
+		return nil, fmt.Errorf("update resource %s: %w", id, ErrNotFound)
 	}
 	if resp.IsError() {
 		return nil, fmt.Errorf("update resource failed: %s", resp.Status())
@@ -99,7 +103,7 @@ func (s *Service) DeleteResource(ctx context.Context, id, field string) error {
 		return err
 	}
 	if resp.StatusCode() == http.StatusNotFound {
-		return errors.New("not found")
+		return fmt.Errorf("delete resource %s: %w", id, ErrNotFound)
 	}
 	if resp.StatusCode() != http.StatusOK {
 		return fmt.Errorf("delete resource failed: %s", resp.Status())
