@@ -30,7 +30,6 @@ func TestGet(t *testing.T) {
 				"name":        "Primary Database",
 				"description": "User data",
 				"attributes":  map[string]any{"team": "platform"},
-				"position":    map[string]any{"x": 100, "y": 200},
 				"ociRepo": map[string]any{
 					"id":           "aws-aurora-postgres",
 					"name":         "aws-aurora-postgres",
@@ -54,9 +53,6 @@ func TestGet(t *testing.T) {
 	}
 	if got.Name != "Primary Database" {
 		t.Errorf("Name = %q, want Primary Database", got.Name)
-	}
-	if got.Position == nil || got.Position.X != 100 || got.Position.Y != 200 {
-		t.Errorf("Position = %+v, want {100, 200}", got.Position)
 	}
 	// OciRepo and Project must be the canonical types — same identity as
 	// ocirepos.OciRepo and projects.Project.
@@ -166,29 +162,6 @@ func TestRemove(t *testing.T) {
 	}
 	if got.ID != "ecomm-cache" {
 		t.Errorf("ID = %q, want ecomm-cache", got.ID)
-	}
-}
-
-func TestSetPosition(t *testing.T) {
-	gqlClient := gqltest.NewClient(
-		gqltest.RespondWithData(map[string]any{
-			"setComponentPosition": map[string]any{
-				"result": map[string]any{
-					"id":       "ecomm-database",
-					"name":     "Primary Database",
-					"position": map[string]any{"x": 250, "y": 400},
-				},
-				"successful": true,
-			},
-		}),
-	)
-
-	got, err := newService(gqlClient).SetPosition(t.Context(), "ecomm-database", 250, 400)
-	if err != nil {
-		t.Fatalf("SetPosition: %v", err)
-	}
-	if got.Position == nil || got.Position.X != 250 || got.Position.Y != 400 {
-		t.Errorf("Position = %+v, want {250, 400}", got.Position)
 	}
 }
 

@@ -153,21 +153,6 @@ func (s *Service) Remove(ctx context.Context, id string) (*Component, error) {
 	return toComponent(resp.RemoveComponent.Result)
 }
 
-// SetPosition sets a component's position on the visual canvas, in pixels.
-func (s *Service) SetPosition(ctx context.Context, id string, x, y int) (*Component, error) {
-	resp, err := gen.SetComponentPosition(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id, gen.SetComponentPositionInput{
-		X: x,
-		Y: y,
-	})
-	if err != nil {
-		return nil, gql.ClassifyError(fmt.Errorf("set component %s position: %w", id, err))
-	}
-	if err := gql.CheckMutation("set component position", resp.SetComponentPosition.Successful, resp.SetComponentPosition.Messages); err != nil {
-		return nil, err
-	}
-	return toComponent(resp.SetComponentPosition.Result)
-}
-
 // AddLink creates a design-time link between two components, declaring that
 // the source component's output field is wired to the destination
 // component's input field.

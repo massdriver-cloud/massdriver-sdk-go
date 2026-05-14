@@ -91,10 +91,9 @@ func TestGet_WithComponentsAndLinks(t *testing.T) {
 				"name": "E-Commerce",
 				"components": []map[string]any{
 					{
-						"id":       "ecomm-database",
-						"name":     "Primary Database",
-						"position": map[string]any{"x": 100, "y": 200},
-						"ociRepo":  map[string]any{"id": "aws-aurora-postgres", "name": "aws-aurora-postgres"},
+						"id":      "ecomm-database",
+						"name":    "Primary Database",
+						"ociRepo": map[string]any{"id": "aws-aurora-postgres", "name": "aws-aurora-postgres"},
 					},
 					{
 						"id":      "ecomm-app",
@@ -124,9 +123,6 @@ func TestGet_WithComponentsAndLinks(t *testing.T) {
 	}
 	if got.Components[0].ID != "ecomm-database" {
 		t.Errorf("Components[0].ID = %q, want ecomm-database", got.Components[0].ID)
-	}
-	if got.Components[0].Position == nil || got.Components[0].Position.X != 100 {
-		t.Errorf("Components[0].Position = %+v, want {100, 200}", got.Components[0].Position)
 	}
 	if got.Components[0].OciRepo == nil || got.Components[0].OciRepo.Name != "aws-aurora-postgres" {
 		t.Errorf("Components[0].OciRepo = %+v, want name aws-aurora-postgres", got.Components[0].OciRepo)
