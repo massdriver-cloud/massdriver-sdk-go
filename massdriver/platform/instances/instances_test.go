@@ -226,6 +226,75 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
+func TestOrphan(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"orphanInstance": map[string]any{
+				"result": map[string]any{
+					"id":     "ecomm-prod-database",
+					"name":   "Primary Database",
+					"status": "INITIALIZED",
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).Orphan(t.Context(), "ecomm-prod-database", instances.OrphanInput{
+		DeleteState: true,
+	})
+	if err != nil {
+		t.Fatalf("Orphan: %v", err)
+	}
+	if got.Status != "INITIALIZED" {
+		t.Errorf("Status = %q, want INITIALIZED", got.Status)
+	}
+
+	reqs := gqlClient.Requests()
+	if len(reqs) != 1 {
+		t.Fatalf("expected 1 request, got %d", len(reqs))
+	}
+	if reqs[0].Variables["id"] != "ecomm-prod-database" {
+		t.Errorf("id variable = %v, want ecomm-prod-database", reqs[0].Variables["id"])
+	}
+	input, ok := reqs[0].Variables["input"].(map[string]any)
+	if !ok {
+		t.Fatalf("input variable missing or wrong type: %v", reqs[0].Variables["input"])
+	}
+	if input["deleteState"] != true {
+		t.Errorf("input.deleteState = %v, want true", input["deleteState"])
+	}
+}
+
+func TestOrphan_MutationFailure(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"orphanInstance": map[string]any{
+				"result":     nil,
+				"successful": false,
+				"messages": []map[string]any{
+					{"code": "conflict", "field": "id", "message": "instance has no recoverable state"},
+				},
+			},
+		}),
+	)
+
+	_, err := newService(gqlClient).Orphan(t.Context(), "ecomm-prod-database", instances.OrphanInput{})
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	mf, ok := gql.AsMutationFailedError(err)
+	if !ok {
+		t.Fatalf("expected *gql.MutationFailedError, got %T: %v", err, err)
+	}
+	if mf.Op != "orphan instance" {
+		t.Errorf("Op = %q, want orphan instance", mf.Op)
+	}
+	if len(mf.Messages) != 1 || mf.Messages[0].Field != "id" {
+		t.Errorf("messages = %+v, want one message for field=id", mf.Messages)
+	}
+}
+
 // TestIter_StopsEarly confirms that breaking out of the range loop
 // stops further page requests — the iterator is lazy.
 func TestIter_StopsEarly(t *testing.T) {

@@ -19016,6 +19016,176 @@ var AllOrganizationSubscriptionStatus = []OrganizationSubscriptionStatus{
 	OrganizationSubscriptionStatusPaymentFailed,
 }
 
+// Reset an instance to INITIALIZED, clearing all of its Terraform/OpenTofu state locks. Optionally also deletes the remote IaC state files.
+type OrphanInstanceInput struct {
+	// When true, permanently deletes the instance's Terraform/OpenTofu state files. The next deployment will provision from scratch. Cannot be undone.
+	DeleteState bool `json:"deleteState"`
+}
+
+// GetDeleteState returns OrphanInstanceInput.DeleteState, and is useful for accessing the field via an interface.
+func (v *OrphanInstanceInput) GetDeleteState() bool { return v.DeleteState }
+
+// OrphanInstanceOrphanInstanceInstancePayload includes the requested fields of the GraphQL type InstancePayload.
+type OrphanInstanceOrphanInstanceInstancePayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result OrphanInstanceOrphanInstanceInstancePayloadResultInstance `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []OrphanInstanceOrphanInstanceInstancePayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns OrphanInstanceOrphanInstanceInstancePayload.Result, and is useful for accessing the field via an interface.
+func (v *OrphanInstanceOrphanInstanceInstancePayload) GetResult() OrphanInstanceOrphanInstanceInstancePayloadResultInstance {
+	return v.Result
+}
+
+// GetSuccessful returns OrphanInstanceOrphanInstanceInstancePayload.Successful, and is useful for accessing the field via an interface.
+func (v *OrphanInstanceOrphanInstanceInstancePayload) GetSuccessful() bool { return v.Successful }
+
+// GetMessages returns OrphanInstanceOrphanInstanceInstancePayload.Messages, and is useful for accessing the field via an interface.
+func (v *OrphanInstanceOrphanInstanceInstancePayload) GetMessages() []OrphanInstanceOrphanInstanceInstancePayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// OrphanInstanceOrphanInstanceInstancePayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type OrphanInstanceOrphanInstanceInstancePayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns OrphanInstanceOrphanInstanceInstancePayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *OrphanInstanceOrphanInstanceInstancePayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns OrphanInstanceOrphanInstanceInstancePayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *OrphanInstanceOrphanInstanceInstancePayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns OrphanInstanceOrphanInstanceInstancePayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *OrphanInstanceOrphanInstanceInstancePayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// OrphanInstanceOrphanInstanceInstancePayloadResultInstance includes the requested fields of the GraphQL type Instance.
+// The GraphQL type's documentation follows.
+//
+// A deployed piece of infrastructure in an environment.
+//
+// An instance is the **runtime representation** of a component. When you add a
+// "database" component to your blueprint and deploy it to the `staging`
+// environment, Massdriver creates an instance that tracks the database's
+// configuration, deployment state, costs, and produced resources.
+//
+// **Lifecycle:** Instances progress through a well-defined set of states:
+//
+// ```mermaid
+// stateDiagram-v2
+// [*] --> INITIALIZED: "Component added to environment"
+// INITIALIZED --> PROVISIONED: "Deployment succeeds"
+// INITIALIZED --> FAILED: "Deployment fails"
+// PROVISIONED --> PROVISIONED: "Redeploy / update"
+// PROVISIONED --> DECOMMISSIONED: "Decommission succeeds"
+// PROVISIONED --> FAILED: "Deployment fails"
+// FAILED --> PROVISIONED: "Retry succeeds"
+// FAILED --> DECOMMISSIONED: "Decommission"
+// ```
+//
+// **Version resolution:** Each instance has a `version` constraint (e.g., `~1.0`)
+// and a `releaseStrategy` (stable or development). Together these determine
+// the `resolvedVersion` that will be used on the next deployment. Compare
+// `resolvedVersion` with `deployedVersion` to see if a redeployment is needed,
+// or check `availableUpgrade` for newer matching releases.
+type OrphanInstanceOrphanInstanceInstancePayloadResultInstance struct {
+	Id string `json:"id"`
+	// Name of the instance.
+	Name string `json:"name"`
+	// Current lifecycle state of the instance.
+	Status InstanceStatus `json:"status"`
+}
+
+// GetId returns OrphanInstanceOrphanInstanceInstancePayloadResultInstance.Id, and is useful for accessing the field via an interface.
+func (v *OrphanInstanceOrphanInstanceInstancePayloadResultInstance) GetId() string { return v.Id }
+
+// GetName returns OrphanInstanceOrphanInstanceInstancePayloadResultInstance.Name, and is useful for accessing the field via an interface.
+func (v *OrphanInstanceOrphanInstanceInstancePayloadResultInstance) GetName() string { return v.Name }
+
+// GetStatus returns OrphanInstanceOrphanInstanceInstancePayloadResultInstance.Status, and is useful for accessing the field via an interface.
+func (v *OrphanInstanceOrphanInstanceInstancePayloadResultInstance) GetStatus() InstanceStatus {
+	return v.Status
+}
+
+// OrphanInstanceResponse is returned by OrphanInstance on success.
+type OrphanInstanceResponse struct {
+	// Reset an instance back to `INITIALIZED`, clearing every Terraform/OpenTofu
+	// state lock and aborting any in-flight or queued deployments. Optionally
+	// deletes the remote IaC state files.
+	//
+	// Use this break-glass operation when a deployment is permanently stuck and
+	// cannot be recovered through normal retry. State locks are always cleared.
+	// Active `RUNNING`, `PENDING`, and `APPROVED` deployments are bulk-aborted
+	// so a late worker callback cannot walk the instance status back to
+	// `PROVISIONED`. Pass `deleteState: true` to also remove the
+	// Terraform/OpenTofu state files — this is **irreversible** and the next
+	// deployment will provision from scratch, potentially duplicating any
+	// resources that the prior state was tracking.
+	//
+	// ```graphql
+	// mutation {
+	// orphanInstance(
+	// organizationId: "my-org"
+	// id: "my-database"
+	// input: { deleteState: false }
+	// ) {
+	// result { id status }
+	// successful
+	// }
+	// }
+	// ```
+	OrphanInstance OrphanInstanceOrphanInstanceInstancePayload `json:"orphanInstance"`
+}
+
+// GetOrphanInstance returns OrphanInstanceResponse.OrphanInstance, and is useful for accessing the field via an interface.
+func (v *OrphanInstanceResponse) GetOrphanInstance() OrphanInstanceOrphanInstanceInstancePayload {
+	return v.OrphanInstance
+}
+
 // Filter instances by the value of a configuration parameter at a specific JSON path.
 //
 // Parameter dimensions let you slice your infrastructure by any value in an instance's
@@ -25251,6 +25421,22 @@ func (v *__ListServiceAccountsInput) GetSort() *ServiceAccountsSort { return v.S
 // GetCursor returns __ListServiceAccountsInput.Cursor, and is useful for accessing the field via an interface.
 func (v *__ListServiceAccountsInput) GetCursor() *scalars.Cursor { return v.Cursor }
 
+// __OrphanInstanceInput is used internally by genqlient
+type __OrphanInstanceInput struct {
+	OrganizationId string              `json:"organizationId"`
+	Id             string              `json:"id"`
+	Input          OrphanInstanceInput `json:"input"`
+}
+
+// GetOrganizationId returns __OrphanInstanceInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__OrphanInstanceInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __OrphanInstanceInput.Id, and is useful for accessing the field via an interface.
+func (v *__OrphanInstanceInput) GetId() string { return v.Id }
+
+// GetInput returns __OrphanInstanceInput.Input, and is useful for accessing the field via an interface.
+func (v *__OrphanInstanceInput) GetInput() OrphanInstanceInput { return v.Input }
+
 // __ProposeDeploymentInput is used internally by genqlient
 type __ProposeDeploymentInput struct {
 	OrganizationId string                 `json:"organizationId"`
@@ -29476,6 +29662,54 @@ func ListServiceAccounts(
 	}
 
 	data_ = &ListServiceAccountsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by OrphanInstance.
+const OrphanInstance_Operation = `
+mutation OrphanInstance ($organizationId: ID!, $id: ID!, $input: OrphanInstanceInput!) {
+	orphanInstance(organizationId: $organizationId, id: $id, input: $input) {
+		result {
+			id
+			name
+			status
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func OrphanInstance(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+	input OrphanInstanceInput,
+) (data_ *OrphanInstanceResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "OrphanInstance",
+		Query:  OrphanInstance_Operation,
+		Variables: &__OrphanInstanceInput{
+			OrganizationId: organizationId,
+			Id:             id,
+			Input:          input,
+		},
+	}
+
+	data_ = &OrphanInstanceResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

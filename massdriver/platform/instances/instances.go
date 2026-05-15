@@ -108,6 +108,14 @@ type UpdateInput struct {
 	Version string
 }
 
+// OrphanInput is the input for [Service.Orphan].
+type OrphanInput struct {
+	// DeleteState, when true, also deletes the remote Terraform/OpenTofu state
+	// files. This is irreversible — the next deployment will provision from
+	// scratch and may duplicate any resources tracked by the prior state.
+	DeleteState bool
+}
+
 // CopyInput is the input for [Service.Copy].
 type CopyInput struct {
 	// Overrides are deep-merged onto the source params before writing
@@ -280,6 +288,32 @@ func (s *Service) Update(ctx context.Context, id string, input UpdateInput) (*In
 		return nil, err
 	}
 	return toInstance(resp.UpdateInstance.Result)
+}
+
+// Orphan is a break-glass operation that resets a permanently-stuck instance
+// to INITIALIZED, clearing all Terraform/OpenTofu state locks. Active
+// RUNNING, PENDING, and APPROVED deployments are bulk-aborted so a late
+// worker callback cannot walk the instance status back to PROVISIONED.
+//
+// Set OrphanInput.DeleteState to also remove the remote IaC state files;
+// the next deployment will then provision from scratch, potentially
+// duplicating any resources the prior state was tracking. This is
+// irreversible — prefer leaving DeleteState false unless the state is
+// known to be unrecoverable.
+//
+// The returned [Instance] is slim (id, name, status only) — call [Service.Get]
+// if you need params, statePaths, or resources after orphaning.
+func (s *Service) Orphan(ctx context.Context, id string, input OrphanInput) (*Instance, error) {
+	resp, err := gen.OrphanInstance(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id, gen.OrphanInstanceInput{
+		DeleteState: input.DeleteState,
+	})
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("orphan instance %s: %w", id, err))
+	}
+	if err := gql.CheckMutation("orphan instance", resp.OrphanInstance.Successful, resp.OrphanInstance.Messages); err != nil {
+		return nil, err
+	}
+	return toInstance(resp.OrphanInstance.Result)
 }
 
 // Copy copies configuration from sourceID to destinationID. Source and
