@@ -144,9 +144,48 @@ for ev, err := range c.AuditLogs.Iter(ctx, auditlogs.ListInput{TimeRangeStart: y
 
 ## Streaming
 
-`c.Deployments.StreamLogs` and `c.Deployments.TailLogs` provide live
-deployment logs over an Absinthe websocket subscription. The Service
-owns the socket lifetime; cancel `ctx` to stop.
+The SDK exposes two flavors of live data over Absinthe WebSocket
+subscriptions. Every `Stream*` method requires a personal-access-token
+credential and returns `streaming.ErrRequiresPAT` otherwise.
+
+### Deployment logs
+
+```go
+if err := c.Deployments.TailLogs(ctx, "deploy-abc123", os.Stdout); err != nil {
+    log.Fatal(err)
+}
+```
+
+- `c.Deployments.StreamLogs` yields one `LogBatch` per provisioner flush.
+- `c.Deployments.TailLogs` is the high-level form — backfill, live tailing,
+  and terminal-state detection in one call.
+
+### Lifecycle events
+
+Each Service exposes `StreamEvents`, returning a typed `<-chan types.Event`.
+Type-assert each frame to read the affected resource:
+
+```go
+events, err := c.Instances.StreamEvents(ctx, "ecomm-prod-database")
+if err != nil { log.Fatal(err) }
+for ev := range events {
+    switch e := ev.(type) {
+    case *types.InstanceEvent:   fmt.Println(e.Action, e.Instance.Name)
+    case *types.AlarmEvent:      fmt.Println(e.Action, e.Alarm.DisplayName)
+    case *types.DeploymentEvent: fmt.Println(e.Action, e.Deployment.Status)
+    }
+}
+```
+
+| Method                          | Variants on the channel                                                                  |
+|---------------------------------|------------------------------------------------------------------------------------------|
+| `c.Organizations.StreamEvents`  | `ProjectEvent`, `OciRepoEvent`, `BundleEvent`                                            |
+| `c.Projects.StreamEvents`       | `ProjectEvent`, `EnvironmentEvent`, `ComponentEvent`, `LinkEvent`                        |
+| `c.Environments.StreamEvents`   | `EnvironmentEvent`, `EnvironmentDefaultEvent`, `InstanceEvent`, `ConnectionEvent`, `AlarmEvent`, `DeploymentEvent` |
+| `c.Instances.StreamEvents`      | `InstanceEvent`, `ConnectionEvent`, `AlarmEvent`, `DeploymentEvent`                      |
+| `c.Deployments.StreamEvents`    | `DeploymentEvent` (lifecycle transitions only — no log content)                          |
+
+The Service owns the socket lifetime; cancel `ctx` to stop.
 
 ## Testing
 
