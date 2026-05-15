@@ -30441,6 +30441,11 @@ mutation UpdateInstance ($organizationId: ID!, $id: ID!, $input: UpdateInstanceI
 }
 `
 
+// Multi-line operation: genqlient v0.8.1 can't associate a `for:` directive
+// with a single-line operation — the parser attributes the comment to the
+// first variable definition on the same line and rejects `for:` with
+// "for is only applicable to operations and arguments". Every `for:`-bearing
+// mutation in this file is multi-line for the same reason.
 func UpdateInstance(
 	ctx_ context.Context,
 	client_ graphql.Client,
