@@ -27,21 +27,11 @@ type Instance struct {
 	UpdatedAt        time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
 	Cost             CostSummary    `json:"cost,omitzero" mapstructure:"cost"`
 
-	Environment *Environment `json:"environment,omitempty" mapstructure:"environment,omitempty"`
-	Bundle      *Bundle      `json:"bundle,omitempty" mapstructure:"bundle,omitempty"`
-	Component   *Component   `json:"component,omitempty" mapstructure:"component,omitempty"`
-
-	// StatePaths are the Terraform/OpenTofu state-file URLs for each
-	// provisioning step the bundle declares. Populated by instances.Get.
-	StatePaths []InstanceStatePath `json:"statePaths,omitempty" mapstructure:"statePaths,omitempty"`
-
-	// Resources are the outputs this instance has produced — connection
-	// strings, endpoints, credentials, etc. Populated by instances.Get;
-	// the wire shape is a paginated `instance.resources` envelope, but
-	// the wrapper unwraps it to a flat slice of [Resource] for ergonomic
-	// access. Tagged mapstructure:"-" because the unwrap happens
-	// post-decode — see the wrapper.
-	Resources []Resource `json:"resources,omitempty" mapstructure:"-"`
+	Environment *Environment        `json:"environment,omitempty" mapstructure:"environment,omitempty"`
+	Bundle      *Bundle             `json:"bundle,omitempty" mapstructure:"bundle,omitempty"`
+	Component   *Component          `json:"component,omitempty" mapstructure:"component,omitempty"`
+	StatePaths  []InstanceStatePath `json:"statePaths,omitempty" mapstructure:"statePaths,omitempty"`
+	Resources   []Resource          `json:"resources,omitempty" mapstructure:"-"`
 }
 
 // InstanceStatePath is a Terraform/OpenTofu state path for a single

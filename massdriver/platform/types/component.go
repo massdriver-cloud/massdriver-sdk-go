@@ -21,8 +21,5 @@ type Component struct {
 	UpdatedAt   time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
 	OciRepo     *OciRepo       `json:"ociRepo,omitempty" mapstructure:"ociRepo,omitempty"`
 	Project     *Project       `json:"project,omitempty" mapstructure:"project,omitempty"`
-
-	// Instances are the runtime deployments of this component, one per
-	// environment. Reserved for when platform/instances lands.
-	Instances []Instance `json:"instances,omitempty" mapstructure:"instances,omitempty"`
+	Instances   []Instance     `json:"instances,omitempty" mapstructure:"instances,omitempty"`
 }

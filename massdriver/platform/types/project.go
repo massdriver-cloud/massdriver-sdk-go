@@ -25,23 +25,7 @@ type Project struct {
 	UpdatedAt   time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
 	Cost        CostSummary    `json:"cost,omitzero" mapstructure:"cost"`
 
-	// Environments are the deployment contexts (production, staging, ...) in
-	// the project. Populated by projects.Get/projects.List when the wrapper
-	// performs the page unwrap; nil otherwise.
-	//
-	// The mapstructure:"-" tag opts out of the primary decode pass — the
-	// project's `environments` field comes back as an EnvironmentsPage
-	// (`{items: [...], cursor: ...}`) on the wire, so the wrapper does a
-	// second decode pass to flatten items into this slice.
 	Environments []Environment `json:"environments,omitempty" mapstructure:"-"`
-
-	// Components are the bundle slots that make up this project's blueprint.
-	// Populated only when the query selects them. Currently no SDK operation
-	// selects this field by default — reserved for when platform/components
-	// lands.
-	Components []Component `json:"components,omitempty" mapstructure:"components,omitempty"`
-
-	// Links are the design-time wires between components in this project.
-	// Reserved like Components above.
-	Links []Link `json:"links,omitempty" mapstructure:"links,omitempty"`
+	Components   []Component   `json:"components,omitempty" mapstructure:"components,omitempty"`
+	Links        []Link        `json:"links,omitempty" mapstructure:"links,omitempty"`
 }

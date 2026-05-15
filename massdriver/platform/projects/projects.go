@@ -62,9 +62,8 @@ type UpdateInput struct {
 	Attributes  map[string]any
 }
 
-// ListInput controls a [Service.List] call. Reserved for future
-// filter/sort/page options — the zero value is the only supported
-// shape today.
+// ListInput controls a [Service.List] call. Empty today; reserved for
+// filter/sort/page options.
 type ListInput struct{}
 
 // Get retrieves a project by ID. The returned [Project] has its Environments
