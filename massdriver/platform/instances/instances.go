@@ -121,9 +121,6 @@ type CopyInput struct {
 	// Overrides are deep-merged onto the source params before writing
 	// to the destination. Useful for environment-specific tweaks.
 	Overrides map[string]any
-	// Message is attached to the plan deployment created on the
-	// destination, similar to a commit message.
-	Message string
 	// CopySecrets, when true, copies secret values from the source
 	// instance to the destination.
 	CopySecrets bool
@@ -324,7 +321,6 @@ func (s *Service) Orphan(ctx context.Context, id string, input OrphanInput) (*In
 func (s *Service) Copy(ctx context.Context, sourceID, destinationID string, input CopyInput) (*Instance, error) {
 	resp, err := gen.CopyInstance(ctx, s.client.GQLv2, s.client.Config.OrganizationID, sourceID, destinationID, gen.CopyInstanceInput{
 		Overrides:            input.Overrides,
-		Message:              input.Message,
 		CopySecrets:          input.CopySecrets,
 		CopyRemoteReferences: input.CopyRemoteReferences,
 	})

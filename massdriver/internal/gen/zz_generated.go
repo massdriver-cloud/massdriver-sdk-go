@@ -1744,14 +1744,12 @@ func (v *CopyInstanceCopyInstanceInstancePayloadResultInstance) __premarshalJSON
 	return &retval, nil
 }
 
-// Copy configuration from one instance to another. The source and destination must be instances of the same component. Source params (minus any fields marked non-copyable in the bundle) are written to the destination, then a plan deployment is created on the destination so the changes can be reviewed before applying.
+// Copy configuration from one instance to another. The source and destination must be instances of the same component. Source params (minus any fields marked non-copyable in the bundle) are written to the destination. Deployment is a separate action — call `createDeployment` on the destination when you're ready to apply.
 type CopyInstanceInput struct {
 	// When true, copies remote resource references from the source instance to the destination. Defaults to false.
 	CopyRemoteReferences bool `json:"copyRemoteReferences"`
 	// When true, copies secret values from the source instance to the destination. Defaults to false.
 	CopySecrets bool `json:"copySecrets"`
-	// An optional message attached to the plan deployment created on the destination, similar to a commit message.
-	Message string `json:"message"`
 	// Optional overrides that are deep-merged onto the source params before writing to the destination. Useful for tweaking environment-specific values (e.g., instance sizes).
 	Overrides map[string]any `json:"-"`
 }
@@ -1761,9 +1759,6 @@ func (v *CopyInstanceInput) GetCopyRemoteReferences() bool { return v.CopyRemote
 
 // GetCopySecrets returns CopyInstanceInput.CopySecrets, and is useful for accessing the field via an interface.
 func (v *CopyInstanceInput) GetCopySecrets() bool { return v.CopySecrets }
-
-// GetMessage returns CopyInstanceInput.Message, and is useful for accessing the field via an interface.
-func (v *CopyInstanceInput) GetMessage() string { return v.Message }
 
 // GetOverrides returns CopyInstanceInput.Overrides, and is useful for accessing the field via an interface.
 func (v *CopyInstanceInput) GetOverrides() map[string]any { return v.Overrides }
@@ -1806,8 +1801,6 @@ type __premarshalCopyInstanceInput struct {
 
 	CopySecrets bool `json:"copySecrets"`
 
-	Message string `json:"message"`
-
 	Overrides json.RawMessage `json:"overrides"`
 }
 
@@ -1824,7 +1817,6 @@ func (v *CopyInstanceInput) __premarshalJSON() (*__premarshalCopyInstanceInput, 
 
 	retval.CopyRemoteReferences = v.CopyRemoteReferences
 	retval.CopySecrets = v.CopySecrets
-	retval.Message = v.Message
 	{
 
 		dst := &retval.Overrides
@@ -1846,9 +1838,9 @@ type CopyInstanceResponse struct {
 	//
 	// Both instances must be built from the same component. Source params (minus any
 	// fields the bundle marks non-copyable) are written to the destination, deep-merged
-	// with any `overrides`. A plan deployment is then created on the destination so the
-	// caller can review the changes before applying them. `copySecrets` and
-	// `copyRemoteReferences` opt in to additional state transfer.
+	// with any `overrides`. `copySecrets` and `copyRemoteReferences` opt in to additional
+	// state transfer. Deployment is a separate action — call `createDeployment` on the
+	// destination when you're ready to apply.
 	//
 	// ```graphql
 	// mutation {
@@ -1856,7 +1848,7 @@ type CopyInstanceResponse struct {
 	// organizationId: "my-org"
 	// sourceId: "ecomm-prod-db"
 	// destinationId: "ecomm-staging-db"
-	// input: { overrides: { size: "small" }, copySecrets: true, message: "Promote prod config" }
+	// input: { overrides: { size: "small" }, copySecrets: true }
 	// ) {
 	// result { id params }
 	// successful
