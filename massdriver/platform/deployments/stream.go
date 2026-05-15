@@ -3,16 +3,13 @@ package deployments
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"strings"
 	"time"
 
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/absinthe"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/streaming"
 )
 
 // LogBatch is one batch of deployment logs flushed by the provisioner —
@@ -21,16 +18,11 @@ import (
 // separated by `\n`.
 type LogBatch = types.DeploymentLogBatch
 
-// ErrStreamingRequiresPAT is returned by [Service.StreamLogs] (and by
-// [Service.TailLogs] when streaming is needed) when the configured
-// credentials are not a personal access token. WebSocket subscriptions
-// authenticate via a query-string token, which only works for PATs
-// (basic-auth API keys are rejected).
-//
-// Callers can [errors.Is] against this sentinel to surface a useful hint.
-var ErrStreamingRequiresPAT = errors.New(
-	"deployment log streaming requires a personal access token (set MASSDRIVER_API_KEY to a token starting with mds_/md_)",
-)
+// ErrStreamingRequiresPAT aliases [streaming.ErrRequiresPAT] so existing
+// callers that match against this name still classify the error
+// correctly under [errors.Is]. New code should reference
+// [streaming.ErrRequiresPAT] directly.
+var ErrStreamingRequiresPAT = streaming.ErrRequiresPAT
 
 // deploymentLogsSubscription is the GraphQL operation pushed on the
 // Absinthe control channel for log batches. Kept in lockstep with the
@@ -92,7 +84,7 @@ const drainGrace = 250 * time.Millisecond
 // Most callers want [Service.TailLogs] instead — it folds together backfill,
 // terminal detection, and live tailing.
 func (s *Service) StreamLogs(ctx context.Context, deploymentID string) (<-chan LogBatch, error) {
-	socket, err := openLogStreamSocket(ctx, s.client)
+	socket, err := s.client.OpenStreamSocket(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +171,7 @@ func (s *Service) TailLogs(ctx context.Context, deploymentID string, w io.Writer
 		return nil
 	}
 
-	socket, err := openLogStreamSocket(ctx, s.client)
+	socket, err := s.client.OpenStreamSocket(ctx)
 	if err != nil {
 		return err
 	}
@@ -232,20 +224,6 @@ func (s *Service) TailLogs(ctx context.Context, deploymentID string, w io.Writer
 			return ctx.Err()
 		}
 	}
-}
-
-// openLogStreamSocket gates streaming on PAT auth and opens an Absinthe
-// socket. Shared between [StreamLogs] and [TailLogs] so the auth check
-// stays in one place.
-func openLogStreamSocket(ctx context.Context, mdClient *client.Client) (*absinthe.Socket, error) {
-	if mdClient.Config.Credentials.Method != config.AuthPAT {
-		return nil, ErrStreamingRequiresPAT
-	}
-	socket, err := absinthe.Dial(ctx, mdClient.Config.URL, mdClient.Config.Credentials.Secret)
-	if err != nil {
-		return nil, fmt.Errorf("open absinthe socket: %w", err)
-	}
-	return socket, nil
 }
 
 // drainLogs reads any in-transit log batches for a brief window after a

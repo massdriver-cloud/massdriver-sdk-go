@@ -8,6 +8,7 @@ import (
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/deployments"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 func ExampleService_Create() {
@@ -38,5 +39,32 @@ func ExampleService_TailLogs() {
 
 	if err := c.Deployments.TailLogs(context.Background(), "deploy-abc123", os.Stdout); err != nil {
 		log.Fatal(err)
+	}
+}
+
+// StreamEvents subscribes to a single deployment's lifecycle
+// transitions — fires on create and every status flip (PENDING →
+// RUNNING → COMPLETED). Useful when you want to react to a deployment
+// reaching a terminal state without polling. For log content, use
+// TailLogs / StreamLogs instead.
+func ExampleService_StreamEvents() {
+	c, err := massdriver.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	events, err := c.Deployments.StreamEvents(ctx, "deploy-abc123")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for ev := range events {
+		e := ev.(*types.DeploymentEvent)
+		fmt.Printf("%s: deployment %s is %s\n", e.Action, e.Deployment.ID, e.Deployment.Status)
+		if deployments.IsTerminal(e.Deployment.Status) {
+			return
+		}
 	}
 }

@@ -156,10 +156,37 @@ returned error is a [*gql.MutationFailedError] — the result pointer is nil.
 
 # Streaming
 
-[deployments.Service.StreamLogs] and [deployments.Service.TailLogs]
-provide live access to deployment logs over an Absinthe websocket
-subscription. The Service owns the socket lifetime; callers only
-own the returned channel and must drain or cancel ctx to stop.
+The SDK exposes two flavors of live data over Absinthe WebSocket
+subscriptions.
+
+Deployment logs:
+
+  - [deployments.Service.StreamLogs] yields one
+    [deployments.LogBatch] per provisioner flush.
+  - [deployments.Service.TailLogs] is the high-level form that folds
+    in backfill, live tailing, and terminal-state detection.
+
+Lifecycle events — each Service's StreamEvents method opens a typed
+[types.Event] channel; callers type-assert to a concrete variant
+([*types.InstanceEvent], [*types.AlarmEvent], etc.):
+
+  - [organizations.Service.StreamEvents] — projects created, OCI
+    repositories created, bundle versions published.
+  - [projects.Service.StreamEvents] — the project itself,
+    environments, and blueprint (components, links).
+  - [environments.Service.StreamEvents] — environment defaults,
+    instances, connections, alarms, and deployments within an
+    environment.
+  - [instances.Service.StreamEvents] — instance config changes,
+    incoming connections, alarms, and deployments for a single
+    instance.
+  - [deployments.Service.StreamEvents] — lifecycle transitions for
+    a single deployment.
+
+Every Stream* method requires a personal-access-token credential and
+returns [streaming.ErrRequiresPAT] otherwise. The Service owns the
+socket lifetime; callers own the returned channel and must drain or
+cancel ctx to stop.
 
 # Stability
 
