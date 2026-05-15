@@ -22551,13 +22551,13 @@ func (v *UpdateInstanceAlarmUpdateInstanceAlarmAlarmPayloadResultAlarmMetricDime
 // Update an instance's version. Changes take effect on the next deployment.
 type UpdateInstanceInput struct {
 	// Deprecated. Add `+dev` to `version` instead (e.g., `latest+dev`).
-	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
+	ReleaseStrategy *ReleaseStrategy `json:"releaseStrategy,omitempty"`
 	// Bundle version to deploy. Accepts a pinned tag (`1.2.3`), a release channel (`latest`, `~1.2`), or a release channel with `+dev` to include pre-release builds (`latest+dev`, `~1.2+dev`).
 	Version string `json:"version"`
 }
 
 // GetReleaseStrategy returns UpdateInstanceInput.ReleaseStrategy, and is useful for accessing the field via an interface.
-func (v *UpdateInstanceInput) GetReleaseStrategy() ReleaseStrategy { return v.ReleaseStrategy }
+func (v *UpdateInstanceInput) GetReleaseStrategy() *ReleaseStrategy { return v.ReleaseStrategy }
 
 // GetVersion returns UpdateInstanceInput.Version, and is useful for accessing the field via an interface.
 func (v *UpdateInstanceInput) GetVersion() string { return v.Version }
@@ -30441,6 +30441,11 @@ mutation UpdateInstance ($organizationId: ID!, $id: ID!, $input: UpdateInstanceI
 }
 `
 
+// Multi-line operation: genqlient v0.8.1 can't associate a `for:` directive
+// with a single-line operation — the parser attributes the comment to the
+// first variable definition on the same line and rejects `for:` with
+// "for is only applicable to operations and arguments". Every `for:`-bearing
+// mutation in this file is multi-line for the same reason.
 func UpdateInstance(
 	ctx_ context.Context,
 	client_ graphql.Client,
