@@ -1,0 +1,66 @@
+# Genqlient configuration for the Massdriver V2 GraphQL API.
+#
+# This is the single, union-of-functionality genqlient run for the entire SDK.
+# Domain wrappers live under massdriver/platform/* and import the generated
+# code from this package. The output is intentionally not part of the public
+# API surface — it sits under massdriver/internal/ so external consumers go
+# through the typed wrappers instead of constructing queries directly.
+#
+# To regenerate after editing genqlient.graphql:
+#   go generate ./massdriver/internal/gen/...
+
+schema: schema.graphql
+operations:
+  - genqlient.graphql
+generated: zz_generated.go
+package: gen
+bindings:
+  # JSON and Map are the two scalars that carry a doubly-encoded JSON string on
+  # the wire (an outer JSON string whose contents are themselves JSON). The
+  # marshalers in massdriver/gql/scalars handle the wrap/unwrap so callers see
+  # a normal map[string]any.
+  JSON:
+    type: map[string]any
+    marshaler: github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars.MarshalJSON
+    unmarshaler: github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars.UnmarshalJSON
+  Map:
+    type: map[string]any
+    marshaler: github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars.MarshalJSON
+    unmarshaler: github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars.UnmarshalJSON
+
+  DateTime:
+    type: time.Time
+
+  # Stringly-typed scalars where the strict server-side type doesn't add value
+  # on the Go side — wrappers convert from a plain string at call time.
+  VersionConstraint:
+    type: string
+  Semver:
+    type: string
+  BundleId:
+    type: string
+  OciRepoName:
+    type: string
+  ReleaseChannel:
+    type: string
+  Upload:
+    type: string
+  UUID:
+    type: string
+
+  # Cursor is hand-written (massdriver/gql/scalars.Cursor) so its fields can
+  # carry omitempty tags. Without those, paginated requests would send
+  # `limit: 0`, which the server rejects.
+  Cursor:
+    type: github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars.Cursor
+
+  # Conditions is polymorphic on the wire — either the JSON string `"*"`
+  # (wildcard) or a JSON object like `{"team":["eng"]}`. The marshalers in
+  # gql/scalars handle the wrap/unwrap so callers see a normal Go map;
+  # types.PolicyConditions's own MarshalJSON is the plain user-facing form
+  # (no wire wrapping) so json.Marshal round-trips intuitively at the app
+  # layer.
+  Conditions:
+    type: github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types.PolicyConditions
+    marshaler: github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars.MarshalConditions
+    unmarshaler: github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars.UnmarshalConditions

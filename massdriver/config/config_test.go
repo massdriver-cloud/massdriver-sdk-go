@@ -38,7 +38,7 @@ profiles:
 		writeProfile    bool
 		writeXDGProfile bool
 		expectErr       string
-		expectConfig    *config.Config
+		expectConfig    config.Config
 	}{
 		{
 			name: "loads full config with URL",
@@ -50,12 +50,13 @@ profiles:
 				"MASSDRIVER_URL":             "https://custom.massdriver.cloud",
 				"MASSDRIVER_PROFILE":         "dev",
 			},
-			expectConfig: &config.Config{
+			expectConfig: config.Config{
 				OrganizationID: "org-id",
 				URL:            "https://custom.massdriver.cloud",
 				Profile:        "",
-				Credentials: &config.Credentials{
+				Credentials: config.Credentials{
 					Method:          config.AuthDeployment,
+					Source:          config.SourceEnv,
 					ID:              "deploy-123",
 					Secret:          "token-abc",
 					AuthHeaderValue: "Basic ZGVwbG95LTEyMzp0b2tlbi1hYmM=",
@@ -68,11 +69,12 @@ profiles:
 				"MASSDRIVER_ORGANIZATION_ID": "org-id",
 				"MASSDRIVER_API_KEY":         "abc123",
 			},
-			expectConfig: &config.Config{
+			expectConfig: config.Config{
 				OrganizationID: "org-id",
 				URL:            "https://api.massdriver.cloud",
-				Credentials: &config.Credentials{
+				Credentials: config.Credentials{
 					Method:          config.AuthAPIKey,
+					Source:          config.SourceEnv,
 					ID:              "org-id",
 					Secret:          "abc123",
 					AuthHeaderValue: "Basic b3JnLWlkOmFiYzEyMw==",
@@ -85,11 +87,12 @@ profiles:
 				"MASSDRIVER_ORG_ID":  "org-id",
 				"MASSDRIVER_API_KEY": "abc123",
 			},
-			expectConfig: &config.Config{
+			expectConfig: config.Config{
 				OrganizationID: "org-id",
 				URL:            "https://api.massdriver.cloud",
-				Credentials: &config.Credentials{
+				Credentials: config.Credentials{
 					Method:          config.AuthAPIKey,
+					Source:          config.SourceEnv,
 					ID:              "org-id",
 					Secret:          "abc123",
 					AuthHeaderValue: "Basic b3JnLWlkOmFiYzEyMw==",
@@ -105,13 +108,14 @@ profiles:
 				"MASSDRIVER_PROFILE":         "custom",
 			},
 			writeProfile: true,
-			expectConfig: &config.Config{
+			expectConfig: config.Config{
 				OrganizationID: "org-id",
 				URL:            "https://custom.massdriver.cloud",
 				Profile:        "custom",
 				TemplatesPath:  "/custom/templates",
-				Credentials: &config.Credentials{
+				Credentials: config.Credentials{
 					Method:          config.AuthAPIKey,
+					Source:          config.SourceEnv,
 					ID:              "org-id",
 					Secret:          "key-abc",
 					AuthHeaderValue: "Basic b3JnLWlkOmtleS1hYmM=",
@@ -124,13 +128,14 @@ profiles:
 				"MASSDRIVER_PROFILE": "custom",
 			},
 			writeProfile: true,
-			expectConfig: &config.Config{
+			expectConfig: config.Config{
 				OrganizationID: "custom-org",
 				URL:            "https://custom.massdriver.cloud",
 				Profile:        "custom",
 				TemplatesPath:  "/custom/templates",
-				Credentials: &config.Credentials{
+				Credentials: config.Credentials{
 					Method:          config.AuthAPIKey,
+					Source:          config.SourceProfile,
 					ID:              "custom-org",
 					Secret:          "custom-key",
 					AuthHeaderValue: "Basic Y3VzdG9tLW9yZzpjdXN0b20ta2V5",
@@ -141,13 +146,14 @@ profiles:
 			name:         "default profile used if MASSDRIVER_PROFILE not set",
 			env:          map[string]string{},
 			writeProfile: true,
-			expectConfig: &config.Config{
+			expectConfig: config.Config{
 				OrganizationID: "profile-org",
 				URL:            "https://api.massdriver.cloud",
 				Profile:        "default",
 				TemplatesPath:  "/default/templates",
-				Credentials: &config.Credentials{
+				Credentials: config.Credentials{
 					Method:          config.AuthAPIKey,
+					Source:          config.SourceProfile,
 					ID:              "profile-org",
 					Secret:          "profile-key",
 					AuthHeaderValue: "Basic cHJvZmlsZS1vcmc6cHJvZmlsZS1rZXk=",
@@ -162,13 +168,14 @@ profiles:
 				"MASSDRIVER_PROFILE":         "custom",
 			},
 			writeProfile: true,
-			expectConfig: &config.Config{
+			expectConfig: config.Config{
 				OrganizationID: "env-org",
 				URL:            "https://custom.massdriver.cloud",
 				Profile:        "custom",
 				TemplatesPath:  "/custom/templates",
-				Credentials: &config.Credentials{
+				Credentials: config.Credentials{
 					Method:          config.AuthAPIKey,
+					Source:          config.SourceEnv,
 					ID:              "env-org",
 					Secret:          "env-key",
 					AuthHeaderValue: "Basic ZW52LW9yZzplbnYta2V5",
@@ -182,13 +189,14 @@ profiles:
 				"MASSDRIVER_TEMPLATES_PATH": "/env/templates",
 			},
 			writeProfile: true,
-			expectConfig: &config.Config{
+			expectConfig: config.Config{
 				OrganizationID: "custom-org",
 				URL:            "https://custom.massdriver.cloud",
 				Profile:        "custom",
 				TemplatesPath:  "/env/templates",
-				Credentials: &config.Credentials{
+				Credentials: config.Credentials{
 					Method:          config.AuthAPIKey,
+					Source:          config.SourceProfile,
 					ID:              "custom-org",
 					Secret:          "custom-key",
 					AuthHeaderValue: "Basic Y3VzdG9tLW9yZzpjdXN0b20ta2V5",
@@ -201,12 +209,13 @@ profiles:
 				"HOME": "/nonexistent",
 			},
 			writeXDGProfile: true,
-			expectConfig: &config.Config{
+			expectConfig: config.Config{
 				OrganizationID: "xdg-org",
 				URL:            "https://xdg.massdriver.cloud",
 				Profile:        "default",
-				Credentials: &config.Credentials{
+				Credentials: config.Credentials{
 					Method:          config.AuthAPIKey,
+					Source:          config.SourceProfile,
 					ID:              "xdg-org",
 					Secret:          "xdg-key",
 					AuthHeaderValue: "Basic eGRnLW9yZzp4ZGcta2V5",
@@ -246,8 +255,26 @@ profiles:
 		},
 	}
 
+	// Every MASSDRIVER_* env var the config package reads. We clear all
+	// of them at the start of each subtest so values from the developer's
+	// shell (e.g. integration-test credentials) don't leak in and shadow
+	// the per-case fixtures.
+	massdriverEnv := []string{
+		"MASSDRIVER_ORGANIZATION_ID",
+		"MASSDRIVER_ORG_ID",
+		"MASSDRIVER_API_KEY",
+		"MASSDRIVER_DEPLOYMENT_ID",
+		"MASSDRIVER_TOKEN",
+		"MASSDRIVER_PROFILE",
+		"MASSDRIVER_URL",
+		"MASSDRIVER_TEMPLATES_PATH",
+	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			for _, k := range massdriverEnv {
+				t.Setenv(k, "")
+			}
 			for k, v := range test.env {
 				t.Setenv(k, v)
 			}
@@ -275,7 +302,7 @@ profiles:
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, cfg)
-				require.Equal(t, *test.expectConfig, *cfg)
+				require.Equal(t, test.expectConfig, cfg)
 			}
 		})
 	}
@@ -287,4 +314,55 @@ func writeTempConfigFileAt(t *testing.T, dir, relPath, content string) string {
 	require.NoError(t, os.MkdirAll(filepath.Dir(fullPath), 0o755))
 	require.NoError(t, os.WriteFile(fullPath, []byte(content), 0o600))
 	return fullPath
+}
+
+// TestLoad_OverrideSetsSourceOption confirms that an explicit override
+// (the path the top-level [massdriver.WithAPIKey] takes) tags the
+// resolved Credentials with [config.SourceOption], not the env or
+// profile source the override would otherwise mask.
+func TestLoad_OverrideSetsSourceOption(t *testing.T) {
+	// Env vars supply a fallback the override should preempt.
+	t.Setenv("MASSDRIVER_ORGANIZATION_ID", "env-org")
+	t.Setenv("MASSDRIVER_API_KEY", "env-key")
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("XDG_CONFIG_HOME", "")
+
+	cfg, err := config.Load(config.Overrides{
+		APIKey:         "explicit-key",
+		OrganizationID: "explicit-org",
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, config.SourceOption, cfg.Credentials.Source,
+		"override path must mark the credential as Source=option")
+	require.Equal(t, "explicit-key", cfg.Credentials.Secret)
+	require.Equal(t, "explicit-org", cfg.OrganizationID)
+}
+
+// TestLoad_PATSourceTracking confirms a PAT-prefixed key resolves to
+// AuthPAT regardless of which layer supplied it, and the Source
+// reflects that layer.
+func TestLoad_PATSourceTracking(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("XDG_CONFIG_HOME", "")
+
+	t.Run("PAT from option", func(t *testing.T) {
+		cfg, err := config.Load(config.Overrides{
+			APIKey:         "mds_abc123",
+			OrganizationID: "ecomm",
+		})
+		require.NoError(t, err)
+		require.Equal(t, config.AuthPAT, cfg.Credentials.Method)
+		require.Equal(t, config.SourceOption, cfg.Credentials.Source)
+		require.Equal(t, "Bearer mds_abc123", cfg.Credentials.AuthHeaderValue)
+	})
+
+	t.Run("PAT from env", func(t *testing.T) {
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_API_KEY", "md_xyz789")
+		cfg, err := config.Load(config.Overrides{})
+		require.NoError(t, err)
+		require.Equal(t, config.AuthPAT, cfg.Credentials.Method)
+		require.Equal(t, config.SourceEnv, cfg.Credentials.Source)
+	})
 }
