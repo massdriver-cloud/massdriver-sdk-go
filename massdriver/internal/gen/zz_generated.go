@@ -22551,13 +22551,13 @@ func (v *UpdateInstanceAlarmUpdateInstanceAlarmAlarmPayloadResultAlarmMetricDime
 // Update an instance's version. Changes take effect on the next deployment.
 type UpdateInstanceInput struct {
 	// Deprecated. Add `+dev` to `version` instead (e.g., `latest+dev`).
-	ReleaseStrategy ReleaseStrategy `json:"releaseStrategy"`
+	ReleaseStrategy *ReleaseStrategy `json:"releaseStrategy,omitempty"`
 	// Bundle version to deploy. Accepts a pinned tag (`1.2.3`), a release channel (`latest`, `~1.2`), or a release channel with `+dev` to include pre-release builds (`latest+dev`, `~1.2+dev`).
 	Version string `json:"version"`
 }
 
 // GetReleaseStrategy returns UpdateInstanceInput.ReleaseStrategy, and is useful for accessing the field via an interface.
-func (v *UpdateInstanceInput) GetReleaseStrategy() ReleaseStrategy { return v.ReleaseStrategy }
+func (v *UpdateInstanceInput) GetReleaseStrategy() *ReleaseStrategy { return v.ReleaseStrategy }
 
 // GetVersion returns UpdateInstanceInput.Version, and is useful for accessing the field via an interface.
 func (v *UpdateInstanceInput) GetVersion() string { return v.Version }

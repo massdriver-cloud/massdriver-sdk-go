@@ -1093,7 +1093,12 @@ query ListInstances(
   }
 }
 
-mutation UpdateInstance($organizationId: ID!, $id: ID!, $input: UpdateInstanceInput!) {
+# @genqlient(for: "UpdateInstanceInput.releaseStrategy", omitempty: true, pointer: true)
+mutation UpdateInstance(
+  $organizationId: ID!,
+  $id: ID!,
+  $input: UpdateInstanceInput!
+) {
   updateInstance(organizationId: $organizationId, id: $id, input: $input) {
     result {
       id
