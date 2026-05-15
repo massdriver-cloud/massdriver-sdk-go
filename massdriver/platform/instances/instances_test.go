@@ -373,7 +373,6 @@ func TestCopy(t *testing.T) {
 
 	got, err := newService(gqlClient).Copy(t.Context(), "ecomm-prod-db", "ecomm-staging-db", instances.CopyInput{
 		Overrides:   map[string]any{"size": "small"},
-		Message:     "promote prod config to staging",
 		CopySecrets: true,
 	})
 	if err != nil {
