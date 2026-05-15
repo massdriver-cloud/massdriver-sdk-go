@@ -1518,6 +1518,359 @@ var AllBundlesSortField = []BundlesSortField{
 	BundlesSortFieldCreatedAt,
 }
 
+// CopyInstanceCopyInstanceInstancePayload includes the requested fields of the GraphQL type InstancePayload.
+type CopyInstanceCopyInstanceInstancePayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result CopyInstanceCopyInstanceInstancePayloadResultInstance `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []CopyInstanceCopyInstanceInstancePayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns CopyInstanceCopyInstanceInstancePayload.Result, and is useful for accessing the field via an interface.
+func (v *CopyInstanceCopyInstanceInstancePayload) GetResult() CopyInstanceCopyInstanceInstancePayloadResultInstance {
+	return v.Result
+}
+
+// GetSuccessful returns CopyInstanceCopyInstanceInstancePayload.Successful, and is useful for accessing the field via an interface.
+func (v *CopyInstanceCopyInstanceInstancePayload) GetSuccessful() bool { return v.Successful }
+
+// GetMessages returns CopyInstanceCopyInstanceInstancePayload.Messages, and is useful for accessing the field via an interface.
+func (v *CopyInstanceCopyInstanceInstancePayload) GetMessages() []CopyInstanceCopyInstanceInstancePayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// CopyInstanceCopyInstanceInstancePayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type CopyInstanceCopyInstanceInstancePayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns CopyInstanceCopyInstanceInstancePayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *CopyInstanceCopyInstanceInstancePayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns CopyInstanceCopyInstanceInstancePayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *CopyInstanceCopyInstanceInstancePayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns CopyInstanceCopyInstanceInstancePayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *CopyInstanceCopyInstanceInstancePayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// CopyInstanceCopyInstanceInstancePayloadResultInstance includes the requested fields of the GraphQL type Instance.
+// The GraphQL type's documentation follows.
+//
+// A deployed piece of infrastructure in an environment.
+//
+// An instance is the **runtime representation** of a component. When you add a
+// "database" component to your blueprint and deploy it to the `staging`
+// environment, Massdriver creates an instance that tracks the database's
+// configuration, deployment state, costs, and produced resources.
+//
+// **Lifecycle:** Instances progress through a well-defined set of states:
+//
+// ```mermaid
+// stateDiagram-v2
+// [*] --> INITIALIZED: "Component added to environment"
+// INITIALIZED --> PROVISIONED: "Deployment succeeds"
+// INITIALIZED --> FAILED: "Deployment fails"
+// PROVISIONED --> PROVISIONED: "Redeploy / update"
+// PROVISIONED --> DECOMMISSIONED: "Decommission succeeds"
+// PROVISIONED --> FAILED: "Deployment fails"
+// FAILED --> PROVISIONED: "Retry succeeds"
+// FAILED --> DECOMMISSIONED: "Decommission"
+// ```
+//
+// **Version resolution:** Each instance has a `version` constraint (e.g., `~1.0`)
+// and a `releaseStrategy` (stable or development). Together these determine
+// the `resolvedVersion` that will be used on the next deployment. Compare
+// `resolvedVersion` with `deployedVersion` to see if a redeployment is needed,
+// or check `availableUpgrade` for newer matching releases.
+type CopyInstanceCopyInstanceInstancePayloadResultInstance struct {
+	Id string `json:"id"`
+	// Name of the instance.
+	Name string `json:"name"`
+	// Current lifecycle state of the instance.
+	Status InstanceStatus `json:"status"`
+	// The version constraint controlling which bundle releases are eligible for deployment. Accepts any value accepted by the `VersionConstraint` scalar: a pinned semver (e.g., `1.2.3`) or a release channel name as listed by `ociRepo.releaseChannels` (e.g., `latest`, `~1.2`, `~1.2+dev`). Round-trips: the value returned here is valid input for the next `updateInstance` mutation.
+	Version string `json:"version"`
+	// The concrete bundle version resolved from the version constraint and release strategy.
+	//
+	// This is the version that will be used on the **next** deployment. Compare
+	// with `deployedVersion` to determine if a redeployment would change anything.
+	ResolvedVersion string `json:"resolvedVersion"`
+	// Cached configuration parameters from the most recent deployment. Null if the instance has never been deployed.
+	Params map[string]any `json:"-"`
+}
+
+// GetId returns CopyInstanceCopyInstanceInstancePayloadResultInstance.Id, and is useful for accessing the field via an interface.
+func (v *CopyInstanceCopyInstanceInstancePayloadResultInstance) GetId() string { return v.Id }
+
+// GetName returns CopyInstanceCopyInstanceInstancePayloadResultInstance.Name, and is useful for accessing the field via an interface.
+func (v *CopyInstanceCopyInstanceInstancePayloadResultInstance) GetName() string { return v.Name }
+
+// GetStatus returns CopyInstanceCopyInstanceInstancePayloadResultInstance.Status, and is useful for accessing the field via an interface.
+func (v *CopyInstanceCopyInstanceInstancePayloadResultInstance) GetStatus() InstanceStatus {
+	return v.Status
+}
+
+// GetVersion returns CopyInstanceCopyInstanceInstancePayloadResultInstance.Version, and is useful for accessing the field via an interface.
+func (v *CopyInstanceCopyInstanceInstancePayloadResultInstance) GetVersion() string { return v.Version }
+
+// GetResolvedVersion returns CopyInstanceCopyInstanceInstancePayloadResultInstance.ResolvedVersion, and is useful for accessing the field via an interface.
+func (v *CopyInstanceCopyInstanceInstancePayloadResultInstance) GetResolvedVersion() string {
+	return v.ResolvedVersion
+}
+
+// GetParams returns CopyInstanceCopyInstanceInstancePayloadResultInstance.Params, and is useful for accessing the field via an interface.
+func (v *CopyInstanceCopyInstanceInstancePayloadResultInstance) GetParams() map[string]any {
+	return v.Params
+}
+
+func (v *CopyInstanceCopyInstanceInstancePayloadResultInstance) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CopyInstanceCopyInstanceInstancePayloadResultInstance
+		Params json.RawMessage `json:"params"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CopyInstanceCopyInstanceInstancePayloadResultInstance = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Params
+		src := firstPass.Params
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CopyInstanceCopyInstanceInstancePayloadResultInstance.Params: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCopyInstanceCopyInstanceInstancePayloadResultInstance struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Status InstanceStatus `json:"status"`
+
+	Version string `json:"version"`
+
+	ResolvedVersion string `json:"resolvedVersion"`
+
+	Params json.RawMessage `json:"params"`
+}
+
+func (v *CopyInstanceCopyInstanceInstancePayloadResultInstance) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CopyInstanceCopyInstanceInstancePayloadResultInstance) __premarshalJSON() (*__premarshalCopyInstanceCopyInstanceInstancePayloadResultInstance, error) {
+	var retval __premarshalCopyInstanceCopyInstanceInstancePayloadResultInstance
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Status = v.Status
+	retval.Version = v.Version
+	retval.ResolvedVersion = v.ResolvedVersion
+	{
+
+		dst := &retval.Params
+		src := v.Params
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CopyInstanceCopyInstanceInstancePayloadResultInstance.Params: %w", err)
+		}
+	}
+	return &retval, nil
+}
+
+// Copy configuration from one instance to another. The source and destination must be instances of the same component. Source params (minus any fields marked non-copyable in the bundle) are written to the destination, then a plan deployment is created on the destination so the changes can be reviewed before applying.
+type CopyInstanceInput struct {
+	// When true, copies remote resource references from the source instance to the destination. Defaults to false.
+	CopyRemoteReferences bool `json:"copyRemoteReferences"`
+	// When true, copies secret values from the source instance to the destination. Defaults to false.
+	CopySecrets bool `json:"copySecrets"`
+	// An optional message attached to the plan deployment created on the destination, similar to a commit message.
+	Message string `json:"message"`
+	// Optional overrides that are deep-merged onto the source params before writing to the destination. Useful for tweaking environment-specific values (e.g., instance sizes).
+	Overrides map[string]any `json:"-"`
+}
+
+// GetCopyRemoteReferences returns CopyInstanceInput.CopyRemoteReferences, and is useful for accessing the field via an interface.
+func (v *CopyInstanceInput) GetCopyRemoteReferences() bool { return v.CopyRemoteReferences }
+
+// GetCopySecrets returns CopyInstanceInput.CopySecrets, and is useful for accessing the field via an interface.
+func (v *CopyInstanceInput) GetCopySecrets() bool { return v.CopySecrets }
+
+// GetMessage returns CopyInstanceInput.Message, and is useful for accessing the field via an interface.
+func (v *CopyInstanceInput) GetMessage() string { return v.Message }
+
+// GetOverrides returns CopyInstanceInput.Overrides, and is useful for accessing the field via an interface.
+func (v *CopyInstanceInput) GetOverrides() map[string]any { return v.Overrides }
+
+func (v *CopyInstanceInput) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CopyInstanceInput
+		Overrides json.RawMessage `json:"overrides"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CopyInstanceInput = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Overrides
+		src := firstPass.Overrides
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CopyInstanceInput.Overrides: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCopyInstanceInput struct {
+	CopyRemoteReferences bool `json:"copyRemoteReferences"`
+
+	CopySecrets bool `json:"copySecrets"`
+
+	Message string `json:"message"`
+
+	Overrides json.RawMessage `json:"overrides"`
+}
+
+func (v *CopyInstanceInput) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CopyInstanceInput) __premarshalJSON() (*__premarshalCopyInstanceInput, error) {
+	var retval __premarshalCopyInstanceInput
+
+	retval.CopyRemoteReferences = v.CopyRemoteReferences
+	retval.CopySecrets = v.CopySecrets
+	retval.Message = v.Message
+	{
+
+		dst := &retval.Overrides
+		src := v.Overrides
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CopyInstanceInput.Overrides: %w", err)
+		}
+	}
+	return &retval, nil
+}
+
+// CopyInstanceResponse is returned by CopyInstance on success.
+type CopyInstanceResponse struct {
+	// Copy configuration from one instance to another.
+	//
+	// Both instances must be built from the same component. Source params (minus any
+	// fields the bundle marks non-copyable) are written to the destination, deep-merged
+	// with any `overrides`. A plan deployment is then created on the destination so the
+	// caller can review the changes before applying them. `copySecrets` and
+	// `copyRemoteReferences` opt in to additional state transfer.
+	//
+	// ```graphql
+	// mutation {
+	// copyInstance(
+	// organizationId: "my-org"
+	// sourceId: "ecomm-prod-db"
+	// destinationId: "ecomm-staging-db"
+	// input: { overrides: { size: "small" }, copySecrets: true, message: "Promote prod config" }
+	// ) {
+	// result { id params }
+	// successful
+	// }
+	// }
+	// ```
+	CopyInstance CopyInstanceCopyInstanceInstancePayload `json:"copyInstance"`
+}
+
+// GetCopyInstance returns CopyInstanceResponse.CopyInstance, and is useful for accessing the field via an interface.
+func (v *CopyInstanceResponse) GetCopyInstance() CopyInstanceCopyInstanceInstancePayload {
+	return v.CopyInstance
+}
+
 // CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayload includes the requested fields of the GraphQL type AccessTokenWithValuePayload.
 type CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -7265,6 +7618,140 @@ func (v *DeleteServiceAccountResponse) GetDeleteServiceAccount() DeleteServiceAc
 	return v.DeleteServiceAccount
 }
 
+// DeployEnvironmentDeployEnvironmentEnvironmentPayload includes the requested fields of the GraphQL type EnvironmentPayload.
+type DeployEnvironmentDeployEnvironmentEnvironmentPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result DeployEnvironmentDeployEnvironmentEnvironmentPayloadResultEnvironment `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []DeployEnvironmentDeployEnvironmentEnvironmentPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns DeployEnvironmentDeployEnvironmentEnvironmentPayload.Result, and is useful for accessing the field via an interface.
+func (v *DeployEnvironmentDeployEnvironmentEnvironmentPayload) GetResult() DeployEnvironmentDeployEnvironmentEnvironmentPayloadResultEnvironment {
+	return v.Result
+}
+
+// GetSuccessful returns DeployEnvironmentDeployEnvironmentEnvironmentPayload.Successful, and is useful for accessing the field via an interface.
+func (v *DeployEnvironmentDeployEnvironmentEnvironmentPayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns DeployEnvironmentDeployEnvironmentEnvironmentPayload.Messages, and is useful for accessing the field via an interface.
+func (v *DeployEnvironmentDeployEnvironmentEnvironmentPayload) GetMessages() []DeployEnvironmentDeployEnvironmentEnvironmentPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// DeployEnvironmentDeployEnvironmentEnvironmentPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type DeployEnvironmentDeployEnvironmentEnvironmentPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns DeployEnvironmentDeployEnvironmentEnvironmentPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *DeployEnvironmentDeployEnvironmentEnvironmentPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns DeployEnvironmentDeployEnvironmentEnvironmentPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *DeployEnvironmentDeployEnvironmentEnvironmentPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns DeployEnvironmentDeployEnvironmentEnvironmentPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *DeployEnvironmentDeployEnvironmentEnvironmentPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// DeployEnvironmentDeployEnvironmentEnvironmentPayloadResultEnvironment includes the requested fields of the GraphQL type Environment.
+// The GraphQL type's documentation follows.
+//
+// A deployment target within a project where blueprint components become live infrastructure.
+//
+// Each project can have multiple environments (e.g., `staging`, `production`). When you deploy
+// to an environment, every component in the project's blueprint is realized as an **Instance** --
+// a running piece of cloud infrastructure with its own configuration, state, and cost data.
+//
+// Environments inherit attributes from their parent project. You can also set environment-scoped attributes
+// that cascade down to all instances within the environment. **Defaults** let you pre-assign
+// resources (like a shared VPC or DNS zone) so that new instances automatically receive them.
+//
+// Before deleting an environment, all instances must be decommissioned. Use the `deletable`
+// field to check for blocking constraints.
+type DeployEnvironmentDeployEnvironmentEnvironmentPayloadResultEnvironment struct {
+	Id string `json:"id"`
+	// Display name shown in the UI and CLI. Must be unique within the project.
+	Name string `json:"name"`
+	// When this environment was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns DeployEnvironmentDeployEnvironmentEnvironmentPayloadResultEnvironment.Id, and is useful for accessing the field via an interface.
+func (v *DeployEnvironmentDeployEnvironmentEnvironmentPayloadResultEnvironment) GetId() string {
+	return v.Id
+}
+
+// GetName returns DeployEnvironmentDeployEnvironmentEnvironmentPayloadResultEnvironment.Name, and is useful for accessing the field via an interface.
+func (v *DeployEnvironmentDeployEnvironmentEnvironmentPayloadResultEnvironment) GetName() string {
+	return v.Name
+}
+
+// GetUpdatedAt returns DeployEnvironmentDeployEnvironmentEnvironmentPayloadResultEnvironment.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *DeployEnvironmentDeployEnvironmentEnvironmentPayloadResultEnvironment) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// DeployEnvironmentResponse is returned by DeployEnvironment on success.
+type DeployEnvironmentResponse struct {
+	// Deploy every instance in an environment, in dependency order.
+	//
+	// Cancels any in-flight environment deployment for this environment and
+	// schedules a fresh provision wave. The mutation returns as soon as the
+	// pending deployment is enqueued; the actual infrastructure changes happen
+	// asynchronously.
+	DeployEnvironment DeployEnvironmentDeployEnvironmentEnvironmentPayload `json:"deployEnvironment"`
+}
+
+// GetDeployEnvironment returns DeployEnvironmentResponse.DeployEnvironment, and is useful for accessing the field via an interface.
+func (v *DeployEnvironmentResponse) GetDeployEnvironment() DeployEnvironmentDeployEnvironmentEnvironmentPayload {
+	return v.DeployEnvironment
+}
+
 // The type of infrastructure operation to perform.
 //
 // Each action maps to a distinct phase of the infrastructure lifecycle:
@@ -7886,6 +8373,675 @@ type ExportResourceResponse struct {
 // GetExportResource returns ExportResourceResponse.ExportResource, and is useful for accessing the field via an interface.
 func (v *ExportResourceResponse) GetExportResource() ExportResourceExportResourceResourceWithSensitiveValuesPayload {
 	return v.ExportResource
+}
+
+// ForkEnvironmentForkEnvironmentEnvironmentPayload includes the requested fields of the GraphQL type EnvironmentPayload.
+type ForkEnvironmentForkEnvironmentEnvironmentPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []ForkEnvironmentForkEnvironmentEnvironmentPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns ForkEnvironmentForkEnvironmentEnvironmentPayload.Result, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayload) GetResult() ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment {
+	return v.Result
+}
+
+// GetSuccessful returns ForkEnvironmentForkEnvironmentEnvironmentPayload.Successful, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayload) GetSuccessful() bool { return v.Successful }
+
+// GetMessages returns ForkEnvironmentForkEnvironmentEnvironmentPayload.Messages, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayload) GetMessages() []ForkEnvironmentForkEnvironmentEnvironmentPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// ForkEnvironmentForkEnvironmentEnvironmentPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type ForkEnvironmentForkEnvironmentEnvironmentPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns ForkEnvironmentForkEnvironmentEnvironmentPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns ForkEnvironmentForkEnvironmentEnvironmentPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns ForkEnvironmentForkEnvironmentEnvironmentPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment includes the requested fields of the GraphQL type Environment.
+// The GraphQL type's documentation follows.
+//
+// A deployment target within a project where blueprint components become live infrastructure.
+//
+// Each project can have multiple environments (e.g., `staging`, `production`). When you deploy
+// to an environment, every component in the project's blueprint is realized as an **Instance** --
+// a running piece of cloud infrastructure with its own configuration, state, and cost data.
+//
+// Environments inherit attributes from their parent project. You can also set environment-scoped attributes
+// that cascade down to all instances within the environment. **Defaults** let you pre-assign
+// resources (like a shared VPC or DNS zone) so that new instances automatically receive them.
+//
+// Before deleting an environment, all instances must be decommissioned. Use the `deletable`
+// field to check for blocking constraints.
+type ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment struct {
+	Id string `json:"id"`
+	// Display name shown in the UI and CLI. Must be unique within the project.
+	Name string `json:"name"`
+	// Free-text description of what this environment is for.
+	Description string `json:"description"`
+	// Key-value attributes assigned directly to this environment. Attributes cascade to instances. Must conform to your organization's custom attributes for the `ENVIRONMENT` scope.
+	Attributes map[string]any `json:"-"`
+	// When this environment was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this environment was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// Aggregated cloud-provider cost metrics for all instances in this environment.
+	Cost ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary `json:"cost"`
+	// The parent project that this environment belongs to.
+	Project ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject `json:"project"`
+}
+
+// GetId returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.Id, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) GetId() string {
+	return v.Id
+}
+
+// GetName returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.Name, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) GetName() string {
+	return v.Name
+}
+
+// GetDescription returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.Description, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) GetDescription() string {
+	return v.Description
+}
+
+// GetAttributes returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.Attributes, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) GetAttributes() map[string]any {
+	return v.Attributes
+}
+
+// GetCreatedAt returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetCost returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.Cost, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) GetCost() ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary {
+	return v.Cost
+}
+
+// GetProject returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.Project, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) GetProject() ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject {
+	return v.Project
+}
+
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Description string `json:"description"`
+
+	Attributes json.RawMessage `json:"attributes"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	Cost ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary `json:"cost"`
+
+	Project ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject `json:"project"`
+}
+
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) __premarshalJSON() (*__premarshalForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment, error) {
+	var retval __premarshalForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Description = v.Description
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.Attributes: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	retval.Cost = v.Cost
+	retval.Project = v.Project
+	return &retval, nil
+}
+
+// ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary includes the requested fields of the GraphQL type CostSummary.
+// The GraphQL type's documentation follows.
+//
+// Aggregated cloud-provider cost metrics for a project or environment.
+//
+// Cost data is sourced from your cloud provider's billing APIs and refreshed periodically.
+// Each metric is a `CostSample` containing an amount and currency. All four metrics are
+// always present, but their inner `amount` and `currency` may be null if billing data has
+// not yet been ingested.
+//
+// - **last_month** -- Total spend for the most recent complete billing cycle.
+// - **monthly_average** -- Average monthly spend across all available billing cycles.
+// - **last_day** -- Total spend for the most recent 24-hour period.
+// - **daily_average** -- Average daily spend over the last 7 days.
+type ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary struct {
+	// Total cost for the most recent complete billing cycle.
+	LastMonth ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastMonthCostSample `json:"lastMonth"`
+	// Average monthly cost across all available billing cycles.
+	MonthlyAverage ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryMonthlyAverageCostSample `json:"monthlyAverage"`
+	// Total cost for the most recent 24-hour period.
+	LastDay ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastDayCostSample `json:"lastDay"`
+	// Average daily cost over the last 7 days.
+	DailyAverage ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryDailyAverageCostSample `json:"dailyAverage"`
+}
+
+// GetLastMonth returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary.LastMonth, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary) GetLastMonth() ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastMonthCostSample {
+	return v.LastMonth
+}
+
+// GetMonthlyAverage returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary.MonthlyAverage, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary) GetMonthlyAverage() ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryMonthlyAverageCostSample {
+	return v.MonthlyAverage
+}
+
+// GetLastDay returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary.LastDay, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary) GetLastDay() ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastDayCostSample {
+	return v.LastDay
+}
+
+// GetDailyAverage returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary.DailyAverage, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummary) GetDailyAverage() ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryDailyAverageCostSample {
+	return v.DailyAverage
+}
+
+// ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryDailyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryDailyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryDailyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryDailyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryDailyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryDailyAverageCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastDayCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastDayCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastDayCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastDayCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastDayCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastDayCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastMonthCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastMonthCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastMonthCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastMonthCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastMonthCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryLastMonthCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryMonthlyAverageCostSample includes the requested fields of the GraphQL type CostSample.
+// The GraphQL type's documentation follows.
+//
+// A single cost data point containing an amount and its currency.
+//
+// Both `amount` and `currency` are nullable. A `null` amount means Massdriver has no cost
+// data for the requested period -- this is normal for newly provisioned resources or when
+// cloud provider billing data has not yet been ingested. When data is present, `amount` is
+// always a positive float and `currency` is an ISO 4217 code (e.g., `USD`, `EUR`).
+type ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryMonthlyAverageCostSample struct {
+	// The cost in the given currency. Null when no billing data is available for this period.
+	Amount float64 `json:"amount"`
+	// ISO 4217 currency code (e.g., `USD`). Null when no billing data is available.
+	Currency string `json:"currency"`
+}
+
+// GetAmount returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryMonthlyAverageCostSample.Amount, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryMonthlyAverageCostSample) GetAmount() float64 {
+	return v.Amount
+}
+
+// GetCurrency returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryMonthlyAverageCostSample.Currency, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentCostCostSummaryMonthlyAverageCostSample) GetCurrency() string {
+	return v.Currency
+}
+
+// ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject includes the requested fields of the GraphQL type Project.
+// The GraphQL type's documentation follows.
+//
+// A project organizes related infrastructure under a single blueprint.
+//
+// Each project contains a **Blueprint** that defines your infrastructure architecture -- which
+// bundles to use and how they connect -- and one or more **Environments** (like staging or
+// production) where that architecture is actually deployed.
+//
+// ```mermaid
+// graph LR
+// P["Project"] --> B["Blueprint"]
+// P --> E1["Environment: staging"]
+// P --> E2["Environment: production"]
+// B --> C1["Component: database"]
+// B --> C2["Component: cache"]
+// C1 -.->|"Link"| C2
+// ```
+//
+// Attributes set on a project are inherited by all environments and instances within it.
+type ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject struct {
+	Id string `json:"id"`
+	// Display name shown in the UI and CLI. Must be unique within the organization.
+	Name string `json:"name"`
+	// Free-text description of what this project is for.
+	Description string `json:"description"`
+	// Key-value attributes assigned directly to this project. Attributes cascade to environments and instances. Must conform to your organization's custom attributes for the `PROJECT` scope.
+	Attributes map[string]any `json:"-"`
+	// When this project was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this project was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject.Id, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject) GetId() string {
+	return v.Id
+}
+
+// GetName returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject.Name, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject) GetName() string {
+	return v.Name
+}
+
+// GetDescription returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject.Description, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject) GetDescription() string {
+	return v.Description
+}
+
+// GetAttributes returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject.Attributes, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject) GetAttributes() map[string]any {
+	return v.Attributes
+}
+
+// GetCreatedAt returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Description string `json:"description"`
+
+	Attributes json.RawMessage `json:"attributes"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject) __premarshalJSON() (*__premarshalForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject, error) {
+	var retval __premarshalForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Description = v.Description
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProject.Attributes: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// Attributes for the new environment. The fork references the parent via `parentId` and seeds each package from the parent's params. Re-forking against the same parent re-runs the seed — params and version reset to the parent's current values, and the `copy*` flags re-apply — so the mutation behaves as a desired-state converge (use it to reset local edits, or to backfill secrets and remote references that a prior call didn't request). Re-forking with a different parent is rejected; a fork's parent is immutable.
+type ForkEnvironmentInput struct {
+	// Key-value attributes for this environment. Keys and values must be strings. Must conform to the organization's custom attributes for the environment scope.
+	Attributes map[string]any `json:"-"`
+	// When true, copies the parent environment's default resource connections into the fork.
+	CopyEnvironmentDefaults bool `json:"copyEnvironmentDefaults"`
+	// When true, copies every package's remote resource references from the parent into the fork. Applies the same behavior as `copyInstance(copyRemoteReferences: true)` to every package in one call. Defaults to false.
+	CopyRemoteReferences bool `json:"copyRemoteReferences"`
+	// When true, copies every package's secret values from the parent into the fork. Applies the same behavior as `copyInstance(copySecrets: true)` to every package in one call. Defaults to false.
+	CopySecrets bool `json:"copySecrets"`
+	// An optional description of the forked environment's purpose
+	Description string `json:"description"`
+	// A short, memorable identifier for looking up this environment in the API and CLI. This becomes the second segment of instance identifiers. Max 20 characters, lowercase alphanumeric only (a-z, 0-9). Immutable after creation.
+	Id string `json:"id"`
+	// A human-readable name for the forked environment
+	Name string `json:"name"`
+}
+
+// GetAttributes returns ForkEnvironmentInput.Attributes, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentInput) GetAttributes() map[string]any { return v.Attributes }
+
+// GetCopyEnvironmentDefaults returns ForkEnvironmentInput.CopyEnvironmentDefaults, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentInput) GetCopyEnvironmentDefaults() bool { return v.CopyEnvironmentDefaults }
+
+// GetCopyRemoteReferences returns ForkEnvironmentInput.CopyRemoteReferences, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentInput) GetCopyRemoteReferences() bool { return v.CopyRemoteReferences }
+
+// GetCopySecrets returns ForkEnvironmentInput.CopySecrets, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentInput) GetCopySecrets() bool { return v.CopySecrets }
+
+// GetDescription returns ForkEnvironmentInput.Description, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentInput) GetDescription() string { return v.Description }
+
+// GetId returns ForkEnvironmentInput.Id, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentInput) GetId() string { return v.Id }
+
+// GetName returns ForkEnvironmentInput.Name, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentInput) GetName() string { return v.Name }
+
+func (v *ForkEnvironmentInput) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ForkEnvironmentInput
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ForkEnvironmentInput = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ForkEnvironmentInput.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalForkEnvironmentInput struct {
+	Attributes json.RawMessage `json:"attributes"`
+
+	CopyEnvironmentDefaults bool `json:"copyEnvironmentDefaults"`
+
+	CopyRemoteReferences bool `json:"copyRemoteReferences"`
+
+	CopySecrets bool `json:"copySecrets"`
+
+	Description string `json:"description"`
+
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+}
+
+func (v *ForkEnvironmentInput) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ForkEnvironmentInput) __premarshalJSON() (*__premarshalForkEnvironmentInput, error) {
+	var retval __premarshalForkEnvironmentInput
+
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ForkEnvironmentInput.Attributes: %w", err)
+		}
+	}
+	retval.CopyEnvironmentDefaults = v.CopyEnvironmentDefaults
+	retval.CopyRemoteReferences = v.CopyRemoteReferences
+	retval.CopySecrets = v.CopySecrets
+	retval.Description = v.Description
+	retval.Id = v.Id
+	retval.Name = v.Name
+	return &retval, nil
+}
+
+// ForkEnvironmentResponse is returned by ForkEnvironment on success.
+type ForkEnvironmentResponse struct {
+	// Create a new environment by forking an existing one.
+	//
+	// The new environment is linked to the parent via its `parent` field. Instances
+	// are initialized from the project's components and seeded with the parent's
+	// instance `params`. By default, secrets and remote references are not copied
+	// — set `copySecrets` / `copyRemoteReferences` to fan the equivalent
+	// `copyInstance` behavior across every package in one call. Pass
+	// `copyEnvironmentDefaults: true` to also copy the parent's default resource
+	// connections.
+	//
+	// Re-calling `forkEnvironment` with the same parent + `id` is a no-op that
+	// returns the existing environment. Re-calling with the same `id` but a
+	// different `parentId` is rejected — a fork's parent is immutable.
+	ForkEnvironment ForkEnvironmentForkEnvironmentEnvironmentPayload `json:"forkEnvironment"`
+}
+
+// GetForkEnvironment returns ForkEnvironmentResponse.ForkEnvironment, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentResponse) GetForkEnvironment() ForkEnvironmentForkEnvironmentEnvironmentPayload {
+	return v.ForkEnvironment
 }
 
 // GetAuditLogAuditLog includes the requested fields of the GraphQL type AuditLog.
@@ -23183,6 +24339,26 @@ func (v *__ApproveDeploymentInput) GetOrganizationId() string { return v.Organiz
 // GetId returns __ApproveDeploymentInput.Id, and is useful for accessing the field via an interface.
 func (v *__ApproveDeploymentInput) GetId() string { return v.Id }
 
+// __CopyInstanceInput is used internally by genqlient
+type __CopyInstanceInput struct {
+	OrganizationId string            `json:"organizationId"`
+	SourceId       string            `json:"sourceId"`
+	DestinationId  string            `json:"destinationId"`
+	Input          CopyInstanceInput `json:"input"`
+}
+
+// GetOrganizationId returns __CopyInstanceInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__CopyInstanceInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetSourceId returns __CopyInstanceInput.SourceId, and is useful for accessing the field via an interface.
+func (v *__CopyInstanceInput) GetSourceId() string { return v.SourceId }
+
+// GetDestinationId returns __CopyInstanceInput.DestinationId, and is useful for accessing the field via an interface.
+func (v *__CopyInstanceInput) GetDestinationId() string { return v.DestinationId }
+
+// GetInput returns __CopyInstanceInput.Input, and is useful for accessing the field via an interface.
+func (v *__CopyInstanceInput) GetInput() CopyInstanceInput { return v.Input }
+
 // __CreateAccessTokenInput is used internally by genqlient
 type __CreateAccessTokenInput struct {
 	OrganizationId string                 `json:"organizationId"`
@@ -23551,6 +24727,18 @@ func (v *__DeleteServiceAccountInput) GetOrganizationId() string { return v.Orga
 // GetId returns __DeleteServiceAccountInput.Id, and is useful for accessing the field via an interface.
 func (v *__DeleteServiceAccountInput) GetId() string { return v.Id }
 
+// __DeployEnvironmentInput is used internally by genqlient
+type __DeployEnvironmentInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __DeployEnvironmentInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__DeployEnvironmentInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __DeployEnvironmentInput.Id, and is useful for accessing the field via an interface.
+func (v *__DeployEnvironmentInput) GetId() string { return v.Id }
+
 // __EvaluatePoliciesInput is used internally by genqlient
 type __EvaluatePoliciesInput struct {
 	OrganizationId string                `json:"organizationId"`
@@ -23606,6 +24794,22 @@ func (v *__ExportResourceInput) GetId() string { return v.Id }
 
 // GetFormat returns __ExportResourceInput.Format, and is useful for accessing the field via an interface.
 func (v *__ExportResourceInput) GetFormat() string { return v.Format }
+
+// __ForkEnvironmentInput is used internally by genqlient
+type __ForkEnvironmentInput struct {
+	OrganizationId string               `json:"organizationId"`
+	ParentId       string               `json:"parentId"`
+	Input          ForkEnvironmentInput `json:"input"`
+}
+
+// GetOrganizationId returns __ForkEnvironmentInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ForkEnvironmentInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetParentId returns __ForkEnvironmentInput.ParentId, and is useful for accessing the field via an interface.
+func (v *__ForkEnvironmentInput) GetParentId() string { return v.ParentId }
+
+// GetInput returns __ForkEnvironmentInput.Input, and is useful for accessing the field via an interface.
+func (v *__ForkEnvironmentInput) GetInput() ForkEnvironmentInput { return v.Input }
 
 // __GetAuditLogInput is used internally by genqlient
 type __GetAuditLogInput struct {
@@ -24620,6 +25824,59 @@ func ApproveDeployment(
 	}
 
 	data_ = &ApproveDeploymentResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by CopyInstance.
+const CopyInstance_Operation = `
+mutation CopyInstance ($organizationId: ID!, $sourceId: ID!, $destinationId: ID!, $input: CopyInstanceInput!) {
+	copyInstance(organizationId: $organizationId, sourceId: $sourceId, destinationId: $destinationId, input: $input) {
+		result {
+			id
+			name
+			status
+			version
+			resolvedVersion
+			params
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func CopyInstance(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	sourceId string,
+	destinationId string,
+	input CopyInstanceInput,
+) (data_ *CopyInstanceResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "CopyInstance",
+		Query:  CopyInstance_Operation,
+		Variables: &__CopyInstanceInput{
+			OrganizationId: organizationId,
+			SourceId:       sourceId,
+			DestinationId:  destinationId,
+			Input:          input,
+		},
+	}
+
+	data_ = &CopyInstanceResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -25990,6 +27247,52 @@ func DeleteServiceAccount(
 	return data_, err_
 }
 
+// The mutation executed by DeployEnvironment.
+const DeployEnvironment_Operation = `
+mutation DeployEnvironment ($organizationId: ID!, $id: ID!) {
+	deployEnvironment(organizationId: $organizationId, id: $id) {
+		result {
+			id
+			name
+			updatedAt
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func DeployEnvironment(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *DeployEnvironmentResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "DeployEnvironment",
+		Query:  DeployEnvironment_Operation,
+		Variables: &__DeployEnvironmentInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &DeployEnvironmentResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The query executed by EvaluatePolicies.
 const EvaluatePolicies_Operation = `
 query EvaluatePolicies ($organizationId: ID!, $checks: [PolicyDecisionInput!]!) {
@@ -26147,6 +27450,83 @@ func ExportResource(
 	}
 
 	data_ = &ExportResourceResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by ForkEnvironment.
+const ForkEnvironment_Operation = `
+mutation ForkEnvironment ($organizationId: ID!, $parentId: ID!, $input: ForkEnvironmentInput!) {
+	forkEnvironment(organizationId: $organizationId, parentId: $parentId, input: $input) {
+		result {
+			id
+			name
+			description
+			attributes
+			createdAt
+			updatedAt
+			cost {
+				lastMonth {
+					amount
+					currency
+				}
+				monthlyAverage {
+					amount
+					currency
+				}
+				lastDay {
+					amount
+					currency
+				}
+				dailyAverage {
+					amount
+					currency
+				}
+			}
+			project {
+				id
+				name
+				description
+				attributes
+				createdAt
+				updatedAt
+			}
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func ForkEnvironment(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	parentId string,
+	input ForkEnvironmentInput,
+) (data_ *ForkEnvironmentResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ForkEnvironment",
+		Query:  ForkEnvironment_Operation,
+		Variables: &__ForkEnvironmentInput{
+			OrganizationId: organizationId,
+			ParentId:       parentId,
+			Input:          input,
+		},
+	}
+
+	data_ = &ForkEnvironmentResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

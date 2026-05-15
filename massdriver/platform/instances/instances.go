@@ -108,6 +108,22 @@ type UpdateInput struct {
 	Version string
 }
 
+// CopyInput is the input for [Service.Copy].
+type CopyInput struct {
+	// Overrides are deep-merged onto the source params before writing
+	// to the destination. Useful for environment-specific tweaks.
+	Overrides map[string]any
+	// Message is attached to the plan deployment created on the
+	// destination, similar to a commit message.
+	Message string
+	// CopySecrets, when true, copies secret values from the source
+	// instance to the destination.
+	CopySecrets bool
+	// CopyRemoteReferences, when true, copies remote resource references
+	// from the source instance to the destination.
+	CopyRemoteReferences bool
+}
+
 // Get retrieves an instance by ID. The returned [Instance] includes
 // params, statePaths, the environment/bundle/component refs, and the
 // instance's produced [types.Resource]s flattened into Instance.Resources.
@@ -264,6 +280,27 @@ func (s *Service) Update(ctx context.Context, id string, input UpdateInput) (*In
 		return nil, err
 	}
 	return toInstance(resp.UpdateInstance.Result)
+}
+
+// Copy copies configuration from sourceID to destinationID. Source and
+// destination must be instances of the same component. Source params
+// (minus any fields marked non-copyable in the bundle) are written to
+// the destination, then a plan deployment is created on the destination
+// so the changes can be reviewed before applying.
+func (s *Service) Copy(ctx context.Context, sourceID, destinationID string, input CopyInput) (*Instance, error) {
+	resp, err := gen.CopyInstance(ctx, s.client.GQLv2, s.client.Config.OrganizationID, sourceID, destinationID, gen.CopyInstanceInput{
+		Overrides:            input.Overrides,
+		Message:              input.Message,
+		CopySecrets:          input.CopySecrets,
+		CopyRemoteReferences: input.CopyRemoteReferences,
+	})
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("copy instance %s → %s: %w", sourceID, destinationID, err))
+	}
+	if err := gql.CheckMutation("copy instance", resp.CopyInstance.Successful, resp.CopyInstance.Messages); err != nil {
+		return nil, err
+	}
+	return toInstance(resp.CopyInstance.Result)
 }
 
 func toInstance(v any) (*Instance, error) {

@@ -1486,10 +1486,15 @@ type RootMutationType {
 
   The new environment is linked to the parent via its `parent` field. Instances
   are initialized from the project's components and seeded with the parent's
-  instance `params`. Secrets and remote references are not copied — use
-  `copyInstance` per instance to carry those over as well. Pass
+  instance `params`. By default, secrets and remote references are not copied
+  — set `copySecrets` / `copyRemoteReferences` to fan the equivalent
+  `copyInstance` behavior across every package in one call. Pass
   `copyEnvironmentDefaults: true` to also copy the parent's default resource
   connections.
+
+  Re-calling `forkEnvironment` with the same parent + `id` is a no-op that
+  returns the existing environment. Re-calling with the same `id` but a
+  different `parentId` is rejected — a fork's parent is immutable.
   """
   forkEnvironment(
     "Your organization's unique identifier."
@@ -1498,9 +1503,25 @@ type RootMutationType {
     "The identifier of the environment to fork from."
     parentId: ID!
 
-    "Attributes for the new environment. The fork references the parent via `parentId`, starts with blank instances, and does not copy any instance-level configuration. Use `copyInstance` per-instance if you want to seed configuration from the parent."
+    "Attributes for the new environment. The fork references the parent via `parentId` and seeds each package from the parent's params. Re-forking against the same parent re-runs the seed — params and version reset to the parent's current values, and the `copy*` flags re-apply — so the mutation behaves as a desired-state converge (use it to reset local edits, or to backfill secrets and remote references that a prior call didn't request). Re-forking with a different parent is rejected; a fork's parent is immutable."
     input: ForkEnvironmentInput!
   ): EnvironmentPayload @inputs(name: "forkEnvironment", schema: "\/graphql\/v2\/inputs\/forkEnvironment.json", ui: "\/graphql\/v2\/inputs\/forkEnvironment.ui.json")
+
+  """
+  Deploy every instance in an environment, in dependency order.
+
+  Cancels any in-flight environment deployment for this environment and
+  schedules a fresh provision wave. The mutation returns as soon as the
+  pending deployment is enqueued; the actual infrastructure changes happen
+  asynchronously.
+  """
+  deployEnvironment(
+    "Your organization's unique identifier."
+    organizationId: ID!
+
+    "The identifier of the environment to deploy."
+    id: ID!
+  ): EnvironmentPayload
 
   """
   Delete an environment permanently.
@@ -6903,7 +6924,7 @@ input UpdateInstanceInput {
   releaseStrategy: ReleaseStrategy
 
   "Bundle version to deploy. Accepts a pinned tag (`1.2.3`), a release channel (`latest`, `~1.2`), or a release channel with `+dev` to include pre-release builds (`latest+dev`, `~1.2+dev`)."
-  version: VersionConstraint
+  version: VersionConstraint!
 }
 
 "Create or update a secret on an instance. The secret value is encrypted at rest and never returned in API responses."
@@ -7515,13 +7536,19 @@ input UpdateEnvironmentInput {
   name: String
 }
 
-"Attributes for the new environment. The fork references the parent via `parentId`, starts with blank instances, and does not copy any instance-level configuration. Use `copyInstance` per-instance if you want to seed configuration from the parent."
+"Attributes for the new environment. The fork references the parent via `parentId` and seeds each package from the parent's params. Re-forking against the same parent re-runs the seed — params and version reset to the parent's current values, and the `copy*` flags re-apply — so the mutation behaves as a desired-state converge (use it to reset local edits, or to backfill secrets and remote references that a prior call didn't request). Re-forking with a different parent is rejected; a fork's parent is immutable."
 input ForkEnvironmentInput {
   "Key-value attributes for this environment. Keys and values must be strings. Must conform to the organization's custom attributes for the environment scope."
   attributes: Map
 
-  "When true, copies the parent environment's default resource connections into the fork. Instance-level configuration is never copied — use `copyInstance` to seed instance params."
+  "When true, copies the parent environment's default resource connections into the fork."
   copyEnvironmentDefaults: Boolean
+
+  "When true, copies every package's remote resource references from the parent into the fork. Applies the same behavior as `copyInstance(copyRemoteReferences: true)` to every package in one call. Defaults to false."
+  copyRemoteReferences: Boolean
+
+  "When true, copies every package's secret values from the parent into the fork. Applies the same behavior as `copyInstance(copySecrets: true)` to every package in one call. Defaults to false."
+  copySecrets: Boolean
 
   "An optional description of the forked environment's purpose"
   description: String

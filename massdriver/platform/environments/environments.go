@@ -86,6 +86,28 @@ type ListInput struct {
 	IDs []string
 }
 
+// ForkInput is the input for [Service.Fork].
+type ForkInput struct {
+	// ID is the new environment's identifier (max 20 chars, lowercase
+	// alphanumeric). Immutable after creation.
+	ID string
+	// Name is the human-readable display name shown in the UI/CLI.
+	Name string
+	// Description is optional free-text describing the fork's purpose.
+	Description string
+	// Attributes are optional key/value tags applied at the environment scope.
+	Attributes map[string]any
+	// CopySecrets, when true, copies every package's secret values from
+	// the parent into the fork.
+	CopySecrets bool
+	// CopyRemoteReferences, when true, copies every package's remote
+	// resource references from the parent into the fork.
+	CopyRemoteReferences bool
+	// CopyEnvironmentDefaults, when true, copies the parent's default
+	// resource connections into the fork.
+	CopyEnvironmentDefaults bool
+}
+
 // EnvironmentDefault is a resource pre-assigned to an environment so that
 // instances inherit it automatically when their connection schema matches the
 // resource type.
@@ -194,6 +216,53 @@ func (s *Service) Delete(ctx context.Context, id string) (*Environment, error) {
 		return nil, err
 	}
 	return toEnvironment(resp.DeleteEnvironment.Result)
+}
+
+// Fork creates a new environment by forking an existing one. Instances
+// are initialized from the project's components and seeded with the
+// parent's instance params.
+//
+// Idempotent: re-forking with the same [ForkInput.ID] against the same
+// parent returns the existing environment after re-applying the
+// [ForkInput.Copy*] flags (so it acts as a desired-state converge).
+// Re-forking with the same ID but a different parent is rejected — a
+// fork's parent is immutable.
+func (s *Service) Fork(ctx context.Context, parentID string, input ForkInput) (*Environment, error) {
+	resp, err := gen.ForkEnvironment(ctx, s.client.GQLv2, s.client.Config.OrganizationID, parentID, gen.ForkEnvironmentInput{
+		Id:                      input.ID,
+		Name:                    input.Name,
+		Description:             input.Description,
+		Attributes:              input.Attributes,
+		CopySecrets:             input.CopySecrets,
+		CopyRemoteReferences:    input.CopyRemoteReferences,
+		CopyEnvironmentDefaults: input.CopyEnvironmentDefaults,
+	})
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("fork environment from %s: %w", parentID, err))
+	}
+	if err := gql.CheckMutation("fork environment", resp.ForkEnvironment.Successful, resp.ForkEnvironment.Messages); err != nil {
+		return nil, err
+	}
+	return toEnvironment(resp.ForkEnvironment.Result)
+}
+
+// Deploy schedules a deployment of every instance in the environment in
+// dependency order. Cancels any in-flight environment deployment and
+// enqueues a fresh provision wave. Returns as soon as the deployment is
+// enqueued — the infrastructure changes happen asynchronously.
+//
+// Idempotent at the deploy layer: calling Deploy repeatedly while a
+// previous wave is still pending is safe; the prior pending wave is
+// cancelled before the new one is scheduled.
+func (s *Service) Deploy(ctx context.Context, id string) (*Environment, error) {
+	resp, err := gen.DeployEnvironment(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id)
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("deploy environment %s: %w", id, err))
+	}
+	if err := gql.CheckMutation("deploy environment", resp.DeployEnvironment.Successful, resp.DeployEnvironment.Messages); err != nil {
+		return nil, err
+	}
+	return toEnvironment(resp.DeployEnvironment.Result)
 }
 
 // SetDefault marks the named resource as the default of its type for the

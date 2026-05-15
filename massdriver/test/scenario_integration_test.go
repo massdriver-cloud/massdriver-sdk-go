@@ -81,6 +81,93 @@ func TestIntegration_Scenario_ProjectEnvComponentInstance(t *testing.T) {
 	}
 }
 
+// Fork scenario uses its own fixture set so it can coexist with the
+// base scenario test and clean up independently.
+const (
+	forkProjectID    = "inttestfork"
+	forkParentEnvID  = "parentenv"
+	forkPreviewEnvID = "previewenv"
+	forkCompID       = "forkcomp"
+)
+
+// TestIntegration_Scenario_PreviewEnvFork walks the preview-environment
+// flow: fork → idempotent re-fork → copy instance config with overrides.
+// Skips the actual Deploy call so we don't trigger real cloud
+// provisioning in the sandbox.
+func TestIntegration_Scenario_PreviewEnvFork(t *testing.T) {
+	c := inttest.Client(t)
+	ctx := context.Background()
+
+	_, _ = c.Projects.Delete(ctx, forkProjectID) // best-effort pre-clean
+
+	if _, err := c.Projects.Create(ctx, projects.CreateInput{
+		ID:   forkProjectID,
+		Name: "Fork scenario",
+	}); err != nil {
+		t.Fatalf("create project: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = c.Projects.Delete(ctx, forkProjectID)
+	})
+
+	parentEnv, err := c.Environments.Create(ctx, forkProjectID, environments.CreateInput{
+		ID:   forkParentEnvID,
+		Name: "Parent",
+	})
+	if err != nil {
+		t.Fatalf("create parent environment: %v", err)
+	}
+
+	comp, err := c.Components.Add(ctx, forkProjectID, components.AddInput{
+		OciRepoName: scenarioOCIRepoName,
+		ID:          forkCompID,
+		Name:        "Component",
+	})
+	if err != nil {
+		t.Fatalf("add component (sandbox missing %q OCI repo?): %v", scenarioOCIRepoName, err)
+	}
+
+	if _, err := waitForInstance(ctx, c, parentEnv.ID, comp.ID, 30*time.Second); err != nil {
+		t.Fatalf("parent instance did not materialize: %v", err)
+	}
+
+	// Platform namespaces env IDs by project on creation, same as
+	// components — Fork's returned ID is "<project>-<input.ID>".
+	wantForkID := forkProjectID + "-" + forkPreviewEnvID
+	preview, err := c.Environments.Fork(ctx, parentEnv.ID, environments.ForkInput{
+		ID:   forkPreviewEnvID,
+		Name: "Preview",
+	})
+	if err != nil {
+		t.Fatalf("fork: %v", err)
+	}
+	if preview.ID != wantForkID {
+		t.Errorf("fork ID = %q, want %q", preview.ID, wantForkID)
+	}
+
+	// Idempotency: re-forking with the same parent + id is a no-op
+	// converge; same env returned.
+	preview2, err := c.Environments.Fork(ctx, parentEnv.ID, environments.ForkInput{
+		ID:   forkPreviewEnvID,
+		Name: "Preview",
+	})
+	if err != nil {
+		t.Fatalf("re-fork: %v", err)
+	}
+	if preview2.ID != preview.ID {
+		t.Errorf("re-fork ID = %q, want same as first fork %q", preview2.ID, preview.ID)
+	}
+
+	if _, err := waitForInstance(ctx, c, preview.ID, comp.ID, 30*time.Second); err != nil {
+		t.Fatalf("preview instance did not materialize: %v", err)
+	}
+
+	// Instances.Copy is exercised only by the unit test — the sandbox
+	// bundle's required params are object-typed and bundle-schema
+	// specific; populating them here would tie the integration test
+	// to the bundle's internal shape.
+}
+
 // waitForInstance polls Instances.List until an instance produced by
 // (envID, compID) appears, or timeout elapses.
 func waitForInstance(ctx context.Context, c *massdriver.Client, envID, compID string, timeout time.Duration) (*instances.Instance, error) {

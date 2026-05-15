@@ -288,3 +288,95 @@ func TestDelete(t *testing.T) {
 		t.Errorf("ID = %q, want ecomm-prod", got.ID)
 	}
 }
+
+func TestFork(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"forkEnvironment": map[string]any{
+				"result": map[string]any{
+					"id":   "ecomm-pr-123",
+					"name": "PR-123 preview",
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).Fork(t.Context(), "ecomm-prod", environments.ForkInput{
+		ID:          "ecomm-pr-123",
+		Name:        "PR-123 preview",
+		CopySecrets: true,
+	})
+	if err != nil {
+		t.Fatalf("Fork: %v", err)
+	}
+	if got.ID != "ecomm-pr-123" {
+		t.Errorf("ID = %q, want ecomm-pr-123", got.ID)
+	}
+}
+
+// TestFork_Idempotent confirms a re-fork returns the same environment
+// (server's converge behavior). The SDK has nothing special to do here —
+// this just locks in the contract from the caller's perspective.
+func TestFork_Idempotent(t *testing.T) {
+	resp := gqltest.RespondWithData(map[string]any{
+		"forkEnvironment": map[string]any{
+			"result":     map[string]any{"id": "ecomm-pr-123", "name": "PR-123 preview"},
+			"successful": true,
+		},
+	})
+	gqlClient := gqltest.NewClient(resp, resp)
+
+	svc := newService(gqlClient)
+	first, _ := svc.Fork(t.Context(), "ecomm-prod", environments.ForkInput{ID: "ecomm-pr-123", Name: "PR-123 preview"})
+	second, err := svc.Fork(t.Context(), "ecomm-prod", environments.ForkInput{ID: "ecomm-pr-123", Name: "PR-123 preview"})
+	if err != nil {
+		t.Fatalf("re-Fork: %v", err)
+	}
+	if first.ID != second.ID {
+		t.Errorf("re-fork returned different env: %q vs %q", first.ID, second.ID)
+	}
+}
+
+// TestFork_ParentConflict locks in the *MutationFailedError surface for
+// the "same id, different parent" rejection.
+func TestFork_ParentConflict(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"forkEnvironment": map[string]any{
+				"result":     nil,
+				"successful": false,
+				"messages": []map[string]any{
+					{"code": "IMMUTABLE", "field": "parentId", "message": "parent is immutable on an existing fork"},
+				},
+			},
+		}),
+	)
+
+	_, err := newService(gqlClient).Fork(t.Context(), "ecomm-staging", environments.ForkInput{ID: "ecomm-pr-123", Name: "PR-123"})
+	mf, ok := gql.AsMutationFailedError(err)
+	if !ok {
+		t.Fatalf("expected *gql.MutationFailedError, got %T: %v", err, err)
+	}
+	if len(mf.Messages) != 1 || mf.Messages[0].Field != "parentId" {
+		t.Errorf("messages = %+v, want one entry for parentId", mf.Messages)
+	}
+}
+
+func TestDeploy(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"deployEnvironment": map[string]any{
+				"result":     map[string]any{"id": "ecomm-pr-123", "name": "PR-123 preview"},
+				"successful": true,
+			},
+		}),
+	)
+	got, err := newService(gqlClient).Deploy(t.Context(), "ecomm-pr-123")
+	if err != nil {
+		t.Fatalf("Deploy: %v", err)
+	}
+	if got.ID != "ecomm-pr-123" {
+		t.Errorf("ID = %q, want ecomm-pr-123", got.ID)
+	}
+}

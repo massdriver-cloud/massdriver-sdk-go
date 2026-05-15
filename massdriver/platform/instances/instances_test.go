@@ -284,3 +284,36 @@ func TestIter_TransportErrorYieldsOnce(t *testing.T) {
 		t.Errorf("err = %v, want it to wrap %v", observed[0], wantErr)
 	}
 }
+
+func TestCopy(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"copyInstance": map[string]any{
+				"result": map[string]any{
+					"id":              "ecomm-staging-db",
+					"name":            "Staging DB",
+					"status":          "PROVISIONED",
+					"version":         "~1.0",
+					"resolvedVersion": "1.2.3",
+					"params":          map[string]any{"size": "small"},
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).Copy(t.Context(), "ecomm-prod-db", "ecomm-staging-db", instances.CopyInput{
+		Overrides:   map[string]any{"size": "small"},
+		Message:     "promote prod config to staging",
+		CopySecrets: true,
+	})
+	if err != nil {
+		t.Fatalf("Copy: %v", err)
+	}
+	if got.ID != "ecomm-staging-db" {
+		t.Errorf("ID = %q, want ecomm-staging-db", got.ID)
+	}
+	if got.Params["size"] != "small" {
+		t.Errorf("Params[size] = %v, want small", got.Params["size"])
+	}
+}

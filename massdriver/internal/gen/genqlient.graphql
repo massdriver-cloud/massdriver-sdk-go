@@ -700,6 +700,55 @@ mutation DeleteEnvironment($organizationId: ID!, $id: ID!) {
   }
 }
 
+mutation ForkEnvironment($organizationId: ID!, $parentId: ID!, $input: ForkEnvironmentInput!) {
+  forkEnvironment(organizationId: $organizationId, parentId: $parentId, input: $input) {
+    result {
+      id
+      name
+      description
+      attributes
+      createdAt
+      updatedAt
+      cost {
+        lastMonth { amount currency }
+        monthlyAverage { amount currency }
+        lastDay { amount currency }
+        dailyAverage { amount currency }
+      }
+      project {
+        id
+        name
+        description
+        attributes
+        createdAt
+        updatedAt
+      }
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+mutation DeployEnvironment($organizationId: ID!, $id: ID!) {
+  deployEnvironment(organizationId: $organizationId, id: $id) {
+    result {
+      id
+      name
+      updatedAt
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
 mutation SetEnvironmentDefault($organizationId: ID!, $environmentId: ID!, $resourceId: ID!) {
   setEnvironmentDefault(
     organizationId: $organizationId,
@@ -1052,6 +1101,35 @@ mutation UpdateInstance($organizationId: ID!, $id: ID!, $input: UpdateInstanceIn
       status
       version
       resolvedVersion
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+mutation CopyInstance(
+  $organizationId: ID!,
+  $sourceId: ID!,
+  $destinationId: ID!,
+  $input: CopyInstanceInput!
+) {
+  copyInstance(
+    organizationId: $organizationId,
+    sourceId: $sourceId,
+    destinationId: $destinationId,
+    input: $input
+  ) {
+    result {
+      id
+      name
+      status
+      version
+      resolvedVersion
+      params
     }
     successful
     messages {
