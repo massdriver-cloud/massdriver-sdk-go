@@ -1140,6 +1140,22 @@ mutation CopyInstance(
   }
 }
 
+mutation OrphanInstance($organizationId: ID!, $id: ID!, $input: OrphanInstanceInput!) {
+  orphanInstance(organizationId: $organizationId, id: $id, input: $input) {
+    result {
+      id
+      name
+      status
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
 
 # INSTANCE ALARMS
 
