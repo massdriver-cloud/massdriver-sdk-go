@@ -1156,7 +1156,6 @@ mutation OrphanInstance($organizationId: ID!, $id: ID!, $input: OrphanInstanceIn
   }
 }
 
-
 # INSTANCE ALARMS
 
 query GetInstanceAlarm($organizationId: ID!, $id: UUID!) {

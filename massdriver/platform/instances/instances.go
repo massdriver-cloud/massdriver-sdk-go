@@ -300,6 +300,9 @@ func (s *Service) Update(ctx context.Context, id string, input UpdateInput) (*In
 // duplicating any resources the prior state was tracking. This is
 // irreversible — prefer leaving DeleteState false unless the state is
 // known to be unrecoverable.
+//
+// The returned [Instance] is slim (id, name, status only) — call [Service.Get]
+// if you need params, statePaths, or resources after orphaning.
 func (s *Service) Orphan(ctx context.Context, id string, input OrphanInput) (*Instance, error) {
 	resp, err := gen.OrphanInstance(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id, gen.OrphanInstanceInput{
 		DeleteState: input.DeleteState,
