@@ -265,6 +265,26 @@ func (s *Service) Deploy(ctx context.Context, id string) (*Environment, error) {
 	return toEnvironment(resp.DeployEnvironment.Result)
 }
 
+// Decommission schedules a teardown of every instance in the environment in
+// reverse dependency order. The environment shell stays in place so it can
+// be redeployed; call [Service.Delete] to remove the empty environment
+// afterwards. Cancels any in-flight environment deployment and enqueues a
+// fresh decommission wave. Returns as soon as the wave is enqueued — the
+// infrastructure changes happen asynchronously.
+//
+// Blocked when the environment has `decommissionProtection: true` — disable
+// it via [Service.Update] before calling.
+func (s *Service) Decommission(ctx context.Context, id string) (*Environment, error) {
+	resp, err := gen.DecommissionEnvironment(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id)
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("decommission environment %s: %w", id, err))
+	}
+	if err := gql.CheckMutation("decommission environment", resp.DecommissionEnvironment.Successful, resp.DecommissionEnvironment.Messages); err != nil {
+		return nil, err
+	}
+	return toEnvironment(resp.DecommissionEnvironment.Result)
+}
+
 // SetDefault marks the named resource as the default of its type for the
 // environment. Only one resource per type can be the default; remove the
 // existing one with [Service.RemoveDefault] before changing it.

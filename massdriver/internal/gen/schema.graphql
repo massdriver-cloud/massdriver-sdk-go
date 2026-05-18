@@ -1524,6 +1524,22 @@ type RootMutationType {
   ): EnvironmentPayload
 
   """
+  Decommission every instance in an environment, in reverse dependency order.
+
+  Tears down all provisioned infrastructure but leaves the environment shell in
+  place so it can be redeployed. Call `deleteEnvironment` afterwards to remove
+  the empty environment. The mutation returns as soon as the pending
+  decommission is enqueued; the actual teardown happens asynchronously.
+  """
+  decommissionEnvironment(
+    "Your organization's unique identifier."
+    organizationId: ID!
+
+    "The identifier of the environment to decommission."
+    id: ID!
+  ): EnvironmentPayload
+
+  """
   Delete an environment permanently.
 
   All instances must be decommissioned first. Query the environment's `deletable`
@@ -7511,6 +7527,9 @@ input CreateEnvironmentInput {
   "Key-value attributes for this environment. Keys and values must be strings. Must conform to the organization's custom attributes for the environment scope."
   attributes: Map
 
+  "When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false."
+  decommissionProtection: Boolean
+
   "An optional description of the environment's purpose"
   description: String
 
@@ -7525,6 +7544,9 @@ input CreateEnvironmentInput {
 input UpdateEnvironmentInput {
   "Key-value attributes for this environment. Keys and values must be strings. Must conform to the organization's custom attributes for the environment scope."
   attributes: Map
+
+  "When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Toggle it off here before tearing down."
+  decommissionProtection: Boolean
 
   "An optional description of the environment's purpose"
   description: String
@@ -7546,6 +7568,9 @@ input ForkEnvironmentInput {
 
   "When true, copies every package's secret values from the parent into the fork. Applies the same behavior as `copyInstance(copySecrets: true)` to every package in one call. Defaults to false."
   copySecrets: Boolean
+
+  "When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false."
+  decommissionProtection: Boolean
 
   "An optional description of the forked environment's purpose"
   description: String
@@ -7582,6 +7607,9 @@ type Environment {
 
   "Key-value attributes assigned directly to this environment. Attributes cascade to instances. Must conform to your organization's custom attributes for the `ENVIRONMENT` scope."
   attributes: Map!
+
+  "When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false."
+  decommissionProtection: Boolean!
 
   """
   The full attribute map the authorization system evaluates policies against for

@@ -2935,6 +2935,8 @@ func (v *CreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvironmentPr
 type CreateEnvironmentInput struct {
 	// Key-value attributes for this environment. Keys and values must be strings. Must conform to the organization's custom attributes for the environment scope.
 	Attributes map[string]any `json:"-"`
+	// When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false.
+	DecommissionProtection bool `json:"decommissionProtection"`
 	// An optional description of the environment's purpose
 	Description string `json:"description"`
 	// A short, memorable identifier for looking up this environment in the API and CLI. This becomes the second segment of package identifiers. For example, project 'ecomm' with environment 'prod' and component 'db' creates 'ecomm-prod-db'. Use familiar names like 'prod', 'staging', 'dev'—human-readable, not a UUID. Max 20 characters, lowercase alphanumeric only (a-z, 0-9). Immutable after creation.
@@ -2945,6 +2947,9 @@ type CreateEnvironmentInput struct {
 
 // GetAttributes returns CreateEnvironmentInput.Attributes, and is useful for accessing the field via an interface.
 func (v *CreateEnvironmentInput) GetAttributes() map[string]any { return v.Attributes }
+
+// GetDecommissionProtection returns CreateEnvironmentInput.DecommissionProtection, and is useful for accessing the field via an interface.
+func (v *CreateEnvironmentInput) GetDecommissionProtection() bool { return v.DecommissionProtection }
 
 // GetDescription returns CreateEnvironmentInput.Description, and is useful for accessing the field via an interface.
 func (v *CreateEnvironmentInput) GetDescription() string { return v.Description }
@@ -2991,6 +2996,8 @@ func (v *CreateEnvironmentInput) UnmarshalJSON(b []byte) error {
 type __premarshalCreateEnvironmentInput struct {
 	Attributes json.RawMessage `json:"attributes"`
 
+	DecommissionProtection bool `json:"decommissionProtection"`
+
 	Description string `json:"description"`
 
 	Id string `json:"id"`
@@ -3021,6 +3028,7 @@ func (v *CreateEnvironmentInput) __premarshalJSON() (*__premarshalCreateEnvironm
 				"unable to marshal CreateEnvironmentInput.Attributes: %w", err)
 		}
 	}
+	retval.DecommissionProtection = v.DecommissionProtection
 	retval.Description = v.Description
 	retval.Id = v.Id
 	retval.Name = v.Name
@@ -5747,6 +5755,140 @@ func (v *DatetimeFilter) GetLt() time.Time { return v.Lt }
 
 // GetLte returns DatetimeFilter.Lte, and is useful for accessing the field via an interface.
 func (v *DatetimeFilter) GetLte() time.Time { return v.Lte }
+
+// DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayload includes the requested fields of the GraphQL type EnvironmentPayload.
+type DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadResultEnvironment `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayload.Result, and is useful for accessing the field via an interface.
+func (v *DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayload) GetResult() DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadResultEnvironment {
+	return v.Result
+}
+
+// GetSuccessful returns DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayload.Successful, and is useful for accessing the field via an interface.
+func (v *DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayload.Messages, and is useful for accessing the field via an interface.
+func (v *DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayload) GetMessages() []DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadResultEnvironment includes the requested fields of the GraphQL type Environment.
+// The GraphQL type's documentation follows.
+//
+// A deployment target within a project where blueprint components become live infrastructure.
+//
+// Each project can have multiple environments (e.g., `staging`, `production`). When you deploy
+// to an environment, every component in the project's blueprint is realized as an **Instance** --
+// a running piece of cloud infrastructure with its own configuration, state, and cost data.
+//
+// Environments inherit attributes from their parent project. You can also set environment-scoped attributes
+// that cascade down to all instances within the environment. **Defaults** let you pre-assign
+// resources (like a shared VPC or DNS zone) so that new instances automatically receive them.
+//
+// Before deleting an environment, all instances must be decommissioned. Use the `deletable`
+// field to check for blocking constraints.
+type DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadResultEnvironment struct {
+	Id string `json:"id"`
+	// Display name shown in the UI and CLI. Must be unique within the project.
+	Name string `json:"name"`
+	// When this environment was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadResultEnvironment.Id, and is useful for accessing the field via an interface.
+func (v *DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadResultEnvironment) GetId() string {
+	return v.Id
+}
+
+// GetName returns DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadResultEnvironment.Name, and is useful for accessing the field via an interface.
+func (v *DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadResultEnvironment) GetName() string {
+	return v.Name
+}
+
+// GetUpdatedAt returns DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadResultEnvironment.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayloadResultEnvironment) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// DecommissionEnvironmentResponse is returned by DecommissionEnvironment on success.
+type DecommissionEnvironmentResponse struct {
+	// Decommission every instance in an environment, in reverse dependency order.
+	//
+	// Tears down all provisioned infrastructure but leaves the environment shell in
+	// place so it can be redeployed. Call `deleteEnvironment` afterwards to remove
+	// the empty environment. The mutation returns as soon as the pending
+	// decommission is enqueued; the actual teardown happens asynchronously.
+	DecommissionEnvironment DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayload `json:"decommissionEnvironment"`
+}
+
+// GetDecommissionEnvironment returns DecommissionEnvironmentResponse.DecommissionEnvironment, and is useful for accessing the field via an interface.
+func (v *DecommissionEnvironmentResponse) GetDecommissionEnvironment() DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayload {
+	return v.DecommissionEnvironment
+}
 
 // DeleteCustomAttributeDeleteCustomAttributeCustomAttributePayload includes the requested fields of the GraphQL type CustomAttributePayload.
 type DeleteCustomAttributeDeleteCustomAttributeCustomAttributePayload struct {
@@ -8903,6 +9045,8 @@ type ForkEnvironmentInput struct {
 	CopyRemoteReferences bool `json:"copyRemoteReferences"`
 	// When true, copies every package's secret values from the parent into the fork. Applies the same behavior as `copyInstance(copySecrets: true)` to every package in one call. Defaults to false.
 	CopySecrets bool `json:"copySecrets"`
+	// When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false.
+	DecommissionProtection bool `json:"decommissionProtection"`
 	// An optional description of the forked environment's purpose
 	Description string `json:"description"`
 	// A short, memorable identifier for looking up this environment in the API and CLI. This becomes the second segment of instance identifiers. Max 20 characters, lowercase alphanumeric only (a-z, 0-9). Immutable after creation.
@@ -8922,6 +9066,9 @@ func (v *ForkEnvironmentInput) GetCopyRemoteReferences() bool { return v.CopyRem
 
 // GetCopySecrets returns ForkEnvironmentInput.CopySecrets, and is useful for accessing the field via an interface.
 func (v *ForkEnvironmentInput) GetCopySecrets() bool { return v.CopySecrets }
+
+// GetDecommissionProtection returns ForkEnvironmentInput.DecommissionProtection, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentInput) GetDecommissionProtection() bool { return v.DecommissionProtection }
 
 // GetDescription returns ForkEnvironmentInput.Description, and is useful for accessing the field via an interface.
 func (v *ForkEnvironmentInput) GetDescription() string { return v.Description }
@@ -8974,6 +9121,8 @@ type __premarshalForkEnvironmentInput struct {
 
 	CopySecrets bool `json:"copySecrets"`
 
+	DecommissionProtection bool `json:"decommissionProtection"`
+
 	Description string `json:"description"`
 
 	Id string `json:"id"`
@@ -9007,6 +9156,7 @@ func (v *ForkEnvironmentInput) __premarshalJSON() (*__premarshalForkEnvironmentI
 	retval.CopyEnvironmentDefaults = v.CopyEnvironmentDefaults
 	retval.CopyRemoteReferences = v.CopyRemoteReferences
 	retval.CopySecrets = v.CopySecrets
+	retval.DecommissionProtection = v.DecommissionProtection
 	retval.Description = v.Description
 	retval.Id = v.Id
 	retval.Name = v.Name
@@ -21656,6 +21806,8 @@ func (v *UpdateCustomAttributeUpdateCustomAttributeCustomAttributePayloadResultC
 type UpdateEnvironmentInput struct {
 	// Key-value attributes for this environment. Keys and values must be strings. Must conform to the organization's custom attributes for the environment scope.
 	Attributes map[string]any `json:"-"`
+	// When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Toggle it off here before tearing down.
+	DecommissionProtection bool `json:"decommissionProtection"`
 	// An optional description of the environment's purpose
 	Description string `json:"description"`
 	// A human-readable name for the environment
@@ -21664,6 +21816,9 @@ type UpdateEnvironmentInput struct {
 
 // GetAttributes returns UpdateEnvironmentInput.Attributes, and is useful for accessing the field via an interface.
 func (v *UpdateEnvironmentInput) GetAttributes() map[string]any { return v.Attributes }
+
+// GetDecommissionProtection returns UpdateEnvironmentInput.DecommissionProtection, and is useful for accessing the field via an interface.
+func (v *UpdateEnvironmentInput) GetDecommissionProtection() bool { return v.DecommissionProtection }
 
 // GetDescription returns UpdateEnvironmentInput.Description, and is useful for accessing the field via an interface.
 func (v *UpdateEnvironmentInput) GetDescription() string { return v.Description }
@@ -21707,6 +21862,8 @@ func (v *UpdateEnvironmentInput) UnmarshalJSON(b []byte) error {
 type __premarshalUpdateEnvironmentInput struct {
 	Attributes json.RawMessage `json:"attributes"`
 
+	DecommissionProtection bool `json:"decommissionProtection"`
+
 	Description string `json:"description"`
 
 	Name string `json:"name"`
@@ -21735,6 +21892,7 @@ func (v *UpdateEnvironmentInput) __premarshalJSON() (*__premarshalUpdateEnvironm
 				"unable to marshal UpdateEnvironmentInput.Attributes: %w", err)
 		}
 	}
+	retval.DecommissionProtection = v.DecommissionProtection
 	retval.Description = v.Description
 	retval.Name = v.Name
 	return &retval, nil
@@ -24725,6 +24883,18 @@ func (v *__CustomAttributeValuesInput) GetScope() AttributeScope { return v.Scop
 // GetKey returns __CustomAttributeValuesInput.Key, and is useful for accessing the field via an interface.
 func (v *__CustomAttributeValuesInput) GetKey() string { return v.Key }
 
+// __DecommissionEnvironmentInput is used internally by genqlient
+type __DecommissionEnvironmentInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __DecommissionEnvironmentInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__DecommissionEnvironmentInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __DecommissionEnvironmentInput.Id, and is useful for accessing the field via an interface.
+func (v *__DecommissionEnvironmentInput) GetId() string { return v.Id }
+
 // __DeleteCustomAttributeInput is used internally by genqlient
 type __DeleteCustomAttributeInput struct {
 	OrganizationId string `json:"organizationId"`
@@ -26811,6 +26981,52 @@ func CustomAttributeValues(
 	}
 
 	data_ = &CustomAttributeValuesResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by DecommissionEnvironment.
+const DecommissionEnvironment_Operation = `
+mutation DecommissionEnvironment ($organizationId: ID!, $id: ID!) {
+	decommissionEnvironment(organizationId: $organizationId, id: $id) {
+		result {
+			id
+			name
+			updatedAt
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func DecommissionEnvironment(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *DecommissionEnvironmentResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "DecommissionEnvironment",
+		Query:  DecommissionEnvironment_Operation,
+		Variables: &__DecommissionEnvironmentInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &DecommissionEnvironmentResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
