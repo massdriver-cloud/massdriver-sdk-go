@@ -749,6 +749,22 @@ mutation DeployEnvironment($organizationId: ID!, $id: ID!) {
   }
 }
 
+mutation DecommissionEnvironment($organizationId: ID!, $id: ID!) {
+  decommissionEnvironment(organizationId: $organizationId, id: $id) {
+    result {
+      id
+      name
+      updatedAt
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
 mutation SetEnvironmentDefault($organizationId: ID!, $environmentId: ID!, $resourceId: ID!) {
   setEnvironmentDefault(
     organizationId: $organizationId,

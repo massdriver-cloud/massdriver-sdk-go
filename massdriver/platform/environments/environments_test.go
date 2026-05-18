@@ -380,3 +380,43 @@ func TestDeploy(t *testing.T) {
 		t.Errorf("ID = %q, want ecomm-pr-123", got.ID)
 	}
 }
+
+func TestDecommission(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"decommissionEnvironment": map[string]any{
+				"result":     map[string]any{"id": "ecomm-pr-123", "name": "PR-123 preview"},
+				"successful": true,
+			},
+		}),
+	)
+	got, err := newService(gqlClient).Decommission(t.Context(), "ecomm-pr-123")
+	if err != nil {
+		t.Fatalf("Decommission: %v", err)
+	}
+	if got.ID != "ecomm-pr-123" {
+		t.Errorf("ID = %q, want ecomm-pr-123", got.ID)
+	}
+}
+
+func TestDecommissionProtected(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"decommissionEnvironment": map[string]any{
+				"result":     nil,
+				"successful": false,
+				"messages": []map[string]any{
+					{"code": "decommission_protected", "field": "decommissionProtection", "message": "decommission protection is enabled"},
+				},
+			},
+		}),
+	)
+	_, err := newService(gqlClient).Decommission(t.Context(), "ecomm-prod")
+	mf, ok := gql.AsMutationFailedError(err)
+	if !ok {
+		t.Fatalf("expected *gql.MutationFailedError, got %T: %v", err, err)
+	}
+	if len(mf.Messages) != 1 || mf.Messages[0].Field != "decommissionProtection" {
+		t.Errorf("messages = %+v, want one entry for decommissionProtection", mf.Messages)
+	}
+}
