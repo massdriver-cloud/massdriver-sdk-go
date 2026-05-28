@@ -32,6 +32,7 @@ coverage.html
 # Direnv & tooling
 .envrc
 .env
+env
 
 # OS
 Thumbs.db
