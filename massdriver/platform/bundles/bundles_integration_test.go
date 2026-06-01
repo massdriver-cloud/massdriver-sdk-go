@@ -10,6 +10,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/bundles"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // TestIntegration_Bundles_List confirms List returns without error and
@@ -19,7 +20,7 @@ func TestIntegration_Bundles_List(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
-	got, err := c.Bundles.List(ctx, bundles.ListInput{})
+	got, err := types.Collect(c.Bundles.Iter(ctx, bundles.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

@@ -16,7 +16,7 @@
 //     [Service.Abort] cancels any pending/approved/running deployment.
 //
 // Logs are accessed separately via [Service.GetLogs] to keep the standard
-// [Service.Get]/[Service.List] payloads small.
+// [Service.Get]/[Service.Iter] payloads small.
 //
 // Construct a [*Service] with [New] passing the low-level client, or use the
 // pre-wired [massdriver.Client.Deployments] field on the top-level SDK client.
@@ -33,6 +33,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
@@ -96,7 +97,7 @@ const (
 	ActionPlan Action = "PLAN"
 )
 
-// SortField is the field a [Service.List] result can be ordered by.
+// SortField is the field a [Service.Iter] result can be ordered by.
 type SortField string
 
 const (
@@ -114,7 +115,7 @@ const (
 	SortDesc SortOrder = "DESC"
 )
 
-// ListInput controls a [Service.List] call. Zero value lists every deployment
+// ListInput controls a [Service.Iter] call. Zero value lists every deployment
 // the caller can see, sorted by most recently active first.
 type ListInput struct {
 	// InstanceID limits results to one instance.
@@ -125,11 +126,18 @@ type ListInput struct {
 	Action Action
 	// OciRepoName limits to deployments of bundles from that repo.
 	OciRepoName string
+	// BundleID limits to deployments stamped with a specific bundle version
+	// (`name@version`) or release channel (`name@~1`, `name@latest`).
+	BundleID string
 
 	SortBy    SortField
 	SortOrder SortOrder
 
 	PageSize int
+	// After is the opaque cursor from a prior [types.Page].Next, selecting
+	// which page to start from. Empty starts at the first page. For Iter it
+	// sets the starting page; for ListPage it selects the single page returned.
+	After string
 }
 
 // CreateInput is the input for [Service.Create]. Params are validated server-side
@@ -196,104 +204,52 @@ func (s *Service) GetLogs(ctx context.Context, id string) (string, error) {
 	return sb.String(), nil
 }
 
-// Iter returns a [iter.Seq2] over deployments matching the supplied
-// filters, fetching pages lazily on demand. Use this for large or
-// potentially-unbounded result sets where buffering every match in
-// memory ([Service.List]) is impractical.
+// Iter returns a lazy [iter.Seq2] over deployments matching input, fetching
+// pages on demand. It is the recommended way to list: ranging the sequence
+// streams results without buffering the whole match set, and breaking out of
+// the loop stops requesting further pages. The yielded error is non-nil exactly
+// once, on a failed page fetch, after which iteration stops.
 //
-// The yielded error is non-nil exactly when the underlying transport
-// or decode failed. Stop iterating after observing one — subsequent
-// items are not produced.
-//
-// Cancellation is via ctx; break out of the range loop to stop
-// requesting further pages.
-//
-// Example:
-//
-//	for dep, err := range svc.Iter(ctx, deployments.ListInput{InstanceID: "ecomm-prod-database"}) {
-//	    if err != nil { return err }
-//	    process(dep)
-//	}
+// Returned [Deployment]s carry a slim instance ref (id+name only) and no
+// params/logs — call [Service.Get] / [Service.GetLogs] for those. To buffer
+// every match into a slice, wrap with [types.Collect].
 func (s *Service) Iter(ctx context.Context, input ListInput) iter.Seq2[Deployment, error] {
-	filter := buildListFilter(input)
-	sort := buildListSort(input)
-
-	return func(yield func(Deployment, error) bool) {
-		var cursor *scalars.Cursor
-		if input.PageSize > 0 {
-			cursor = &scalars.Cursor{Limit: input.PageSize}
-		}
-		for {
-			resp, err := gen.ListDeployments(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, cursor)
-			if err != nil {
-				yield(Deployment{}, gql.ClassifyError(fmt.Errorf("list deployments: %w", err)))
-				return
-			}
-			for _, item := range resp.Deployments.Items {
-				d, derr := toDeployment(item)
-				if derr != nil {
-					yield(Deployment{}, derr)
-					return
-				}
-				if !yield(*d, nil) {
-					return
-				}
-			}
-			next := resp.Deployments.Cursor.Next
-			if next == "" {
-				return
-			}
-			cursor = &scalars.Cursor{Next: next}
-			if input.PageSize > 0 {
-				cursor.Limit = input.PageSize
-			}
-		}
-	}
+	return paging.Iter(ctx, input.After, s.page(input))
 }
 
-// List returns deployments matching the supplied filters, following
-// pagination cursors automatically and buffering every match into a
-// single slice. Returned deployments carry a slim instance ref
-// (id+name only) and no params/logs — call [Service.Get] /
-// [Service.GetLogs] for those.
-//
-// For large result sets — anything where the full match could be tens
-// of thousands of rows — prefer [Service.Iter], which yields one
-// deployment at a time. Cancel ctx to stop early.
-func (s *Service) List(ctx context.Context, input ListInput) ([]Deployment, error) {
+// ListPage returns a single page of deployments matching input. input.PageSize
+// bounds the page and input.After (an opaque cursor from a prior page's Next)
+// selects which page. Use it for stateless pagination — e.g. a UI or CLI that
+// hands the returned [types.Page].Next back to its own client to fetch the next
+// page on demand.
+func (s *Service) ListPage(ctx context.Context, input ListInput) (types.Page[Deployment], error) {
+	return s.page(input)(ctx, input.After)
+}
+
+// page builds the single-page fetcher shared by Iter and ListPage.
+func (s *Service) page(input ListInput) paging.FetchFunc[Deployment] {
 	filter := buildListFilter(input)
 	sort := buildListSort(input)
-
-	var (
-		out    []Deployment
-		cursor *scalars.Cursor
-	)
-	if input.PageSize > 0 {
-		cursor = &scalars.Cursor{Limit: input.PageSize}
-	}
-
-	for {
-		resp, err := gen.ListDeployments(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, cursor)
+	limit := input.PageSize
+	return func(ctx context.Context, after string) (types.Page[Deployment], error) {
+		resp, err := gen.ListDeployments(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, scalars.NewCursor(limit, after))
 		if err != nil {
-			return nil, gql.ClassifyError(fmt.Errorf("list deployments: %w", err))
+			return types.Page[Deployment]{}, gql.ClassifyError(fmt.Errorf("list deployments: %w", err))
 		}
+		items := make([]Deployment, 0, len(resp.Deployments.Items))
 		for _, item := range resp.Deployments.Items {
 			d, derr := toDeployment(item)
 			if derr != nil {
-				return nil, fmt.Errorf("decode deployment: %w", derr)
+				return types.Page[Deployment]{}, fmt.Errorf("decode deployment: %w", derr)
 			}
-			out = append(out, *d)
+			items = append(items, *d)
 		}
-		next := resp.Deployments.Cursor.Next
-		if next == "" {
-			break
-		}
-		cursor = &scalars.Cursor{Next: next}
-		if input.PageSize > 0 {
-			cursor.Limit = input.PageSize
-		}
+		return types.Page[Deployment]{
+			Items:    items,
+			Next:     resp.Deployments.Cursor.Next,
+			Previous: resp.Deployments.Cursor.Previous,
+		}, nil
 	}
-	return out, nil
 }
 
 // Create starts a new deployment for the named instance. The deployment
@@ -403,6 +359,10 @@ func buildListFilter(input ListInput) *gen.DeploymentsFilter {
 	}
 	if input.OciRepoName != "" {
 		filter.OciRepoName = &gen.OciRepoNameFilter{Eq: input.OciRepoName}
+		set = true
+	}
+	if input.BundleID != "" {
+		filter.BundleId = &gen.BundleIdFilter{Eq: input.BundleID}
 		set = true
 	}
 	if !set {

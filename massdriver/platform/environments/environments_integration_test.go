@@ -11,6 +11,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/environments"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/projects"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // projectFixtureID is the parent project for environment fixtures.
@@ -110,7 +111,7 @@ func TestIntegration_Environments_List(t *testing.T) {
 		_, _ = c.Environments.Delete(ctx, envID)
 	})
 
-	all, err := c.Environments.List(ctx, environments.ListInput{})
+	all, err := types.Collect(c.Environments.Iter(ctx, environments.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

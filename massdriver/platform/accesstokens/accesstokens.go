@@ -13,7 +13,7 @@
 // # Verbs
 //
 // [Service.Revoke] (rather than Delete) reflects that a revoked token's
-// metadata is retained — the row remains queryable in [Service.List]
+// metadata is retained — the row remains queryable in [Service.Iter]
 // with Status=Revoked so the audit trail is preserved.
 //
 // Construct a [*Service] with [New] passing the low-level client, or use
@@ -24,12 +24,14 @@ package accesstokens
 import (
 	"context"
 	"fmt"
+	"iter"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
@@ -50,7 +52,7 @@ type Service struct {
 // need a single service in isolation or for tests with a custom client.
 func New(c *client.Client) *Service { return &Service{client: c} }
 
-// Status filters [Service.List] results by token state.
+// Status filters [Service.Iter] results by token state.
 type Status string
 
 const (
@@ -62,7 +64,7 @@ const (
 	StatusRevoked Status = "revoked"
 )
 
-// SortField is the field a [Service.List] result can be ordered by.
+// SortField is the field a [Service.Iter] result can be ordered by.
 type SortField string
 
 const (
@@ -78,13 +80,17 @@ const (
 	SortDesc SortOrder = "DESC"
 )
 
-// ListInput controls a [Service.List] call. Zero value lists every token visible
+// ListInput controls a [Service.Iter] call. Zero value lists every token visible
 // to the caller (active, revoked, and expired).
 type ListInput struct {
 	Status    Status
 	SortBy    SortField
 	SortOrder SortOrder
 	PageSize  int
+	// After is the opaque cursor from a prior [types.Page].Next, selecting
+	// which page to start from. Empty starts at the first page. For Iter it
+	// sets the starting page; for ListPage it selects the single page returned.
+	After string
 }
 
 // CreateInput is the input for [Service.Create].
@@ -110,42 +116,50 @@ type Created struct {
 	Token string
 }
 
-// List returns the caller's access tokens, filtered and sorted, following
-// pagination automatically.
-func (s *Service) List(ctx context.Context, input ListInput) ([]AccessToken, error) {
+// Iter returns a lazy [iter.Seq2] over the caller's access tokens matching
+// input, fetching pages on demand. It is the recommended way to list: ranging
+// the sequence streams results without buffering the whole match set, and
+// breaking out of the loop stops requesting further pages. The yielded error is
+// non-nil exactly once, on a failed page fetch, after which iteration stops.
+//
+// To buffer every match into a slice, wrap with [types.Collect].
+func (s *Service) Iter(ctx context.Context, input ListInput) iter.Seq2[AccessToken, error] {
+	return paging.Iter(ctx, input.After, s.page(input))
+}
+
+// ListPage returns a single page of access tokens matching input.
+// input.PageSize bounds the page and input.After (an opaque cursor from a prior
+// page's Next) selects which page. Use it for stateless pagination — e.g. a UI
+// or CLI that hands the returned [types.Page].Next back to its own client to
+// fetch the next page on demand.
+func (s *Service) ListPage(ctx context.Context, input ListInput) (types.Page[AccessToken], error) {
+	return s.page(input)(ctx, input.After)
+}
+
+// page builds the single-page fetcher shared by Iter and ListPage.
+func (s *Service) page(input ListInput) paging.FetchFunc[AccessToken] {
 	filter := buildListFilter(input)
 	sort := buildListSort(input)
-
-	var (
-		out    []AccessToken
-		cursor *scalars.Cursor
-	)
-	if input.PageSize > 0 {
-		cursor = &scalars.Cursor{Limit: input.PageSize}
-	}
-
-	for {
-		resp, err := gen.ListAccessTokens(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, cursor)
+	limit := input.PageSize
+	return func(ctx context.Context, after string) (types.Page[AccessToken], error) {
+		resp, err := gen.ListAccessTokens(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, scalars.NewCursor(limit, after))
 		if err != nil {
-			return nil, gql.ClassifyError(fmt.Errorf("list access tokens: %w", err))
+			return types.Page[AccessToken]{}, gql.ClassifyError(fmt.Errorf("list access tokens: %w", err))
 		}
+		items := make([]AccessToken, 0, len(resp.AccessTokens.Items))
 		for _, item := range resp.AccessTokens.Items {
 			t, derr := toAccessToken(item)
 			if derr != nil {
-				return nil, derr
+				return types.Page[AccessToken]{}, derr
 			}
-			out = append(out, *t)
+			items = append(items, *t)
 		}
-		next := resp.AccessTokens.Cursor.Next
-		if next == "" {
-			break
-		}
-		cursor = &scalars.Cursor{Next: next}
-		if input.PageSize > 0 {
-			cursor.Limit = input.PageSize
-		}
+		return types.Page[AccessToken]{
+			Items:    items,
+			Next:     resp.AccessTokens.Cursor.Next,
+			Previous: resp.AccessTokens.Cursor.Previous,
+		}, nil
 	}
-	return out, nil
 }
 
 // Create issues a new access token for the authenticated identity. The

@@ -7,6 +7,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/accesstokens"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 func newService(gqlClient *gqltest.Client) *accesstokens.Service {
@@ -28,9 +29,9 @@ func TestList_FilterByActive(t *testing.T) {
 		}),
 	)
 
-	got, err := newService(gqlClient).List(t.Context(), accesstokens.ListInput{
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), accesstokens.ListInput{
 		Status: accesstokens.StatusActive,
-	})
+	}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

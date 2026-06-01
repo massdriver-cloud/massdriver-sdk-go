@@ -15,6 +15,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/instances"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // TestIntegration_Instances_NotFoundClassification confirms Get for
@@ -45,7 +46,7 @@ func TestIntegration_Instances_List(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
-	got, err := c.Instances.List(ctx, instances.ListInput{})
+	got, err := types.Collect(c.Instances.Iter(ctx, instances.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

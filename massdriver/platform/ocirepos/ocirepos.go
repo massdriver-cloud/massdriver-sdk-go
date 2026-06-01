@@ -18,6 +18,7 @@ package ocirepos
 import (
 	"context"
 	"fmt"
+	"iter"
 	"net/http"
 	"net/url"
 	"path"
@@ -32,6 +33,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
@@ -51,7 +53,7 @@ func New(c *client.Client) *Service { return &Service{client: c} }
 // OciRepo is an OCI repository — alias of [types.OciRepo].
 type OciRepo = types.OciRepo
 
-// SortField is the field a [Service.List] result can be ordered by.
+// SortField is the field a [Service.Iter] result can be ordered by.
 type SortField string
 
 const (
@@ -76,7 +78,7 @@ type ArtifactType = types.ArtifactType
 // ArtifactTypeBundle is a Massdriver bundle.
 const ArtifactTypeBundle = types.ArtifactTypeBundle
 
-// ListInput controls a [Service.List] call. Zero value lists every repository in the
+// ListInput controls a [Service.Iter] call. Zero value lists every repository in the
 // configured organization, sorted alphabetically by name.
 //
 // Name filters are server-side AND'd, so combining e.g. NameEquals + Search
@@ -105,9 +107,12 @@ type ListInput struct {
 	SortOrder SortOrder
 
 	// PageSize sets the cursor page size (1..100). Zero uses the server
-	// default. Wrappers auto-paginate, so this only affects per-page round-
-	// trip size, not the total number of results.
+	// default.
 	PageSize int
+	// After is the opaque cursor from a prior [types.Page].Next, selecting
+	// which page to start from. Empty starts at the first page. For Iter it
+	// sets the starting page; for ListPage it selects the single page returned.
+	After string
 }
 
 // CreateInput is the input for [Service.Create].
@@ -142,42 +147,50 @@ func (s *Service) Get(ctx context.Context, id string) (*OciRepo, error) {
 	return toOciRepo(resp.OciRepo)
 }
 
-// List returns every repository the caller can see, applying the supplied
-// filters and following pagination cursors automatically.
-func (s *Service) List(ctx context.Context, input ListInput) ([]OciRepo, error) {
+// Iter returns a lazy [iter.Seq2] over repositories matching input, fetching
+// pages on demand. It is the recommended way to list: ranging the sequence
+// streams results without buffering the whole match set, and breaking out of the
+// loop stops requesting further pages. The yielded error is non-nil exactly once,
+// on a failed page fetch, after which iteration stops.
+//
+// To buffer every match into a slice, wrap with [types.Collect].
+func (s *Service) Iter(ctx context.Context, input ListInput) iter.Seq2[OciRepo, error] {
+	return paging.Iter(ctx, input.After, s.page(input))
+}
+
+// ListPage returns a single page of repositories matching input. input.PageSize
+// bounds the page and input.After (an opaque cursor from a prior page's Next)
+// selects which page. Use it for stateless pagination — e.g. a UI or CLI that
+// hands the returned [types.Page].Next back to its own client to fetch the next
+// page on demand.
+func (s *Service) ListPage(ctx context.Context, input ListInput) (types.Page[OciRepo], error) {
+	return s.page(input)(ctx, input.After)
+}
+
+// page builds the single-page fetcher shared by Iter and ListPage.
+func (s *Service) page(input ListInput) paging.FetchFunc[OciRepo] {
 	filter := buildListFilter(input)
 	sort := buildListSort(input)
-
-	var (
-		out    []OciRepo
-		cursor *scalars.Cursor
-	)
-	if input.PageSize > 0 {
-		cursor = &scalars.Cursor{Limit: input.PageSize}
-	}
-
-	for {
-		resp, err := gen.ListOciRepos(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, cursor)
+	limit := input.PageSize
+	return func(ctx context.Context, after string) (types.Page[OciRepo], error) {
+		resp, err := gen.ListOciRepos(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, scalars.NewCursor(limit, after))
 		if err != nil {
-			return nil, gql.ClassifyError(fmt.Errorf("list oci repos: %w", err))
+			return types.Page[OciRepo]{}, gql.ClassifyError(fmt.Errorf("list oci repos: %w", err))
 		}
+		items := make([]OciRepo, 0, len(resp.OciRepos.Items))
 		for _, item := range resp.OciRepos.Items {
 			r, rerr := toOciRepo(item)
 			if rerr != nil {
-				return nil, fmt.Errorf("decode oci repo: %w", rerr)
+				return types.Page[OciRepo]{}, fmt.Errorf("decode oci repo: %w", rerr)
 			}
-			out = append(out, *r)
+			items = append(items, *r)
 		}
-		next := resp.OciRepos.Cursor.Next
-		if next == "" {
-			break
-		}
-		cursor = &scalars.Cursor{Next: next}
-		if input.PageSize > 0 {
-			cursor.Limit = input.PageSize
-		}
+		return types.Page[OciRepo]{
+			Items:    items,
+			Next:     resp.OciRepos.Cursor.Next,
+			Previous: resp.OciRepos.Cursor.Previous,
+		}, nil
 	}
-	return out, nil
 }
 
 // Create creates a new (empty) repository. Returns a [*gql.MutationFailedError]

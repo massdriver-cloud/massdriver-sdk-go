@@ -14,6 +14,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/groups"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // TestIntegration_Groups_CRUD walks Create → Get → Update → Delete
@@ -98,7 +99,7 @@ func TestIntegration_Groups_List(t *testing.T) {
 		}
 	})
 
-	all, err := c.Groups.List(ctx, groups.ListInput{})
+	all, err := types.Collect(c.Groups.Iter(ctx, groups.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

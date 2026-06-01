@@ -9,6 +9,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/bundles"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 func newService(gqlClient *gqltest.Client) *bundles.Service {
@@ -91,9 +92,9 @@ func TestList_FilterByRepo(t *testing.T) {
 		}),
 	)
 
-	got, err := newService(gqlClient).List(t.Context(), bundles.ListInput{
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), bundles.ListInput{
 		OciRepoName: "aws-rds",
-	})
+	}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -125,7 +126,7 @@ func TestList_AutoPaginates(t *testing.T) {
 	})
 	gqlClient := gqltest.NewClient(page1, page2)
 
-	got, err := newService(gqlClient).List(t.Context(), bundles.ListInput{})
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), bundles.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

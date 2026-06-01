@@ -10,6 +10,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/auditlogs"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // TestIntegration_AuditLogs_List confirms List returns without error
@@ -20,7 +21,7 @@ func TestIntegration_AuditLogs_List(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
-	got, err := c.AuditLogs.List(ctx, auditlogs.ListInput{})
+	got, err := types.Collect(c.AuditLogs.Iter(ctx, auditlogs.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

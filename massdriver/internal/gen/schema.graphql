@@ -2661,6 +2661,41 @@ type RootMutationType {
   ): DeploymentPayload
 
   """
+  Propose a rollback to a past deployment's exact state.
+
+  Takes the **source deployment** — the historical run you want to return
+  to — and creates a new `PROPOSED` `PROVISION` deployment that snapshots
+  the source's params, connection wiring, bundle version, and release.
+  The source must be a `COMPLETED` `PROVISION` deployment.
+
+  The rollback proposal can be approved (`approveDeployment`), rejected
+  (`rejectDeployment`), or planned (`planDeployment`) like any other
+  proposed deployment. **On approval**, the instance is pinned to the
+  source deployment's exact bundle version, params, and connection
+  snapshot — overriding whatever release is currently configured.
+
+  ```graphql
+  mutation {
+    rollbackDeployment(
+      organizationId: "my-org"
+      id: "550e8400-e29b-41d4-a716-446655440000"
+    ) {
+      result { id status action message }
+      successful
+      messages { field message }
+    }
+  }
+  ```
+  """
+  rollbackDeployment(
+    "Your organization's unique identifier."
+    organizationId: ID!
+
+    "The completed deployment to roll back to."
+    id: UUID!
+  ): DeploymentPayload
+
+  """
   Propose a deployment for human review.
 
   Creates a deployment in `PROPOSED` status. Proposed deployments are **not**
@@ -4273,6 +4308,16 @@ type AccessToken {
 
   "When this token was created (UTC)."
   createdAt: DateTime!
+
+  """
+  The organization this token is scoped to, or `null` if the token has been revoked.
+
+  Hiding the organization on revoked tokens prevents an ex-member of the org from walking
+  `token.organization { name, logo, ... }` after their tokens have been revoked on removal.
+  The token row stays visible so the owner can audit revocation history; only the
+  organization edge is severed.
+  """
+  organization: Organization
 }
 
 type AccessTokenWithValuePayload {
@@ -5624,6 +5669,21 @@ enum InvitesSortField {
   CREATED_AT
 }
 
+"Available fields for sorting login sessions."
+enum LoginSessionsSortField {
+  "Sort by when the sign-in occurred (newest or oldest first)."
+  CREATED_AT
+}
+
+"Available fields for sorting SCIM provisionings."
+enum ProvisioningsSortField {
+  "Sort by when the provisioning record was first created."
+  CREATED_AT
+
+  "Sort by when the provisioning record was last touched by the IdP."
+  UPDATED_AT
+}
+
 "The type of group, based on its role within the organization."
 enum ViewerGroupType {
   "Organization administrators with full access to all projects and settings."
@@ -5654,6 +5714,24 @@ input InvitesSort {
   order: SortOrder!
 }
 
+"Sorting options for the viewer's login sessions list."
+input LoginSessionsSort {
+  "The field to sort by."
+  field: LoginSessionsSortField!
+
+  "Ascending (`ASC`) or descending (`DESC`)."
+  order: SortOrder!
+}
+
+"Sorting options for the viewer's SCIM provisionings list."
+input ProvisioningsSort {
+  "The field to sort by."
+  field: ProvisioningsSortField!
+
+  "Ascending (`ASC`) or descending (`DESC`)."
+  order: SortOrder!
+}
+
 """
 An OAuth or OIDC provider identity linked to your account.
 
@@ -5677,6 +5755,80 @@ type IdentitiesViewerPage {
 
   "A list of type account_identity_viewer."
   items: [AccountIdentityViewer]
+}
+
+"""
+A record of a sign-in to your Massdriver account.
+
+Created each time you authenticate through a linked OAuth or OIDC identity. Use this list
+in the security center to spot unfamiliar IPs or user agents and rotate credentials if
+anything looks wrong.
+"""
+type LoginSessionViewer {
+  "Unique identifier for this sign-in record."
+  id: ID!
+
+  "The IP address that initiated the sign-in."
+  ipAddress: String!
+
+  "The browser or client user-agent that initiated the sign-in, if reported."
+  userAgent: String
+
+  "The OAuth\/OIDC provider that authenticated this sign-in (e.g., `google`, `github`)."
+  provider: String!
+
+  "When the sign-in occurred (UTC)."
+  createdAt: DateTime!
+}
+
+type LoginSessionsViewerPage {
+  "Pagination cursors for navigating between pages."
+  cursor: PaginationCursor!
+
+  "A list of type login_session_viewer."
+  items: [LoginSessionViewer]
+}
+
+"Organization details included in a SCIM provisioning record."
+type ProvisioningOrganizationViewer {
+  "The organization's human-readable identifier (e.g., `acme-corp`). Use this as `organizationId` in mutations."
+  id: ID!
+
+  "Name of the organization that provisioned this account via SCIM."
+  name: String!
+}
+
+"""
+A record of your account being provisioned into an organization via SCIM.
+
+One record exists per organization that provisioned this account through an external
+identity provider (Okta, Azure AD, etc.). The `scimExternalId` is the stable identifier
+the IdP uses for this account; it is `null` if the account was not provisioned through
+SCIM in that organization.
+"""
+type ScimProvisioningViewer {
+  "Unique identifier for this provisioning record."
+  id: ID!
+
+  "The stable identifier assigned by the upstream identity provider, or `null` if unknown."
+  scimExternalId: String
+
+  "The organization this provisioning record belongs to."
+  organization: ProvisioningOrganizationViewer!
+
+  "When this provisioning record was first created (UTC)."
+  createdAt: DateTime!
+
+  "When this provisioning record was last touched by the IdP (UTC)."
+  updatedAt: DateTime!
+}
+
+type ScimProvisioningsViewerPage {
+  "Pagination cursors for navigating between pages."
+  cursor: PaginationCursor!
+
+  "A list of type scim_provisioning_viewer."
+  items: [ScimProvisioningViewer]
 }
 
 "Organization details included in a group invitation."
@@ -5872,6 +6024,57 @@ type AccountViewer {
     "Pagination cursor from a previous response to fetch the next page."
     cursor: Cursor
   ): InvitesViewerPage
+
+  """
+  Sign-in history for your account across every linked identity.
+
+  Use this in the security center to audit recent sessions and spot anything unfamiliar.
+  Each record captures the IP address, user agent (if reported), and which OAuth/OIDC
+  provider was used. Defaults to newest first.
+  """
+  loginSessions(
+    "Sort field and direction. Defaults to newest first."
+    sort: LoginSessionsSort
+
+    "Pagination cursor from a previous response to fetch the next page."
+    cursor: Cursor
+  ): LoginSessionsViewerPage
+
+  """
+  Personal access tokens you own, across every organization you belong to.
+
+  Lists every token issued to your account in every org, regardless of which org context
+  you're currently viewing. Use this to audit and revoke tokens from a single security
+  center view. The raw token value is only shown on creation and is never returned here.
+
+  To create or revoke tokens, use the org-scoped `createAccessToken` / `revokeAccessToken`
+  mutations.
+  """
+  accountTokens(
+    "Optional filters to narrow results."
+    filter: AccessTokensFilter
+
+    "Sort field and direction. Defaults to newest first."
+    sort: AccessTokensSort
+
+    "Pagination cursor from a previous response to fetch the next page."
+    cursor: Cursor
+  ): AccessTokensPage
+
+  """
+  SCIM provisioning records for your account, one per organization that provisioned you.
+
+  If your account has been provisioned through SCIM by one or more organizations (via Okta,
+  Azure AD, etc.), each provisioning record appears here with the upstream IdP's external
+  identifier. Use this to see which organizations are managing your account through SCIM.
+  """
+  provisionings(
+    "Sort field and direction. Defaults to newest first."
+    sort: ProvisioningsSort
+
+    "Pagination cursor from a previous response to fetch the next page."
+    cursor: Cursor
+  ): ScimProvisioningsViewerPage
 }
 
 """
@@ -7631,6 +7834,12 @@ type Environment {
 
   "The parent project that this environment belongs to."
   project: Project
+
+  """
+  The environment this one was forked from via `forkEnvironment`, or `null` for
+  environments that were created directly. A fork's parent is immutable.
+  """
+  parent: Environment
 
   "Aggregated cloud-provider cost metrics for all instances in this environment."
   cost: CostSummary!

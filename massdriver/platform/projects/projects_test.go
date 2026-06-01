@@ -10,6 +10,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/projects"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // newService builds a *projects.Service backed by the provided gqltest mock,
@@ -186,7 +187,7 @@ func TestList(t *testing.T) {
 		}),
 	)
 
-	got, err := newService(gqlClient).List(t.Context(), projects.ListInput{})
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), projects.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

@@ -88,10 +88,10 @@ func TestList_FilterByOriginAndType(t *testing.T) {
 		}),
 	)
 
-	_, err := newService(gqlClient).List(t.Context(), resources.ListInput{
+	_, err := types.Collect(newService(gqlClient).Iter(t.Context(), resources.ListInput{
 		Origin:       resources.OriginImported,
 		ResourceType: "aws-iam-role",
-	})
+	}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -123,7 +123,7 @@ func TestList_AutoPaginates(t *testing.T) {
 	})
 	gqlClient := gqltest.NewClient(page1, page2)
 
-	got, err := newService(gqlClient).List(t.Context(), resources.ListInput{})
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), resources.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

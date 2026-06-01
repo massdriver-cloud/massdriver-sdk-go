@@ -10,6 +10,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/projects"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // projectFixtureID is the project ID used by every integration test
@@ -104,7 +105,7 @@ func TestIntegration_Projects_List(t *testing.T) {
 		_, _ = c.Projects.Delete(ctx, projectFixtureID)
 	})
 
-	all, err := c.Projects.List(ctx, projects.ListInput{})
+	all, err := types.Collect(c.Projects.Iter(ctx, projects.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

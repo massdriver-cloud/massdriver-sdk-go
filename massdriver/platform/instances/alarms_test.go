@@ -7,6 +7,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/instances"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 func TestGetAlarm(t *testing.T) {
@@ -84,9 +85,9 @@ func TestListAlarms_FilterByInstance(t *testing.T) {
 		}),
 	)
 
-	got, err := newService(gqlClient).ListAlarms(t.Context(), instances.ListAlarmsInput{
+	got, err := types.Collect(newService(gqlClient).IterAlarms(t.Context(), instances.ListAlarmsInput{
 		InstanceID: "ecomm-prod-database",
-	})
+	}))
 	if err != nil {
 		t.Fatalf("ListAlarms: %v", err)
 	}

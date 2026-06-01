@@ -16,12 +16,14 @@ package groups
 import (
 	"context"
 	"fmt"
+	"iter"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
@@ -52,7 +54,7 @@ const (
 	RoleCustom             Role = "CUSTOM"
 )
 
-// SortField is the field a [Service.List] result can be ordered by.
+// SortField is the field a [Service.Iter] result can be ordered by.
 type SortField string
 
 const (
@@ -68,12 +70,16 @@ const (
 	SortDesc SortOrder = "DESC"
 )
 
-// ListInput controls a [Service.List] call. Zero value lists every group, sorted
+// ListInput controls a [Service.Iter] call. Zero value lists every group, sorted
 // by name ascending.
 type ListInput struct {
 	SortBy    SortField
 	SortOrder SortOrder
 	PageSize  int
+	// After is the opaque cursor from a prior [types.Page].Next, selecting
+	// which page to start from. Empty starts at the first page. For Iter it
+	// sets the starting page; for ListPage it selects the single page returned.
+	After string
 }
 
 // CreateInput is the input for [Service.Create]. New groups always have role
@@ -105,41 +111,49 @@ func (s *Service) Get(ctx context.Context, id string) (*Group, error) {
 	return toGroup(resp.Group)
 }
 
-// List returns groups in the organization, applying sort options and
-// following pagination automatically.
-func (s *Service) List(ctx context.Context, input ListInput) ([]Group, error) {
+// Iter returns a lazy [iter.Seq2] over groups matching input, fetching pages
+// on demand. It is the recommended way to list: ranging the sequence streams
+// results without buffering the whole match set, and breaking out of the loop
+// stops requesting further pages. The yielded error is non-nil exactly once, on
+// a failed page fetch, after which iteration stops.
+//
+// To buffer every match into a slice, wrap with [types.Collect].
+func (s *Service) Iter(ctx context.Context, input ListInput) iter.Seq2[Group, error] {
+	return paging.Iter(ctx, input.After, s.page(input))
+}
+
+// ListPage returns a single page of groups matching input. input.PageSize
+// bounds the page and input.After (an opaque cursor from a prior page's Next)
+// selects which page. Use it for stateless pagination — e.g. a UI or CLI that
+// hands the returned [types.Page].Next back to its own client to fetch the next
+// page on demand.
+func (s *Service) ListPage(ctx context.Context, input ListInput) (types.Page[Group], error) {
+	return s.page(input)(ctx, input.After)
+}
+
+// page builds the single-page fetcher shared by Iter and ListPage.
+func (s *Service) page(input ListInput) paging.FetchFunc[Group] {
 	sort := buildListSort(input)
-
-	var (
-		out    []Group
-		cursor *scalars.Cursor
-	)
-	if input.PageSize > 0 {
-		cursor = &scalars.Cursor{Limit: input.PageSize}
-	}
-
-	for {
-		resp, err := gen.ListGroups(ctx, s.client.GQLv2, s.client.Config.OrganizationID, sort, cursor)
+	limit := input.PageSize
+	return func(ctx context.Context, after string) (types.Page[Group], error) {
+		resp, err := gen.ListGroups(ctx, s.client.GQLv2, s.client.Config.OrganizationID, sort, scalars.NewCursor(limit, after))
 		if err != nil {
-			return nil, gql.ClassifyError(fmt.Errorf("list groups: %w", err))
+			return types.Page[Group]{}, gql.ClassifyError(fmt.Errorf("list groups: %w", err))
 		}
+		items := make([]Group, 0, len(resp.Groups.Items))
 		for _, item := range resp.Groups.Items {
 			g, derr := toGroup(item)
 			if derr != nil {
-				return nil, derr
+				return types.Page[Group]{}, derr
 			}
-			out = append(out, *g)
+			items = append(items, *g)
 		}
-		next := resp.Groups.Cursor.Next
-		if next == "" {
-			break
-		}
-		cursor = &scalars.Cursor{Next: next}
-		if input.PageSize > 0 {
-			cursor.Limit = input.PageSize
-		}
+		return types.Page[Group]{
+			Items:    items,
+			Next:     resp.Groups.Cursor.Next,
+			Previous: resp.Groups.Cursor.Previous,
+		}, nil
 	}
-	return out, nil
 }
 
 // Create creates a new custom group. Returns a [*gql.MutationFailedError]

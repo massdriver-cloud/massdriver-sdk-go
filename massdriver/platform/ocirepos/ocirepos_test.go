@@ -11,6 +11,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/ocirepos"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // newService builds a *ocirepos.Service backed by the provided gqltest mock,
@@ -82,7 +83,7 @@ func TestList_NoFilter(t *testing.T) {
 		}),
 	)
 
-	got, err := newService(gqlClient).List(t.Context(), ocirepos.ListInput{})
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), ocirepos.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -114,9 +115,9 @@ func TestList_WithNameFilter(t *testing.T) {
 		}),
 	)
 
-	_, err := newService(gqlClient).List(t.Context(), ocirepos.ListInput{
+	_, err := types.Collect(newService(gqlClient).Iter(t.Context(), ocirepos.ListInput{
 		NameStartsWith: "aws-",
-	})
+	}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -159,7 +160,7 @@ func TestList_AutoPaginates(t *testing.T) {
 	})
 	gqlClient := gqltest.NewClient(page1, page2)
 
-	got, err := newService(gqlClient).List(t.Context(), ocirepos.ListInput{})
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), ocirepos.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

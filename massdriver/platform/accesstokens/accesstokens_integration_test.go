@@ -10,6 +10,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/accesstokens"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // TestIntegration_AccessTokens_CreateAndRevoke creates a fresh PAT and
@@ -59,7 +60,7 @@ func TestIntegration_AccessTokens_List(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
-	got, err := c.AccessTokens.List(ctx, accesstokens.ListInput{})
+	got, err := types.Collect(c.AccessTokens.Iter(ctx, accesstokens.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

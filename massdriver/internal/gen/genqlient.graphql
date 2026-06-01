@@ -598,9 +598,17 @@ query GetEnvironment($organizationId: ID!, $id: ID!) {
 query ListEnvironments(
   $organizationId: ID!,
   # @genqlient(omitempty: true, pointer: true)
-  $filter: EnvironmentsFilter
+  $filter: EnvironmentsFilter,
+  # @genqlient(omitempty: true, pointer: true)
+  $sort: EnvironmentsSort,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
 ) {
-  environments(organizationId: $organizationId, filter: $filter) {
+  environments(organizationId: $organizationId, filter: $filter, sort: $sort, cursor: $cursor) {
+    cursor {
+      next
+      previous
+    }
     items {
       id
       name
@@ -1870,8 +1878,18 @@ query GetProject($organizationId: ID!, $id: ID!) {
   }
 }
 
-query ListProjects($organizationId: ID!) {
-  projects(organizationId: $organizationId, sort: {field: NAME, order: ASC}) {
+query ListProjects(
+  $organizationId: ID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $sort: ProjectsSort,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  projects(organizationId: $organizationId, sort: $sort, cursor: $cursor) {
+    cursor {
+      next
+      previous
+    }
     items {
       id
       name

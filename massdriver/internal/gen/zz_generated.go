@@ -8097,6 +8097,35 @@ func (v *EnvironmentsFilter) GetProjectId() *IdFilter { return v.ProjectId }
 // GetId returns EnvironmentsFilter.Id, and is useful for accessing the field via an interface.
 func (v *EnvironmentsFilter) GetId() *StringFilter { return v.Id }
 
+// Sorting options for the environments list. Specify a field and direction.
+type EnvironmentsSort struct {
+	// The field to sort by.
+	Field EnvironmentsSortField `json:"field"`
+	// `ASC` for A-Z / oldest first, `DESC` for Z-A / newest first.
+	Order SortOrder `json:"order"`
+}
+
+// GetField returns EnvironmentsSort.Field, and is useful for accessing the field via an interface.
+func (v *EnvironmentsSort) GetField() EnvironmentsSortField { return v.Field }
+
+// GetOrder returns EnvironmentsSort.Order, and is useful for accessing the field via an interface.
+func (v *EnvironmentsSort) GetOrder() SortOrder { return v.Order }
+
+// Fields available for sorting the environments list.
+type EnvironmentsSortField string
+
+const (
+	// Sort alphabetically by environment name (A-Z or Z-A).
+	EnvironmentsSortFieldName EnvironmentsSortField = "NAME"
+	// Sort by creation date (oldest first or newest first).
+	EnvironmentsSortFieldCreatedAt EnvironmentsSortField = "CREATED_AT"
+)
+
+var AllEnvironmentsSortField = []EnvironmentsSortField{
+	EnvironmentsSortFieldName,
+	EnvironmentsSortFieldCreatedAt,
+}
+
 // EvaluatePoliciesEvaluatePoliciesPolicyDecision includes the requested fields of the GraphQL type PolicyDecision.
 // The GraphQL type's documentation follows.
 //
@@ -15927,13 +15956,45 @@ func (v *ListDeploymentsResponse) GetDeployments() ListDeploymentsDeploymentsDep
 
 // ListEnvironmentsEnvironmentsEnvironmentsPage includes the requested fields of the GraphQL type EnvironmentsPage.
 type ListEnvironmentsEnvironmentsEnvironmentsPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListEnvironmentsEnvironmentsEnvironmentsPageCursorPaginationCursor `json:"cursor"`
 	// A list of type environment.
 	Items []ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment `json:"items"`
+}
+
+// GetCursor returns ListEnvironmentsEnvironmentsEnvironmentsPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPage) GetCursor() ListEnvironmentsEnvironmentsEnvironmentsPageCursorPaginationCursor {
+	return v.Cursor
 }
 
 // GetItems returns ListEnvironmentsEnvironmentsEnvironmentsPage.Items, and is useful for accessing the field via an interface.
 func (v *ListEnvironmentsEnvironmentsEnvironmentsPage) GetItems() []ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment {
 	return v.Items
+}
+
+// ListEnvironmentsEnvironmentsEnvironmentsPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListEnvironmentsEnvironmentsEnvironmentsPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListEnvironmentsEnvironmentsEnvironmentsPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListEnvironmentsEnvironmentsEnvironmentsPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
 }
 
 // ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment includes the requested fields of the GraphQL type Environment.
@@ -17773,13 +17834,43 @@ func (v *ListPolicyEntitiesResponse) GetPolicyEntities() []ListPolicyEntitiesPol
 
 // ListProjectsProjectsProjectsPage includes the requested fields of the GraphQL type ProjectsPage.
 type ListProjectsProjectsProjectsPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListProjectsProjectsProjectsPageCursorPaginationCursor `json:"cursor"`
 	// A list of type project.
 	Items []ListProjectsProjectsProjectsPageItemsProject `json:"items"`
+}
+
+// GetCursor returns ListProjectsProjectsProjectsPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPage) GetCursor() ListProjectsProjectsProjectsPageCursorPaginationCursor {
+	return v.Cursor
 }
 
 // GetItems returns ListProjectsProjectsProjectsPage.Items, and is useful for accessing the field via an interface.
 func (v *ListProjectsProjectsProjectsPage) GetItems() []ListProjectsProjectsProjectsPageItemsProject {
 	return v.Items
+}
+
+// ListProjectsProjectsProjectsPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListProjectsProjectsProjectsPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListProjectsProjectsProjectsPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageCursorPaginationCursor) GetNext() string { return v.Next }
+
+// GetPrevious returns ListProjectsProjectsProjectsPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
 }
 
 // ListProjectsProjectsProjectsPageItemsProject includes the requested fields of the GraphQL type Project.
@@ -19405,6 +19496,35 @@ const (
 var AllPolicyEffect = []PolicyEffect{
 	PolicyEffectAllow,
 	PolicyEffectDeny,
+}
+
+// Sorting options for the projects list. Specify a field and direction.
+type ProjectsSort struct {
+	// The field to sort by.
+	Field ProjectsSortField `json:"field"`
+	// Sort direction (`ASC` or `DESC`).
+	Order SortOrder `json:"order"`
+}
+
+// GetField returns ProjectsSort.Field, and is useful for accessing the field via an interface.
+func (v *ProjectsSort) GetField() ProjectsSortField { return v.Field }
+
+// GetOrder returns ProjectsSort.Order, and is useful for accessing the field via an interface.
+func (v *ProjectsSort) GetOrder() SortOrder { return v.Order }
+
+// Fields available for sorting the projects list.
+type ProjectsSortField string
+
+const (
+	// Sort alphabetically by project name (A-Z or Z-A).
+	ProjectsSortFieldName ProjectsSortField = "NAME"
+	// Sort by creation date (oldest first or newest first).
+	ProjectsSortFieldCreatedAt ProjectsSortField = "CREATED_AT"
+)
+
+var AllProjectsSortField = []ProjectsSortField{
+	ProjectsSortFieldName,
+	ProjectsSortFieldCreatedAt,
 }
 
 // Actions that support the propose/approve/reject workflow. `PLAN` is excluded
@@ -25435,6 +25555,8 @@ func (v *__ListDeploymentsInput) GetCursor() *scalars.Cursor { return v.Cursor }
 type __ListEnvironmentsInput struct {
 	OrganizationId string              `json:"organizationId"`
 	Filter         *EnvironmentsFilter `json:"filter,omitempty"`
+	Sort           *EnvironmentsSort   `json:"sort,omitempty"`
+	Cursor         *scalars.Cursor     `json:"cursor,omitempty"`
 }
 
 // GetOrganizationId returns __ListEnvironmentsInput.OrganizationId, and is useful for accessing the field via an interface.
@@ -25442,6 +25564,12 @@ func (v *__ListEnvironmentsInput) GetOrganizationId() string { return v.Organiza
 
 // GetFilter returns __ListEnvironmentsInput.Filter, and is useful for accessing the field via an interface.
 func (v *__ListEnvironmentsInput) GetFilter() *EnvironmentsFilter { return v.Filter }
+
+// GetSort returns __ListEnvironmentsInput.Sort, and is useful for accessing the field via an interface.
+func (v *__ListEnvironmentsInput) GetSort() *EnvironmentsSort { return v.Sort }
+
+// GetCursor returns __ListEnvironmentsInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListEnvironmentsInput) GetCursor() *scalars.Cursor { return v.Cursor }
 
 // __ListGroupsInput is used internally by genqlient
 type __ListGroupsInput struct {
@@ -25537,11 +25665,19 @@ func (v *__ListPolicyEntitiesInput) GetOrganizationId() string { return v.Organi
 
 // __ListProjectsInput is used internally by genqlient
 type __ListProjectsInput struct {
-	OrganizationId string `json:"organizationId"`
+	OrganizationId string          `json:"organizationId"`
+	Sort           *ProjectsSort   `json:"sort,omitempty"`
+	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
 }
 
 // GetOrganizationId returns __ListProjectsInput.OrganizationId, and is useful for accessing the field via an interface.
 func (v *__ListProjectsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetSort returns __ListProjectsInput.Sort, and is useful for accessing the field via an interface.
+func (v *__ListProjectsInput) GetSort() *ProjectsSort { return v.Sort }
+
+// GetCursor returns __ListProjectsInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListProjectsInput) GetCursor() *scalars.Cursor { return v.Cursor }
 
 // __ListResourcesInput is used internally by genqlient
 type __ListResourcesInput struct {
@@ -29272,8 +29408,12 @@ func ListDeployments(
 
 // The query executed by ListEnvironments.
 const ListEnvironments_Operation = `
-query ListEnvironments ($organizationId: ID!, $filter: EnvironmentsFilter) {
-	environments(organizationId: $organizationId, filter: $filter) {
+query ListEnvironments ($organizationId: ID!, $filter: EnvironmentsFilter, $sort: EnvironmentsSort, $cursor: Cursor) {
+	environments(organizationId: $organizationId, filter: $filter, sort: $sort, cursor: $cursor) {
+		cursor {
+			next
+			previous
+		}
 		items {
 			id
 			name
@@ -29317,6 +29457,8 @@ func ListEnvironments(
 	client_ graphql.Client,
 	organizationId string,
 	filter *EnvironmentsFilter,
+	sort *EnvironmentsSort,
+	cursor *scalars.Cursor,
 ) (data_ *ListEnvironmentsResponse, err_ error) {
 	req_ := &graphql.Request{
 		OpName: "ListEnvironments",
@@ -29324,6 +29466,8 @@ func ListEnvironments(
 		Variables: &__ListEnvironmentsInput{
 			OrganizationId: organizationId,
 			Filter:         filter,
+			Sort:           sort,
+			Cursor:         cursor,
 		},
 	}
 
@@ -29676,8 +29820,12 @@ func ListPolicyEntities(
 
 // The query executed by ListProjects.
 const ListProjects_Operation = `
-query ListProjects ($organizationId: ID!) {
-	projects(organizationId: $organizationId, sort: {field:NAME,order:ASC}) {
+query ListProjects ($organizationId: ID!, $sort: ProjectsSort, $cursor: Cursor) {
+	projects(organizationId: $organizationId, sort: $sort, cursor: $cursor) {
+		cursor {
+			next
+			previous
+		}
 		items {
 			id
 			name
@@ -29750,12 +29898,16 @@ func ListProjects(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	organizationId string,
+	sort *ProjectsSort,
+	cursor *scalars.Cursor,
 ) (data_ *ListProjectsResponse, err_ error) {
 	req_ := &graphql.Request{
 		OpName: "ListProjects",
 		Query:  ListProjects_Operation,
 		Variables: &__ListProjectsInput{
 			OrganizationId: organizationId,
+			Sort:           sort,
+			Cursor:         cursor,
 		},
 	}
 
