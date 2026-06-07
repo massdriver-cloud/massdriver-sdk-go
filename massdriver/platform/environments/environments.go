@@ -203,7 +203,7 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Environment] {
 		for _, item := range resp.Environments.Items {
 			e, eerr := toEnvironment(item)
 			if eerr != nil {
-				return types.Page[Environment]{}, fmt.Errorf("decode environment: %w", eerr)
+				return types.Page[Environment]{}, eerr
 			}
 			items = append(items, *e)
 		}

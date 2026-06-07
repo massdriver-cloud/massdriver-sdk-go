@@ -240,7 +240,7 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Deployment] {
 		for _, item := range resp.Deployments.Items {
 			d, derr := toDeployment(item)
 			if derr != nil {
-				return types.Page[Deployment]{}, fmt.Errorf("decode deployment: %w", derr)
+				return types.Page[Deployment]{}, derr
 			}
 			items = append(items, *d)
 		}

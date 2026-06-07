@@ -17,7 +17,9 @@ type Page[T any] struct {
 	Items []T
 	// Next is the cursor for the following page, or "" if this is the last page.
 	Next string
-	// Previous is the cursor for the preceding page, or "" if this is the first.
+	// Previous is the cursor for the preceding page, or "" if this is the
+	// first. It is informational only: the SDK does not currently support
+	// backwards traversal, as ListInput exposes only a forward After cursor.
 	Previous string
 }
 

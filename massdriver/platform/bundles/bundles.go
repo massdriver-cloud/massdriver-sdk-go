@@ -140,7 +140,7 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Bundle] {
 		for _, item := range resp.Bundles.Items {
 			b, berr := toBundle(item)
 			if berr != nil {
-				return types.Page[Bundle]{}, fmt.Errorf("decode bundle: %w", berr)
+				return types.Page[Bundle]{}, berr
 			}
 			items = append(items, *b)
 		}

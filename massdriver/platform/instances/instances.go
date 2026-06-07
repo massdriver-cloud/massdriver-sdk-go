@@ -244,7 +244,7 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Instance] {
 		for _, item := range resp.Instances.Items {
 			inst, ierr := toInstance(item)
 			if ierr != nil {
-				return types.Page[Instance]{}, fmt.Errorf("decode instance: %w", ierr)
+				return types.Page[Instance]{}, ierr
 			}
 			items = append(items, *inst)
 		}
