@@ -36,6 +36,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
@@ -67,7 +68,7 @@ const (
 	OriginProvisioned Origin = "PROVISIONED"
 )
 
-// SortField is the field a [Service.List] result can be ordered by.
+// SortField is the field a [Service.Iter] result can be ordered by.
 type SortField string
 
 const (
@@ -83,7 +84,7 @@ const (
 	SortDesc SortOrder = "DESC"
 )
 
-// ListInput controls a [Service.List] call. Zero value lists every resource
+// ListInput controls a [Service.Iter] call. Zero value lists every resource
 // the caller can see, sorted by name ascending.
 type ListInput struct {
 	// Origin limits results by origin (imported vs provisioned). Empty
@@ -107,6 +108,10 @@ type ListInput struct {
 	SortOrder SortOrder
 
 	PageSize int
+	// After is the opaque cursor from a prior [types.Page].Next, selecting
+	// which page to start from. Empty starts at the first page. For Iter it
+	// sets the starting page; for ListPage it selects the single page returned.
+	After string
 }
 
 // CreateInput is the input for [Service.Create] — importing a new resource
@@ -144,103 +149,51 @@ func (s *Service) Get(ctx context.Context, id string) (*Resource, error) {
 	return toResource(resp.Resource)
 }
 
-// Iter returns a [iter.Seq2] over resources matching the supplied
-// filters, fetching pages lazily on demand. Use this for large or
-// potentially-unbounded result sets where buffering every match in
-// memory ([Service.List]) is impractical.
+// Iter returns a lazy [iter.Seq2] over resources matching input, fetching pages
+// on demand. It is the recommended way to list: ranging the sequence streams
+// results without buffering the whole match set, and breaking out of the loop
+// stops requesting further pages. The yielded error is non-nil exactly once, on
+// a failed page fetch, after which iteration stops.
 //
-// The yielded error is non-nil exactly when the underlying transport
-// or decode failed. Stop iterating after observing one — subsequent
-// items are not produced.
-//
-// Cancellation is via ctx; break out of the range loop to stop
-// requesting further pages.
-//
-// Example:
-//
-//	for r, err := range svc.Iter(ctx, resources.ListInput{Origin: resources.OriginImported}) {
-//	    if err != nil { return err }
-//	    process(r)
-//	}
+// Returned [Resource]s exclude the payload — call [Service.Get] for the full
+// record. To buffer every match into a slice, wrap with [types.Collect].
 func (s *Service) Iter(ctx context.Context, input ListInput) iter.Seq2[Resource, error] {
-	filter := buildListFilter(input)
-	sort := buildListSort(input)
-
-	return func(yield func(Resource, error) bool) {
-		var cursor *scalars.Cursor
-		if input.PageSize > 0 {
-			cursor = &scalars.Cursor{Limit: input.PageSize}
-		}
-		for {
-			resp, err := gen.ListResources(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, cursor)
-			if err != nil {
-				yield(Resource{}, gql.ClassifyError(fmt.Errorf("list resources: %w", err)))
-				return
-			}
-			for _, item := range resp.Resources.Items {
-				r, derr := toResource(item)
-				if derr != nil {
-					yield(Resource{}, derr)
-					return
-				}
-				if !yield(*r, nil) {
-					return
-				}
-			}
-			next := resp.Resources.Cursor.Next
-			if next == "" {
-				return
-			}
-			cursor = &scalars.Cursor{Next: next}
-			if input.PageSize > 0 {
-				cursor.Limit = input.PageSize
-			}
-		}
-	}
+	return paging.Iter(ctx, input.After, s.page(input))
 }
 
-// List returns resources matching the supplied filters, following
-// pagination cursors automatically and buffering every match into a
-// single slice. The result shape excludes the payload (call
-// [Service.Get] for the full record) to keep page payloads small.
-//
-// For large result sets — anything where the full match could be tens
-// of thousands of rows — prefer [Service.Iter], which yields one
-// resource at a time. Cancel ctx to stop early.
-func (s *Service) List(ctx context.Context, input ListInput) ([]Resource, error) {
+// ListPage returns a single page of resources matching input. input.PageSize
+// bounds the page and input.After (an opaque cursor from a prior page's Next)
+// selects which page. Use it for stateless pagination — e.g. a UI or CLI that
+// hands the returned [types.Page].Next back to its own client to fetch the next
+// page on demand.
+func (s *Service) ListPage(ctx context.Context, input ListInput) (types.Page[Resource], error) {
+	return s.page(input)(ctx, input.After)
+}
+
+// page builds the single-page fetcher shared by Iter and ListPage.
+func (s *Service) page(input ListInput) paging.FetchFunc[Resource] {
 	filter := buildListFilter(input)
 	sort := buildListSort(input)
-
-	var (
-		out    []Resource
-		cursor *scalars.Cursor
-	)
-	if input.PageSize > 0 {
-		cursor = &scalars.Cursor{Limit: input.PageSize}
-	}
-
-	for {
-		resp, err := gen.ListResources(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, cursor)
+	limit := input.PageSize
+	return func(ctx context.Context, after string) (types.Page[Resource], error) {
+		resp, err := gen.ListResources(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, scalars.NewCursor(limit, after))
 		if err != nil {
-			return nil, gql.ClassifyError(fmt.Errorf("list resources: %w", err))
+			return types.Page[Resource]{}, gql.ClassifyError(fmt.Errorf("list resources: %w", err))
 		}
+		items := make([]Resource, 0, len(resp.Resources.Items))
 		for _, item := range resp.Resources.Items {
 			r, derr := toResource(item)
 			if derr != nil {
-				return nil, derr
+				return types.Page[Resource]{}, derr
 			}
-			out = append(out, *r)
+			items = append(items, *r)
 		}
-		next := resp.Resources.Cursor.Next
-		if next == "" {
-			break
-		}
-		cursor = &scalars.Cursor{Next: next}
-		if input.PageSize > 0 {
-			cursor.Limit = input.PageSize
-		}
+		return types.Page[Resource]{
+			Items:    items,
+			Next:     resp.Resources.Cursor.Next,
+			Previous: resp.Resources.Cursor.Previous,
+		}, nil
 	}
-	return out, nil
 }
 
 // Create imports a new resource of the named resource type. The

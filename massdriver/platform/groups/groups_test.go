@@ -9,6 +9,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/groups"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 func newService(gqlClient *gqltest.Client) *groups.Service {
@@ -66,7 +67,7 @@ func TestList(t *testing.T) {
 		}),
 	)
 
-	got, err := newService(gqlClient).List(t.Context(), groups.ListInput{})
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), groups.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

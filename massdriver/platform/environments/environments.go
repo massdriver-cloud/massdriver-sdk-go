@@ -20,12 +20,15 @@ package environments
 import (
 	"context"
 	"fmt"
+	"iter"
 	"time"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
@@ -78,12 +81,43 @@ type UpdateInput struct {
 	Attributes  map[string]any
 }
 
-// ListInput narrows what [Service.List] returns.
+// SortField is the field a [Service.Iter]/[Service.ListPage] result can be
+// ordered by.
+type SortField string
+
+const (
+	SortByName      SortField = "NAME"
+	SortByCreatedAt SortField = "CREATED_AT"
+)
+
+// SortOrder is the direction of a sort.
+type SortOrder string
+
+const (
+	SortAsc  SortOrder = "ASC"
+	SortDesc SortOrder = "DESC"
+)
+
+// ListInput narrows what [Service.Iter]/[Service.ListPage] returns. The zero
+// value lists every environment, sorted by name ascending.
 type ListInput struct {
 	// ProjectID limits results to one project.
 	ProjectID string
 	// IDs limits results to the named environments.
 	IDs []string
+
+	// SortBy controls the sort field. Empty = NAME.
+	SortBy SortField
+	// SortOrder controls sort direction. Empty = ASC.
+	SortOrder SortOrder
+
+	// PageSize bounds how many environments each underlying request fetches
+	// (1..100). Zero lets the server pick its default.
+	PageSize int
+	// After is the opaque cursor from a prior [types.Page].Next, selecting
+	// which page to start from. Empty starts at the first page. For Iter it
+	// sets the starting page; for ListPage it selects the single page returned.
+	After string
 }
 
 // ForkInput is the input for [Service.Fork].
@@ -135,22 +169,65 @@ func (s *Service) Get(ctx context.Context, id string) (*Environment, error) {
 	return toEnvironment(resp.Environment)
 }
 
-// List returns every environment the caller can see in the configured
-// organization, narrowed by [ListInput].
-func (s *Service) List(ctx context.Context, input ListInput) ([]Environment, error) {
-	resp, err := gen.ListEnvironments(ctx, s.client.GQLv2, s.client.Config.OrganizationID, buildListFilter(input))
-	if err != nil {
-		return nil, gql.ClassifyError(fmt.Errorf("list environments: %w", err))
-	}
-	out := make([]Environment, 0, len(resp.Environments.Items))
-	for _, item := range resp.Environments.Items {
-		e, eerr := toEnvironment(item)
-		if eerr != nil {
-			return nil, fmt.Errorf("decode environment: %w", eerr)
+// Iter returns a lazy [iter.Seq2] over environments matching input, fetching
+// pages on demand. It is the recommended way to list: ranging the sequence
+// streams results without buffering the whole match set, and breaking out of
+// the loop stops requesting further pages. The yielded error is non-nil exactly
+// once, on a failed page fetch, after which iteration stops.
+//
+// To buffer every match into a slice, wrap with [types.Collect].
+func (s *Service) Iter(ctx context.Context, input ListInput) iter.Seq2[Environment, error] {
+	return paging.Iter(ctx, input.After, s.page(input))
+}
+
+// ListPage returns a single page of environments matching input. input.PageSize
+// bounds the page and input.After (an opaque cursor from a prior page's Next)
+// selects which page. Use it for stateless pagination — e.g. a UI or CLI that
+// hands the returned [types.Page].Next back to its own client to fetch the next
+// page on demand.
+func (s *Service) ListPage(ctx context.Context, input ListInput) (types.Page[Environment], error) {
+	return s.page(input)(ctx, input.After)
+}
+
+// page builds the single-page fetcher shared by Iter and ListPage.
+func (s *Service) page(input ListInput) paging.FetchFunc[Environment] {
+	filter := buildListFilter(input)
+	sort := buildListSort(input)
+	limit := input.PageSize
+	return func(ctx context.Context, after string) (types.Page[Environment], error) {
+		resp, err := gen.ListEnvironments(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, scalars.NewCursor(limit, after))
+		if err != nil {
+			return types.Page[Environment]{}, gql.ClassifyError(fmt.Errorf("list environments: %w", err))
 		}
-		out = append(out, *e)
+		items := make([]Environment, 0, len(resp.Environments.Items))
+		for _, item := range resp.Environments.Items {
+			e, eerr := toEnvironment(item)
+			if eerr != nil {
+				return types.Page[Environment]{}, eerr
+			}
+			items = append(items, *e)
+		}
+		return types.Page[Environment]{
+			Items:    items,
+			Next:     resp.Environments.Cursor.Next,
+			Previous: resp.Environments.Cursor.Previous,
+		}, nil
 	}
-	return out, nil
+}
+
+func buildListSort(input ListInput) *gen.EnvironmentsSort {
+	if input.SortBy == "" && input.SortOrder == "" {
+		return nil
+	}
+	field := gen.EnvironmentsSortFieldName
+	if input.SortBy == SortByCreatedAt {
+		field = gen.EnvironmentsSortFieldCreatedAt
+	}
+	order := gen.SortOrderAsc
+	if input.SortOrder == SortDesc {
+		order = gen.SortOrderDesc
+	}
+	return &gen.EnvironmentsSort{Field: field, Order: order}
 }
 
 func buildListFilter(input ListInput) *gen.EnvironmentsFilter {

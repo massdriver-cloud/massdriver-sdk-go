@@ -9,6 +9,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/serviceaccounts"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // newService builds a *serviceaccounts.Service backed by the provided gqltest
@@ -67,9 +68,9 @@ func TestList_Search(t *testing.T) {
 		}),
 	)
 
-	_, err := newService(gqlClient).List(t.Context(), serviceaccounts.ListInput{
+	_, err := types.Collect(newService(gqlClient).Iter(t.Context(), serviceaccounts.ListInput{
 		Search: "deploy",
-	})
+	}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

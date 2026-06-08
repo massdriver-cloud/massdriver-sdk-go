@@ -10,6 +10,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/resources"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // TestIntegration_Resources_CRUD_Imported walks Create → Get → Update →
@@ -86,7 +87,7 @@ func TestIntegration_Resources_List(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
-	got, err := c.Resources.List(ctx, resources.ListInput{})
+	got, err := types.Collect(c.Resources.Iter(ctx, resources.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

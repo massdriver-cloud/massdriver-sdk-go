@@ -10,6 +10,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/serviceaccounts"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // TestIntegration_ServiceAccounts_CRUD walks Create → Get → Update →
@@ -82,7 +83,7 @@ func TestIntegration_ServiceAccounts_List(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
-	got, err := c.ServiceAccounts.List(ctx, serviceaccounts.ListInput{})
+	got, err := types.Collect(c.ServiceAccounts.Iter(ctx, serviceaccounts.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

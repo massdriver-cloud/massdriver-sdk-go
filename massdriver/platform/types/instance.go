@@ -12,7 +12,7 @@ import "time"
 // the underlying GraphQL query selected them. StatePaths and Resources
 // are populated by instances.Get; instances.List leaves them empty to
 // keep paginated responses small. Alarms and secrets are managed
-// separately via instances.ListAlarms / instances.SetSecret etc.
+// separately via instances.IterAlarms / instances.SetSecret etc.
 type Instance struct {
 	ID               string         `json:"id" mapstructure:"id"`
 	Name             string         `json:"name" mapstructure:"name"`

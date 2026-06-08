@@ -14,6 +14,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/environments"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/instances"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/projects"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // scenarioOCIRepoName is the OCI repo the scenario sources its
@@ -173,9 +174,9 @@ func TestIntegration_Scenario_PreviewEnvFork(t *testing.T) {
 func waitForInstance(ctx context.Context, c *massdriver.Client, envID, compID string, timeout time.Duration) (*instances.Instance, error) {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
-		list, err := c.Instances.List(ctx, instances.ListInput{
+		list, err := types.Collect(c.Instances.Iter(ctx, instances.ListInput{
 			EnvironmentID: envID,
-		})
+		}))
 		if err != nil {
 			return nil, fmt.Errorf("list instances: %w", err)
 		}

@@ -10,6 +10,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/auditlogs"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 func newService(gqlClient *gqltest.Client) *auditlogs.Service {
@@ -86,11 +87,11 @@ func TestList_FilterByTypeAndTimeRange(t *testing.T) {
 
 	start := time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2026, 5, 31, 23, 59, 59, 0, time.UTC)
-	got, err := newService(gqlClient).List(t.Context(), auditlogs.ListInput{
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), auditlogs.ListInput{
 		Type:           "project.created",
 		TimeRangeStart: start,
 		TimeRangeEnd:   end,
-	})
+	}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -120,10 +121,10 @@ func TestList_FilterByActor(t *testing.T) {
 		}),
 	)
 
-	_, err := newService(gqlClient).List(t.Context(), auditlogs.ListInput{
+	_, err := types.Collect(newService(gqlClient).Iter(t.Context(), auditlogs.ListInput{
 		ActorTypes:  []auditlogs.ActorType{auditlogs.ActorAccount, auditlogs.ActorServiceAccount},
 		ActorSearch: "alice",
-	})
+	}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -155,7 +156,7 @@ func TestList_NoFilters(t *testing.T) {
 		}),
 	)
 
-	if _, err := newService(gqlClient).List(t.Context(), auditlogs.ListInput{}); err != nil {
+	if _, err := types.Collect(newService(gqlClient).Iter(t.Context(), auditlogs.ListInput{})); err != nil {
 		t.Fatalf("List: %v", err)
 	}
 
@@ -181,7 +182,7 @@ func TestList_AutoPaginates(t *testing.T) {
 	})
 	gqlClient := gqltest.NewClient(page1, page2)
 
-	got, err := newService(gqlClient).List(t.Context(), auditlogs.ListInput{})
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), auditlogs.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

@@ -147,10 +147,10 @@ func TestList_FilterByInstanceAndStatus(t *testing.T) {
 		}),
 	)
 
-	got, err := newService(gqlClient).List(t.Context(), deployments.ListInput{
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), deployments.ListInput{
 		InstanceID: "ecomm-prod-database",
 		Status:     deployments.StatusCompleted,
-	})
+	}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -185,7 +185,7 @@ func TestList_AutoPaginates(t *testing.T) {
 	})
 	gqlClient := gqltest.NewClient(page1, page2)
 
-	got, err := newService(gqlClient).List(t.Context(), deployments.ListInput{})
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), deployments.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

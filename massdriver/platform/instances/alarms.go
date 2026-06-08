@@ -9,6 +9,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
@@ -32,7 +33,7 @@ const (
 	AlarmStatusAlarm AlarmStatus = "ALARM"
 )
 
-// AlarmSortField is the field a [Service.ListAlarms] result can be ordered by.
+// AlarmSortField is the field a [Service.IterAlarms] result can be ordered by.
 type AlarmSortField string
 
 const (
@@ -40,19 +41,26 @@ const (
 	AlarmSortByCreatedAt   AlarmSortField = "CREATED_AT"
 )
 
-// ListAlarmsInput controls a [Service.ListAlarms] call. Zero value lists every alarm
-// the caller can see across all instances.
+// ListAlarmsInput controls a [Service.IterAlarms]/[Service.ListAlarmsPage]
+// call. Zero value lists every alarm the caller can see across all instances.
 type ListAlarmsInput struct {
 	ProjectID     string
 	EnvironmentID string
 	ComponentID   string
 	InstanceID    string
 	OciRepoName   string
+	// BundleID limits results to alarms on instances pinned to a specific
+	// bundle version ("name@version") or release channel ("name@~1",
+	// "name@latest"). Use OciRepoName instead to match every version.
+	BundleID string
 
 	SortBy    AlarmSortField
 	SortOrder SortOrder
 
 	PageSize int
+	// After is the opaque cursor from a prior [types.Page].Next, selecting
+	// which page to start from. Empty starts at the first page.
+	After string
 }
 
 // CreateAlarmInput is the input for [Service.CreateAlarm].
@@ -101,17 +109,17 @@ func (s *Service) GetAlarm(ctx context.Context, id string) (*Alarm, error) {
 	return toAlarm(resp.InstanceAlarm)
 }
 
-// IterAlarms returns a [iter.Seq2] over alarms matching the supplied
-// filters, fetching pages lazily on demand. Use this for large or
-// potentially-unbounded result sets where buffering every match in
-// memory ([Service.ListAlarms]) is impractical.
+// IterAlarms returns a lazy [iter.Seq2] over alarms matching input, fetching
+// pages on demand. It is the recommended way to list: ranging the sequence
+// streams results without buffering the whole match set, and breaking out of
+// the loop stops requesting further pages. The yielded error is non-nil exactly
+// once, on a failed page fetch, after which iteration stops.
 //
-// The yielded error is non-nil exactly when the underlying transport
-// or decode failed. Stop iterating after observing one — subsequent
-// items are not produced.
-//
-// Cancellation is via ctx; break out of the range loop to stop
-// requesting further pages.
+// To list alarms for a specific instance, set ListAlarmsInput.InstanceID; for a
+// project or environment, set ProjectID / EnvironmentID. The metric shape is
+// not selected on list to keep page payloads small — call [Service.GetAlarm]
+// for full per-alarm metric details. To buffer every match into a slice, wrap
+// with [types.Collect].
 //
 // Example:
 //
@@ -120,88 +128,41 @@ func (s *Service) GetAlarm(ctx context.Context, id string) (*Alarm, error) {
 //	    process(a)
 //	}
 func (s *Service) IterAlarms(ctx context.Context, input ListAlarmsInput) iter.Seq2[Alarm, error] {
-	filter := buildAlarmsListFilter(input)
-	sort := buildAlarmsListSort(input)
-
-	return func(yield func(Alarm, error) bool) {
-		var cursor *scalars.Cursor
-		if input.PageSize > 0 {
-			cursor = &scalars.Cursor{Limit: input.PageSize}
-		}
-		for {
-			resp, err := gen.ListInstanceAlarms(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, cursor)
-			if err != nil {
-				yield(Alarm{}, gql.ClassifyError(fmt.Errorf("list instance alarms: %w", err)))
-				return
-			}
-			for _, item := range resp.InstanceAlarms.Items {
-				a, aerr := toAlarm(item)
-				if aerr != nil {
-					yield(Alarm{}, fmt.Errorf("decode instance alarm: %w", aerr))
-					return
-				}
-				if !yield(*a, nil) {
-					return
-				}
-			}
-			next := resp.InstanceAlarms.Cursor.Next
-			if next == "" {
-				return
-			}
-			cursor = &scalars.Cursor{Next: next}
-			if input.PageSize > 0 {
-				cursor.Limit = input.PageSize
-			}
-		}
-	}
+	return paging.Iter(ctx, input.After, s.alarmsPage(input))
 }
 
-// ListAlarms returns every alarm matching the supplied filters across all
-// instances the caller can see, following pagination cursors automatically
-// and buffering every match into a single slice.
-//
-// To list alarms for a specific instance, set ListAlarmsInput.InstanceID;
-// for a project or environment, set ProjectID / EnvironmentID. The metric
-// shape is not selected on list to keep page payloads small — call [Service.GetAlarm]
-// for full per-alarm metric details.
-//
-// For large result sets — anything where the full match could be tens
-// of thousands of rows — prefer [Service.IterAlarms], which yields one
-// alarm at a time. Cancel ctx to stop early.
-func (s *Service) ListAlarms(ctx context.Context, input ListAlarmsInput) ([]Alarm, error) {
+// ListAlarmsPage returns a single page of alarms matching input. input.PageSize
+// bounds the page and input.After (an opaque cursor from a prior page's Next)
+// selects which page. Use it for stateless pagination — e.g. a UI or CLI that
+// hands the returned [types.Page].Next back to its own client.
+func (s *Service) ListAlarmsPage(ctx context.Context, input ListAlarmsInput) (types.Page[Alarm], error) {
+	return s.alarmsPage(input)(ctx, input.After)
+}
+
+// alarmsPage builds the single-page fetcher shared by IterAlarms and ListAlarmsPage.
+func (s *Service) alarmsPage(input ListAlarmsInput) paging.FetchFunc[Alarm] {
 	filter := buildAlarmsListFilter(input)
 	sort := buildAlarmsListSort(input)
-
-	var (
-		out    []Alarm
-		cursor *scalars.Cursor
-	)
-	if input.PageSize > 0 {
-		cursor = &scalars.Cursor{Limit: input.PageSize}
-	}
-
-	for {
-		resp, err := gen.ListInstanceAlarms(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, cursor)
+	limit := input.PageSize
+	return func(ctx context.Context, after string) (types.Page[Alarm], error) {
+		resp, err := gen.ListInstanceAlarms(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, scalars.NewCursor(limit, after))
 		if err != nil {
-			return nil, gql.ClassifyError(fmt.Errorf("list instance alarms: %w", err))
+			return types.Page[Alarm]{}, gql.ClassifyError(fmt.Errorf("list instance alarms: %w", err))
 		}
+		items := make([]Alarm, 0, len(resp.InstanceAlarms.Items))
 		for _, item := range resp.InstanceAlarms.Items {
 			a, aerr := toAlarm(item)
 			if aerr != nil {
-				return nil, fmt.Errorf("decode instance alarm: %w", aerr)
+				return types.Page[Alarm]{}, fmt.Errorf("decode instance alarm: %w", aerr)
 			}
-			out = append(out, *a)
+			items = append(items, *a)
 		}
-		next := resp.InstanceAlarms.Cursor.Next
-		if next == "" {
-			break
-		}
-		cursor = &scalars.Cursor{Next: next}
-		if input.PageSize > 0 {
-			cursor.Limit = input.PageSize
-		}
+		return types.Page[Alarm]{
+			Items:    items,
+			Next:     resp.InstanceAlarms.Cursor.Next,
+			Previous: resp.InstanceAlarms.Cursor.Previous,
+		}, nil
 	}
-	return out, nil
 }
 
 // CreateAlarm registers a cloud metric alarm with an instance. The alarm
@@ -304,6 +265,10 @@ func buildAlarmsListFilter(input ListAlarmsInput) *gen.InstanceAlarmsFilter {
 	}
 	if input.OciRepoName != "" {
 		filter.OciRepoName = &gen.OciRepoNameFilter{Eq: input.OciRepoName}
+		set = true
+	}
+	if input.BundleID != "" {
+		filter.BundleId = &gen.BundleIdFilter{Eq: input.BundleID}
 		set = true
 	}
 	if !set {

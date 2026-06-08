@@ -20,12 +20,14 @@ package serviceaccounts
 import (
 	"context"
 	"fmt"
+	"iter"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
@@ -46,7 +48,7 @@ func New(c *client.Client) *Service { return &Service{client: c} }
 // [types.ServiceAccount].
 type ServiceAccount = types.ServiceAccount
 
-// SortField is the field a [Service.List] result can be ordered by.
+// SortField is the field a [Service.Iter] result can be ordered by.
 type SortField string
 
 const (
@@ -62,18 +64,24 @@ const (
 	SortDesc SortOrder = "DESC"
 )
 
-// ListInput controls a [Service.List] call. Zero value lists every service
+// ListInput controls a [Service.Iter] call. Zero value lists every service
 // account in the organization, sorted by name ascending.
 type ListInput struct {
 	// Search is a case-insensitive substring search across name and
 	// description. When set without an explicit SortBy, results rank by
 	// relevance.
 	Search string
+	// IDs restricts results to one or more service accounts by id.
+	IDs []string
 
 	SortBy    SortField
 	SortOrder SortOrder
 
 	PageSize int
+	// After is the opaque cursor from a prior [types.Page].Next, selecting
+	// which page to start from. Empty starts at the first page. For Iter it
+	// sets the starting page; for ListPage it selects the single page returned.
+	After string
 }
 
 // CreateInput is the input for [Service.Create].
@@ -123,42 +131,50 @@ func (s *Service) Get(ctx context.Context, id string) (*ServiceAccount, error) {
 	return toServiceAccount(resp.ServiceAccount)
 }
 
-// List returns service accounts in the organization, applying filters and
-// following pagination automatically.
-func (s *Service) List(ctx context.Context, input ListInput) ([]ServiceAccount, error) {
+// Iter returns a lazy [iter.Seq2] over service accounts matching input,
+// fetching pages on demand. It is the recommended way to list: ranging the
+// sequence streams results without buffering the whole match set, and breaking
+// out of the loop stops requesting further pages. The yielded error is non-nil
+// exactly once, on a failed page fetch, after which iteration stops.
+//
+// To buffer every match into a slice, wrap with [types.Collect].
+func (s *Service) Iter(ctx context.Context, input ListInput) iter.Seq2[ServiceAccount, error] {
+	return paging.Iter(ctx, input.After, s.page(input))
+}
+
+// ListPage returns a single page of service accounts matching input.
+// input.PageSize bounds the page and input.After (an opaque cursor from a prior
+// page's Next) selects which page. Use it for stateless pagination — e.g. a UI
+// or CLI that hands the returned [types.Page].Next back to its own client to
+// fetch the next page on demand.
+func (s *Service) ListPage(ctx context.Context, input ListInput) (types.Page[ServiceAccount], error) {
+	return s.page(input)(ctx, input.After)
+}
+
+// page builds the single-page fetcher shared by Iter and ListPage.
+func (s *Service) page(input ListInput) paging.FetchFunc[ServiceAccount] {
 	filter := buildListFilter(input)
 	sort := buildListSort(input)
-
-	var (
-		out    []ServiceAccount
-		cursor *scalars.Cursor
-	)
-	if input.PageSize > 0 {
-		cursor = &scalars.Cursor{Limit: input.PageSize}
-	}
-
-	for {
-		resp, err := gen.ListServiceAccounts(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, cursor)
+	limit := input.PageSize
+	return func(ctx context.Context, after string) (types.Page[ServiceAccount], error) {
+		resp, err := gen.ListServiceAccounts(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, scalars.NewCursor(limit, after))
 		if err != nil {
-			return nil, gql.ClassifyError(fmt.Errorf("list service accounts: %w", err))
+			return types.Page[ServiceAccount]{}, gql.ClassifyError(fmt.Errorf("list service accounts: %w", err))
 		}
+		items := make([]ServiceAccount, 0, len(resp.ServiceAccounts.Items))
 		for _, item := range resp.ServiceAccounts.Items {
 			sa, derr := toServiceAccount(item)
 			if derr != nil {
-				return nil, derr
+				return types.Page[ServiceAccount]{}, derr
 			}
-			out = append(out, *sa)
+			items = append(items, *sa)
 		}
-		next := resp.ServiceAccounts.Cursor.Next
-		if next == "" {
-			break
-		}
-		cursor = &scalars.Cursor{Next: next}
-		if input.PageSize > 0 {
-			cursor.Limit = input.PageSize
-		}
+		return types.Page[ServiceAccount]{
+			Items:    items,
+			Next:     resp.ServiceAccounts.Cursor.Next,
+			Previous: resp.ServiceAccounts.Cursor.Previous,
+		}, nil
 	}
-	return out, nil
 }
 
 // Create creates a new service account and issues its default access
@@ -228,10 +244,20 @@ func toServiceAccount(v any) (*ServiceAccount, error) {
 }
 
 func buildListFilter(input ListInput) *gen.ServiceAccountsFilter {
-	if input.Search == "" {
+	filter := &gen.ServiceAccountsFilter{}
+	set := false
+	if input.Search != "" {
+		filter.Search = input.Search
+		set = true
+	}
+	if len(input.IDs) > 0 {
+		filter.Id = &gen.IdFilter{In: input.IDs}
+		set = true
+	}
+	if !set {
 		return nil
 	}
-	return &gen.ServiceAccountsFilter{Search: input.Search}
+	return filter
 }
 
 func buildListSort(input ListInput) *gen.ServiceAccountsSort {

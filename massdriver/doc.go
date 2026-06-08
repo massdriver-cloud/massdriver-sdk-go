@@ -132,20 +132,25 @@ with [errors.As].
 
 # Pagination
 
-List methods automatically follow pagination cursors and buffer every
-matching record into a slice. This is convenient and correct for
-small-to-medium result sets.
-
-For potentially-unbounded queries — most often [auditlogs.Service.List]
-on a large organization — prefer the iterator form:
+Each list endpoint exposes two methods. Iter returns a lazy iterator
+([iter.Seq2]) that fetches pages on demand — the recommended default,
+since ranging it streams results without buffering the whole match set,
+and breaking out of the loop stops requesting further pages:
 
 	for ev, err := range c.AuditLogs.Iter(ctx, auditlogs.ListInput{TimeRangeStart: yesterday}) {
 	    if err != nil { return err }
 	    // process(ev)
 	}
 
-The iterator is lazy: it requests the next page only when the loop
-asks for the next item. Break out to stop, or cancel ctx.
+ListPage fetches a single page and returns opaque cursors
+([types.Page.Next]/Previous) for stateless pagination — hand Next back as
+the next request's ListInput.After to advance, e.g. from a web or CLI
+handler that can't hold an iterator across requests.
+
+When you genuinely want every match buffered into one slice — appropriate
+for bounded sets — wrap an iterator with [types.Collect]:
+
+	all, err := types.Collect(c.Projects.Iter(ctx, projects.ListInput{}))
 
 # Mutation results
 

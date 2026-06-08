@@ -11,3 +11,18 @@ type Cursor struct {
 	Next     string `json:"next,omitempty"`
 	Previous string `json:"previous,omitempty"`
 }
+
+// NewCursor builds the *Cursor for a paginated request from a page-size limit
+// and an opaque "after" token (the Next cursor of a prior page; "" for the
+// first page). It returns nil when neither is set, so the request omits the
+// cursor argument entirely rather than sending an empty object.
+func NewCursor(limit int, after string) *Cursor {
+	if limit <= 0 && after == "" {
+		return nil
+	}
+	c := &Cursor{Next: after}
+	if limit > 0 {
+		c.Limit = limit
+	}
+	return c
+}

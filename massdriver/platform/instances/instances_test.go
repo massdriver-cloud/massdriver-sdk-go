@@ -159,10 +159,10 @@ func TestList_FilterAndPaginate(t *testing.T) {
 	})
 	gqlClient := gqltest.NewClient(page1, page2)
 
-	got, err := newService(gqlClient).List(t.Context(), instances.ListInput{
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), instances.ListInput{
 		EnvironmentID: "ecomm-prod",
 		Status:        instances.StatusProvisioned,
-	})
+	}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

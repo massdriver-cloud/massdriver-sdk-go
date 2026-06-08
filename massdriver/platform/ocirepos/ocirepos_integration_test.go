@@ -10,6 +10,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/ocirepos"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // TestIntegration_OciRepos_CRUD walks Create → Get → Update → Delete
@@ -79,7 +80,7 @@ func TestIntegration_OciRepos_List(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
-	got, err := c.OciRepos.List(ctx, ocirepos.ListInput{})
+	got, err := types.Collect(c.OciRepos.Iter(ctx, ocirepos.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

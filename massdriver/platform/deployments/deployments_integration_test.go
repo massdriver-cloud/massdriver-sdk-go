@@ -14,6 +14,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/deployments"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // TestIntegration_Deployments_NotFoundClassification confirms Get for a
@@ -41,7 +42,7 @@ func TestIntegration_Deployments_List(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
-	got, err := c.Deployments.List(ctx, deployments.ListInput{})
+	got, err := types.Collect(c.Deployments.Iter(ctx, deployments.ListInput{}))
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
