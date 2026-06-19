@@ -7,8 +7,8 @@ import (
 
 	"github.com/Khan/genqlient/graphql"
 	"github.com/go-resty/resty/v2"
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 )
 
 // DefaultTimeout is the per-request HTTP timeout applied when callers

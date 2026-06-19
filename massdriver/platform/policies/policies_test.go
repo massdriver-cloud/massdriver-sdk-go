@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/organizations"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/policies"
 )
@@ -369,11 +369,11 @@ func TestCreate_PerKeyWildcard(t *testing.T) {
 		gqltest.RespondWithData(map[string]any{
 			"createGroupPolicy": map[string]any{
 				"result": map[string]any{
-					"id":      "p-3",
-					"effect":  "ALLOW",
-					"actions": []string{"project:view"},
+					"id":         "p-3",
+					"effect":     "ALLOW",
+					"actions":    []string{"project:view"},
 					"conditions": `{"md-project":"*","md-team":["platform"]}`,
-					"group": map[string]any{"id": "g-1", "name": "Platform"},
+					"group":      map[string]any{"id": "g-1", "name": "Platform"},
 				},
 				"successful": true,
 			},

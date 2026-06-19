@@ -4,10 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/instances"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
@@ -30,7 +30,11 @@ func TestGet(t *testing.T) {
 				"resolvedVersion": "1.2.3",
 				"deployedVersion": "1.2.3",
 				"params":          map[string]any{"size": "small", "version": 14},
-				"attributes":      map[string]any{"team": "platform"},
+				"paramsSchema": map[string]any{
+					"type":       "object",
+					"properties": map[string]any{"size": map[string]any{"type": "string"}},
+				},
+				"attributes": map[string]any{"team": "platform"},
 				"statePaths": []map[string]any{
 					{"stepName": "core", "stateUrl": "https://state.example.com/core.tfstate"},
 				},
@@ -93,6 +97,9 @@ func TestGet(t *testing.T) {
 	}
 	if got.Params["size"] != "small" {
 		t.Errorf("Params[size] = %v, want small", got.Params["size"])
+	}
+	if got.ParamsSchema["type"] != "object" {
+		t.Errorf("ParamsSchema[type] = %v, want object", got.ParamsSchema["type"])
 	}
 	if len(got.StatePaths) != 1 || got.StatePaths[0].StepName != "core" {
 		t.Errorf("StatePaths = %+v, want one step named core", got.StatePaths)

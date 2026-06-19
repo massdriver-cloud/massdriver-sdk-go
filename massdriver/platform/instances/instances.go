@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"iter"
 
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
@@ -100,6 +100,11 @@ type ListInput struct {
 	// targets a specific param field by its jq-style path; multiple entries
 	// are AND'd together.
 	ParamDimensions []ParamDimensionFilter
+	// Attributes filters by effective attributes — the instance's own
+	// attributes plus those inherited from its component, environment, and
+	// project. Each entry targets one attribute key; multiple entries are
+	// AND'd together.
+	Attributes []types.AttributeFilter
 
 	// SortBy controls sort field. Empty = NAME.
 	SortBy SortField
@@ -161,8 +166,9 @@ type CopyInput struct {
 }
 
 // Get retrieves an instance by ID. The returned [Instance] includes
-// params, statePaths, the environment/bundle/component refs, and the
-// instance's produced [types.Resource]s flattened into Instance.Resources.
+// params, paramsSchema, statePaths, the environment/bundle/component refs,
+// and the instance's produced [types.Resource]s flattened into
+// Instance.Resources.
 //
 // The wire shape for resources is a list of `InstanceResource` wrappers
 // (each pairing a bundle output handle with the produced resource); the
@@ -365,10 +371,24 @@ func buildListFilter(input ListInput) *gen.InstancesFilter {
 		filter.ParamDimension = dims
 		set = true
 	}
+	if len(input.Attributes) > 0 {
+		filter.Attributes = toGenAttributeFilters(input.Attributes)
+		set = true
+	}
 	if !set {
 		return nil
 	}
 	return filter
+}
+
+// toGenAttributeFilters maps the SDK's attribute filters onto the generated
+// input type.
+func toGenAttributeFilters(in []types.AttributeFilter) []gen.AttributeFilter {
+	out := make([]gen.AttributeFilter, 0, len(in))
+	for _, a := range in {
+		out = append(out, gen.AttributeFilter{Key: a.Key, Eq: a.Eq, In: a.In})
+	}
+	return out
 }
 
 func buildListSort(input ListInput) *gen.InstancesSort {

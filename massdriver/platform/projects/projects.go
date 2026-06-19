@@ -13,9 +13,9 @@ import (
 	"fmt"
 	"iter"
 
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
@@ -83,9 +83,12 @@ type UpdateInput struct {
 }
 
 // ListInput controls a [Service.Iter]/[Service.ListPage] call. The zero value
-// lists every project, sorted by name ascending. The API offers no project
-// filters — only sort and pagination.
+// lists every project, sorted by name ascending.
 type ListInput struct {
+	// Attributes filters by the project's effective attributes. Each entry
+	// targets one attribute key; multiple entries are AND'd together.
+	Attributes []types.AttributeFilter
+
 	// SortBy controls the sort field. Empty = NAME.
 	SortBy SortField
 	// SortOrder controls sort direction. Empty = ASC.
@@ -139,10 +142,11 @@ func (s *Service) ListPage(ctx context.Context, input ListInput) (types.Page[Pro
 
 // page builds the single-page fetcher shared by Iter and ListPage.
 func (s *Service) page(input ListInput) paging.FetchFunc[Project] {
+	filter := buildListFilter(input)
 	sort := buildListSort(input)
 	limit := input.PageSize
 	return func(ctx context.Context, after string) (types.Page[Project], error) {
-		resp, err := gen.ListProjects(ctx, s.client.GQLv2, s.client.Config.OrganizationID, sort, scalars.NewCursor(limit, after))
+		resp, err := gen.ListProjects(ctx, s.client.GQLv2, s.client.Config.OrganizationID, filter, sort, scalars.NewCursor(limit, after))
 		if err != nil {
 			return types.Page[Project]{}, gql.ClassifyError(fmt.Errorf("list projects: %w", err))
 		}
@@ -160,6 +164,25 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Project] {
 			Previous: resp.Projects.Cursor.Previous,
 		}, nil
 	}
+}
+
+// buildListFilter compiles a ListInput's filter fields into the generated
+// input. Returns nil when no filter fields are set.
+func buildListFilter(input ListInput) *gen.ProjectsFilter {
+	if len(input.Attributes) == 0 {
+		return nil
+	}
+	return &gen.ProjectsFilter{Attributes: toGenAttributeFilters(input.Attributes)}
+}
+
+// toGenAttributeFilters maps the SDK's attribute filters onto the generated
+// input type.
+func toGenAttributeFilters(in []types.AttributeFilter) []gen.AttributeFilter {
+	out := make([]gen.AttributeFilter, 0, len(in))
+	for _, a := range in {
+		out = append(out, gen.AttributeFilter{Key: a.Key, Eq: a.Eq, In: a.In})
+	}
+	return out
 }
 
 // buildListSort maps a ListInput's sort fields onto the generated sort input,

@@ -591,10 +591,13 @@ query GetEnvironment($organizationId: ID!, $id: ID!) {
 
 # @genqlient(for: "EnvironmentsFilter.projectId", omitempty: true, pointer: true)
 # @genqlient(for: "EnvironmentsFilter.id", omitempty: true, pointer: true)
+# @genqlient(for: "EnvironmentsFilter.attributes", omitempty: true)
 # @genqlient(for: "IdFilter.eq", omitempty: true)
 # @genqlient(for: "IdFilter.in", omitempty: true)
 # @genqlient(for: "StringFilter.eq", omitempty: true)
 # @genqlient(for: "StringFilter.in", omitempty: true)
+# @genqlient(for: "AttributeFilter.eq", omitempty: true)
+# @genqlient(for: "AttributeFilter.in", omitempty: true)
 query ListEnvironments(
   $organizationId: ID!,
   # @genqlient(omitempty: true, pointer: true)
@@ -989,6 +992,7 @@ query GetInstance($organizationId: ID!, $id: ID!) {
     deployedVersion
     availableUpgrade
     params
+    paramsSchema
     attributes
     createdAt
     updatedAt
@@ -1060,10 +1064,13 @@ query GetInstance($organizationId: ID!, $id: ID!) {
 # @genqlient(for: "InstancesFilter.ociRepoName", omitempty: true, pointer: true)
 # @genqlient(for: "InstancesFilter.bundleId", omitempty: true, pointer: true)
 # @genqlient(for: "InstancesFilter.paramDimension", omitempty: true)
+# @genqlient(for: "InstancesFilter.attributes", omitempty: true)
 # @genqlient(for: "IdFilter.eq", omitempty: true)
 # @genqlient(for: "IdFilter.in", omitempty: true)
 # @genqlient(for: "InstanceStatusFilter.eq", omitempty: true)
 # @genqlient(for: "InstanceStatusFilter.in", omitempty: true)
+# @genqlient(for: "AttributeFilter.eq", omitempty: true)
+# @genqlient(for: "AttributeFilter.in", omitempty: true)
 query ListInstances(
   $organizationId: ID!,
   # @genqlient(omitempty: true, pointer: true)
@@ -1878,14 +1885,19 @@ query GetProject($organizationId: ID!, $id: ID!) {
   }
 }
 
+# @genqlient(for: "ProjectsFilter.attributes", omitempty: true)
+# @genqlient(for: "AttributeFilter.eq", omitempty: true)
+# @genqlient(for: "AttributeFilter.in", omitempty: true)
 query ListProjects(
   $organizationId: ID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $filter: ProjectsFilter,
   # @genqlient(omitempty: true, pointer: true)
   $sort: ProjectsSort,
   # @genqlient(omitempty: true, pointer: true)
   $cursor: Cursor
 ) {
-  projects(organizationId: $organizationId, sort: $sort, cursor: $cursor) {
+  projects(organizationId: $organizationId, filter: $filter, sort: $sort, cursor: $cursor) {
     cursor {
       next
       previous

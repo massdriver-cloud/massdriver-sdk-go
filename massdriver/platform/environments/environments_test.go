@@ -4,10 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/environments"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/projects"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
