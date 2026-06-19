@@ -586,6 +586,22 @@ query GetEnvironment($organizationId: ID!, $id: ID!) {
       createdAt
       updatedAt
     }
+    defaults {
+      items {
+        id
+        createdAt
+        updatedAt
+        resource {
+          id
+          name
+          resourceType {
+            id
+            name
+            icon
+          }
+        }
+      }
+    }
   }
 }
 

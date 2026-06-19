@@ -10594,6 +10594,12 @@ type GetEnvironmentEnvironment struct {
 	Cost GetEnvironmentEnvironmentCostCostSummary `json:"cost"`
 	// The parent project that this environment belongs to.
 	Project GetEnvironmentEnvironmentProject `json:"project"`
+	// Paginated list of default resources for this environment.
+	//
+	// Defaults are pre-assigned resources (like a shared VPC or DNS zone) that instances
+	// automatically inherit when they require a matching resource type. Only one default
+	// per resource type is allowed.
+	Defaults GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPage `json:"defaults"`
 }
 
 // GetId returns GetEnvironmentEnvironment.Id, and is useful for accessing the field via an interface.
@@ -10619,6 +10625,11 @@ func (v *GetEnvironmentEnvironment) GetCost() GetEnvironmentEnvironmentCostCostS
 
 // GetProject returns GetEnvironmentEnvironment.Project, and is useful for accessing the field via an interface.
 func (v *GetEnvironmentEnvironment) GetProject() GetEnvironmentEnvironmentProject { return v.Project }
+
+// GetDefaults returns GetEnvironmentEnvironment.Defaults, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironment) GetDefaults() GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPage {
+	return v.Defaults
+}
 
 func (v *GetEnvironmentEnvironment) UnmarshalJSON(b []byte) error {
 
@@ -10669,6 +10680,8 @@ type __premarshalGetEnvironmentEnvironment struct {
 	Cost GetEnvironmentEnvironmentCostCostSummary `json:"cost"`
 
 	Project GetEnvironmentEnvironmentProject `json:"project"`
+
+	Defaults GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPage `json:"defaults"`
 }
 
 func (v *GetEnvironmentEnvironment) MarshalJSON() ([]byte, error) {
@@ -10701,6 +10714,7 @@ func (v *GetEnvironmentEnvironment) __premarshalJSON() (*__premarshalGetEnvironm
 	retval.UpdatedAt = v.UpdatedAt
 	retval.Cost = v.Cost
 	retval.Project = v.Project
+	retval.Defaults = v.Defaults
 	return &retval, nil
 }
 
@@ -10851,6 +10865,126 @@ func (v *GetEnvironmentEnvironmentCostCostSummaryMonthlyAverageCostSample) GetAm
 // GetCurrency returns GetEnvironmentEnvironmentCostCostSummaryMonthlyAverageCostSample.Currency, and is useful for accessing the field via an interface.
 func (v *GetEnvironmentEnvironmentCostCostSummaryMonthlyAverageCostSample) GetCurrency() string {
 	return v.Currency
+}
+
+// GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPage includes the requested fields of the GraphQL type EnvironmentDefaultsPage.
+type GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPage struct {
+	// A list of type environment_default.
+	Items []GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefault `json:"items"`
+}
+
+// GetItems returns GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPage.Items, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPage) GetItems() []GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefault {
+	return v.Items
+}
+
+// GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefault includes the requested fields of the GraphQL type EnvironmentDefault.
+// The GraphQL type's documentation follows.
+//
+// An environment default that automatically provides a resource to instances.
+//
+// When an instance in the environment requires a resource type that matches this default,
+// the resource is automatically connected without manual configuration. Only one default
+// per resource type is allowed per environment -- remove the existing default before
+// setting a new one.
+type GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefault struct {
+	// Unique identifier for this environment default.
+	Id string `json:"id"`
+	// When this default was first set (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this default was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The resource that is set as the default for its type.
+	Resource GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResource `json:"resource"`
+}
+
+// GetId returns GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefault.Id, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefault) GetId() string {
+	return v.Id
+}
+
+// GetCreatedAt returns GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefault.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefault) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefault.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefault) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetResource returns GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefault.Resource, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefault) GetResource() GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResource {
+	return v.Resource
+}
+
+// GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResource includes the requested fields of the GraphQL type EnvironmentDefaultResource.
+// The GraphQL type's documentation follows.
+//
+// A resource referenced by an environment default.
+//
+// This represents the actual cloud resource (e.g., a VPC or DNS zone) that has been
+// designated as the default for its resource type within an environment.
+type GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResource struct {
+	// The resource's unique identifier.
+	Id string `json:"id"`
+	// Human-readable name of the resource.
+	Name string `json:"name"`
+	// The resource type (e.g., `massdriver/aws-vpc`) that this resource conforms to.
+	ResourceType GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResourceResourceType `json:"resourceType"`
+}
+
+// GetId returns GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResource.Id, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResource) GetId() string {
+	return v.Id
+}
+
+// GetName returns GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResource.Name, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResource) GetName() string {
+	return v.Name
+}
+
+// GetResourceType returns GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResource.ResourceType, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResource) GetResourceType() GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResourceResourceType {
+	return v.ResourceType
+}
+
+// GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResourceResourceType includes the requested fields of the GraphQL type ResourceType.
+// The GraphQL type's documentation follows.
+//
+// A resource type that defines what kind of infrastructure a resource represents.
+//
+// Resource types are the schema layer for Massdriver's connection system. Every
+// dependency a bundle declares and every resource a bundle produces references a
+// resource type. This is what makes bundles composable -- a database bundle that
+// produces an `aws-rds-instance` resource can be connected to any application
+// bundle that declares an `aws-rds-instance` dependency.
+//
+// Resource types include both public types provided by Massdriver (e.g.,
+// `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
+// organization for custom infrastructure.
+type GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResourceResourceType struct {
+	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	Id string `json:"id"`
+	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
+	Name string `json:"name"`
+	// URL to the icon representing this resource type, if available.
+	Icon string `json:"icon"`
+}
+
+// GetId returns GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResourceResourceType.Id, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResourceResourceType) GetId() string {
+	return v.Id
+}
+
+// GetName returns GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResourceResourceType.Name, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResourceResourceType) GetName() string {
+	return v.Name
+}
+
+// GetIcon returns GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResourceResourceType.Icon, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResourceResourceType) GetIcon() string {
+	return v.Icon
 }
 
 // GetEnvironmentEnvironmentProject includes the requested fields of the GraphQL type Project.
@@ -28486,6 +28620,22 @@ query GetEnvironment ($organizationId: ID!, $id: ID!) {
 			attributes
 			createdAt
 			updatedAt
+		}
+		defaults {
+			items {
+				id
+				createdAt
+				updatedAt
+				resource {
+					id
+					name
+					resourceType {
+						id
+						name
+						icon
+					}
+				}
+			}
 		}
 	}
 }
