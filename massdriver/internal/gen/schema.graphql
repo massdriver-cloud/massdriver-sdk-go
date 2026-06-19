@@ -35,6 +35,9 @@ type RootQueryType {
     "Your organization's unique identifier."
     organizationId: ID!
 
+    "Optional filters to narrow results."
+    filter: ProjectsFilter
+
     "How to sort results. Defaults to name ascending."
     sort: ProjectsSort
 
@@ -1008,7 +1011,7 @@ type RootQueryType {
   Returns a cursor-paginated list. Use `filter` to narrow by id or to search across each
   service account's name and description. Use `sort` to control ordering (defaults to name
   ascending; relevance ranking is used instead when `search` is active and no `sort` is given).
-  Requires `organization_admin` permissions.
+  Requires the `organization:manageServiceAccounts` action.
 
   ```graphql
   query {
@@ -1036,7 +1039,7 @@ type RootQueryType {
     cursor: Cursor
   ): ServiceAccountsPage
 
-  "Fetch a single service account by id. Requires `organization_admin` permissions."
+  "Fetch a single service account by id. Requires the `organization:manageServiceAccounts` action."
   serviceAccount(
     "Your organization's unique identifier."
     organizationId: ID!
@@ -1503,7 +1506,7 @@ type RootMutationType {
     "The identifier of the environment to fork from."
     parentId: ID!
 
-    "Attributes for the new environment. The fork references the parent via `parentId` and seeds each package from the parent's params. Re-forking against the same parent re-runs the seed — params and version reset to the parent's current values, and the `copy*` flags re-apply — so the mutation behaves as a desired-state converge (use it to reset local edits, or to backfill secrets and remote references that a prior call didn't request). Re-forking with a different parent is rejected; a fork's parent is immutable."
+    "Create or update a fork of an existing environment."
     input: ForkEnvironmentInput!
   ): EnvironmentPayload @inputs(name: "forkEnvironment", schema: "\/graphql\/v2\/inputs\/forkEnvironment.json", ui: "\/graphql\/v2\/inputs\/forkEnvironment.ui.json")
 
@@ -1762,7 +1765,7 @@ type RootMutationType {
   Create a new group in your organization.
 
   New groups are created with the `CUSTOM` role by default, allowing you to assign
-  project-level access grants after creation. Requires `organization_admin` permissions.
+  project-level access grants after creation. Requires the `organization:manageGroups` action.
   """
   createGroup(
     "Your organization's unique identifier."
@@ -1776,7 +1779,7 @@ type RootMutationType {
   Update a group's name or description.
 
   Only the `name` and `description` fields can be modified. The group's role cannot be
-  changed after creation. Requires `organization_admin` permissions.
+  changed after creation. Requires the `organization:manageGroups` action.
   """
   updateGroup(
     "Your organization's unique identifier."
@@ -1794,7 +1797,7 @@ type RootMutationType {
 
   Only groups with the `CUSTOM` role can be deleted. The built-in `organization_admin` and
   `organization_viewer` groups are permanent and cannot be removed. All members lose the
-  access granted by this group immediately upon deletion. Requires `organization_admin` permissions.
+  access granted by this group immediately upon deletion. Requires the `organization:manageGroups` action.
   """
   deleteGroup(
     "Your organization's unique identifier."
@@ -1815,7 +1818,7 @@ type RootMutationType {
     mutation returns a `GroupInvitation`. The recipient joins the group when they accept.
 
   Use inline fragments on the union result to handle both branches in a single client call.
-  Requires the `group:manage` action on this group.
+  Requires the `organization:manageGroups` action.
   """
   addAccountToGroup(
     "Your organization's unique identifier."
@@ -1832,7 +1835,7 @@ type RootMutationType {
   Revoke a pending invitation.
 
   Removes the invitation so the user can no longer accept it. Has no effect if the invitation
-  was already accepted. Requires `organization_admin` permissions.
+  was already accepted. Requires the `organization:manageGroups` action.
   """
   deleteGroupInvitation(
     "Your organization's unique identifier."
@@ -1850,7 +1853,7 @@ type RootMutationType {
 
   The member immediately loses any access granted by this group. If this was their only
   group in the organization, they lose all access to the organization.
-  Requires `organization_admin` permissions.
+  Requires the `organization:manageGroups` action.
   """
   deleteGroupMember(
     "Your organization's unique identifier."
@@ -1867,7 +1870,7 @@ type RootMutationType {
   Declare a new custom attribute in your organization.
 
   Once declared, the attribute immediately applies to new resources at the specified scope.
-  Existing resources are not retroactively validated. Requires the `organization:manage` action.
+  Existing resources are not retroactively validated. Requires the `organization:manageCustomAttributes` action.
   """
   createCustomAttribute(
     "Your organization's unique identifier."
@@ -1883,7 +1886,7 @@ type RootMutationType {
   Changing `values` does not retroactively validate or rewrite resources
   that were tagged before this update. Subsequent writes (and policy conditions
   referencing this key) must use a value from the new set. Requires the
-  `organization:manage` action.
+  `organization:manageCustomAttributes` action.
   """
   updateCustomAttribute(
     "Your organization's unique identifier."
@@ -1900,7 +1903,7 @@ type RootMutationType {
   Delete a custom attribute from your organization.
 
   Removing a custom attribute stops enforcing the rule for future resources.
-  Existing attributes on resources are not removed. Requires the `organization:manage` action.
+  Existing attributes on resources are not removed. Requires the `organization:manageCustomAttributes` action.
   """
   deleteCustomAttribute(
     "Your organization's unique identifier."
@@ -1921,7 +1924,7 @@ type RootMutationType {
     input: CreateOrganizationInput!
   ): OrganizationPayload @inputs(name: "createOrganization", schema: "\/graphql\/v2\/inputs\/createOrganization.json", ui: "\/graphql\/v2\/inputs\/createOrganization.ui.json")
 
-  "Update mutable organization settings. Requires the `organization:manage` action."
+  "Update mutable organization settings. Requires the `organization:manageProfile` action."
   updateOrganization(
     "Your organization's unique identifier."
     organizationId: ID!
@@ -1935,7 +1938,7 @@ type RootMutationType {
 
   Accepts PNG, JPG, GIF, or WebP images up to 1 MB. If a logo already exists,
   it is replaced. Use `removeOrganizationLogo` to delete without replacement.
-  Requires the `organization:manage` action.
+  Requires the `organization:manageProfile` action.
   """
   setOrganizationLogo(
     "Your organization's unique identifier."
@@ -1947,7 +1950,7 @@ type RootMutationType {
 
   """
   Remove your organization's logo. Returns the deleted logo's metadata, or `null` if none existed.
-  Requires the `organization:manage` action.
+  Requires the `organization:manageProfile` action.
   """
   removeOrganizationLogo(
     "Your organization's unique identifier."
@@ -1959,7 +1962,7 @@ type RootMutationType {
 
   This revokes all group memberships and cancels any pending invitations for the
   specified email address. The member immediately loses access to all organization
-  resources. Requires the `organization:manage` action.
+  resources. Requires the `organization:manageProfile` action.
   """
   deleteOrganizationMember(
     "Your organization's unique identifier."
@@ -2120,7 +2123,7 @@ type RootMutationType {
   if it's lost, revoke the token and issue a new one via `createAccessToken`.
 
   The new service account has no permissions until you add it to a group. Requires
-  `organization_admin` permissions.
+  the `organization:manageServiceAccounts` action.
 
   **Example:**
 
@@ -2156,7 +2159,7 @@ type RootMutationType {
   """
   Update a service account's name or description.
 
-  Send only the fields you want to change. Requires `organization_admin` permissions.
+  Send only the fields you want to change. Requires the `organization:manageServiceAccounts` action.
   """
   updateServiceAccount(
     "Your organization's unique identifier."
@@ -2174,7 +2177,7 @@ type RootMutationType {
 
   This immediately revokes all API access for this service account, including any active
   access tokens. All group memberships are removed. This action cannot be undone.
-  Requires `organization_admin` permissions.
+  Requires the `organization:manageServiceAccounts` action.
   """
   deleteServiceAccount(
     "Your organization's unique identifier."
@@ -2189,7 +2192,7 @@ type RootMutationType {
 
   The service account immediately gains all permissions associated with the group's role.
   A service account can belong to multiple groups — its effective permissions are the union
-  of all group permissions. Requires `organization_admin` permissions.
+  of all group permissions. Requires the `organization:manageGroups` action.
   """
   addServiceAccountToGroup(
     "Your organization's unique identifier."
@@ -2207,7 +2210,7 @@ type RootMutationType {
 
   The service account immediately loses all permissions granted by this group. If this was
   its only group, the service account retains its identity but has no access to any resources.
-  Requires `organization_admin` permissions.
+  Requires the `organization:manageGroups` action.
   """
   removeServiceAccountFromGroup(
     "Your organization's unique identifier."
@@ -2509,7 +2512,7 @@ type RootMutationType {
     "The instance to copy configuration into. Must be built from the same component as the source."
     destinationId: ID!
 
-    "Copy configuration from one instance to another. The source and destination must be instances of the same component. Source params (minus any fields marked non-copyable in the bundle) are written to the destination. Deployment is a separate action — call `createDeployment` on the destination when you're ready to apply."
+    "Copy configuration from one instance to another. The source and destination must be instances of the same component. Source params (minus any fields marked non-copyable in the bundle) are written to the destination."
     input: CopyInstanceInput!
   ): InstancePayload @inputs(name: "copyInstance", schema: "\/graphql\/v2\/inputs\/copyInstance.json", ui: "\/graphql\/v2\/inputs\/copyInstance.ui.json")
 
@@ -3388,7 +3391,7 @@ input CreateRepoGrantInput {
   "The action being granted on the repo. Currently the only grantable repo action is `repo:pull` — repo visibility is inferred from any granted action, and publishing is not a sharing concern."
   action: String!
 
-  "Restrict this grant to recipient projects whose attributes match every condition. Send the literal `\"*\"` to apply to every project in the organization. Per-key, send `\"*\"` to match any value or a non-empty list of strings to match a closed set."
+  "Restrict this grant to recipient projects whose attributes match every condition."
   recipientConditions: Conditions!
 }
 
@@ -3397,7 +3400,7 @@ input CreateResourceGrantInput {
   "The action being granted on the resource. Currently the only grantable resource action is `resource:export` — resource visibility is inferred from any granted action."
   action: String!
 
-  "Restrict this grant to recipient environments whose attributes match every condition. Send the literal `\"*\"` to apply to every environment in the organization. Per-key, send `\"*\"` to match any value or a non-empty list of strings to match a closed set."
+  "Restrict this grant to recipient environments whose attributes match every condition."
   recipientConditions: Conditions!
 }
 
@@ -3550,7 +3553,7 @@ input CreateGroupPolicyInput {
   "What members of this group can do. Pass one or more action ids in `{entity}:{verb}` form. Conditions apply to every action; actions whose entity does not support a given condition simply never match. Duplicate entries are rejected."
   actions: [String!]!
 
-  "Restrict the actions to entities whose attributes match every condition. Send the literal `\"*\"` to apply to all entities of each action's type. Per-key, send `\"*\"` to match any value or a non-empty list of strings to match a closed set. Within a policy all conditions are AND. Across policies, evaluation is OR."
+  "Restrict the actions to entities whose attributes match every condition. Within a policy all conditions are AND. Across policies, evaluation is OR."
   conditions: Conditions!
 
   "ALLOW grants the actions. DENY blocks them and wins over any matching ALLOW."
@@ -3562,7 +3565,7 @@ input UpdatePolicyInput {
   "Replace the policy's full action list. Pass one or more action ids in `{entity}:{verb}` form. Omit the field to leave the existing list unchanged. Duplicate entries are rejected."
   actions: [String!]
 
-  "Restrict the actions to entities whose attributes match every condition. Pass `\"*\"` to clear all conditions and make the policy a wildcard. Per-key, send `\"*\"` to match any value or a non-empty list of strings to match a closed set. Omit the field to leave conditions unchanged."
+  "Restrict the actions to entities whose attributes match every condition. Omit the field to leave conditions unchanged."
   conditions: Conditions
 
   "ALLOW grants the actions. DENY blocks them and wins over any matching ALLOW."
@@ -4909,7 +4912,7 @@ input CreateCustomAttributeInput {
   "The resource level where this attribute is set. Hierarchy scopes (PROJECT, ENVIRONMENT, COMPONENT) cascade values downward to instances, deployments, and resources. REPO scope applies to OCI repositories; the bundle name propagates to derived components, instances, deployments, and resources via the md-repo system attribute."
   scope: AttributeScope!
 
-  "The closed set of values this attribute may take. Must contain at least one entry, no duplicates, and may not contain the literal \"*\" (reserved for a future \"any value\" semantic)."
+  "The closed set of values this attribute may take. Must contain at least one entry, no duplicates, and may not contain the literal \"*\"."
   values: [String!]!
 }
 
@@ -4918,7 +4921,7 @@ input UpdateCustomAttributeInput {
   "Whether this attribute must be set when creating a resource at the specified scope."
   required: Boolean
 
-  "The closed set of values this attribute may take. Must contain at least one entry, no duplicates, and may not contain the literal \"*\" (reserved for a future \"any value\" semantic). Replaces the current set in full."
+  "The closed set of values this attribute may take. Must contain at least one entry, no duplicates, and may not contain the literal \"*\". Replaces the current set in full."
   values: [String!]!
 }
 
@@ -5465,13 +5468,13 @@ type Organization {
   logo: LogoOrganization
 
   """
-  Paginated list of human accounts that are members of at least one group in this organization.
+  Paginated list of every human account in this organization, whether or not they belong to a group.
+  Includes members provisioned by an identity provider (e.g. Okta) who have not yet been added to a group.
 
   Sorted by email ascending. Service accounts live under the top-level `serviceAccounts`
   query — pair both when rendering the full organization roster.
 
-  Requires the `organization:manage` action. Callers without it receive `null` here
-  along with a top-level `FORBIDDEN` error so the rest of the response still resolves.
+  Requires the `organization:manageProfile` action.
   """
   members(
     "Cursor from a previous page to fetch the next set of results."
@@ -5481,8 +5484,7 @@ type Organization {
   """
   Paginated list of custom attributes that govern attribute metadata across this organization.
 
-  Requires the `organization:manage` action. Callers without it receive
-  `null` along with a top-level `FORBIDDEN` error.
+  Requires the `organization:manageCustomAttributes` action.
   """
   customAttributes(
     "How to sort results. Defaults to alphabetical by key."
@@ -5495,8 +5497,7 @@ type Organization {
   """
   Subscription, trial, and upgrade information for this organization.
 
-  Requires the `organization:manage` action. Callers without it receive
-  `null` along with a top-level `FORBIDDEN` error. The non-sensitive
+  Requires the `organization:manageBilling` action. The non-sensitive
   `subscriptionStatus` field at the top of the type stays visible to every member.
   """
   billing: OrganizationBilling
@@ -7109,6 +7110,9 @@ input InstancesFilter {
 
   "Filter by configuration parameter values. Each entry targets a specific param field; multiple entries are combined with AND."
   paramDimension: [ParamDimensionFilter!]
+
+  "Match by effective attributes — the instance's own attributes plus those inherited from its component, environment, and project. Each entry targets one attribute key; multiple entries are combined with AND."
+  attributes: [AttributeFilter!]
 }
 
 """
@@ -7155,7 +7159,7 @@ input SetInstanceSecretInput {
   value: String!
 }
 
-"Copy configuration from one instance to another. The source and destination must be instances of the same component. Source params (minus any fields marked non-copyable in the bundle) are written to the destination. Deployment is a separate action — call `createDeployment` on the destination when you're ready to apply."
+"Copy configuration from one instance to another. The source and destination must be instances of the same component. Source params (minus any fields marked non-copyable in the bundle) are written to the destination."
 input CopyInstanceInput {
   "When true, copies remote resource references from the source instance to the destination. Defaults to false."
   copyRemoteReferences: Boolean
@@ -7723,6 +7727,9 @@ input EnvironmentsFilter {
 
   "Filter by environment identifier (supports exact match and `in` list)."
   id: StringFilter
+
+  "Match by the environment's effective attributes, including those inherited from its project. Each entry targets one attribute key; multiple entries are combined with AND."
+  attributes: [AttributeFilter!]
 }
 
 "Create a new environment. Environments are isolated deployment contexts like production, staging, or development, each with independent secrets and configurations."
@@ -7758,7 +7765,7 @@ input UpdateEnvironmentInput {
   name: String
 }
 
-"Attributes for the new environment. The fork references the parent via `parentId` and seeds each package from the parent's params. Re-forking against the same parent re-runs the seed — params and version reset to the parent's current values, and the `copy*` flags re-apply — so the mutation behaves as a desired-state converge (use it to reset local edits, or to backfill secrets and remote references that a prior call didn't request). Re-forking with a different parent is rejected; a fork's parent is immutable."
+"Create or update a fork of an existing environment."
 input ForkEnvironmentInput {
   "Key-value attributes for this environment. Keys and values must be strings. Must conform to the organization's custom attributes for the environment scope."
   attributes: Map
@@ -8015,6 +8022,12 @@ input ProjectsSort {
 
   "Sort direction (`ASC` or `DESC`)."
   order: SortOrder!
+}
+
+"Filters for narrowing the projects list. All filters are optional and combine with AND logic."
+input ProjectsFilter {
+  "Match by the project's effective attributes. Each entry targets one attribute key; multiple entries are combined with AND."
+  attributes: [AttributeFilter!]
 }
 
 "Create a new project. A project is the complete model of your application—its infrastructure, architecture, configurations, and environments."
@@ -9140,6 +9153,42 @@ input BundleIdFilter {
 
   "Return results pinned to any of the bundle releases these values resolve to."
   in: [BundleId!]
+}
+
+"""
+Filter by an effective attribute.
+
+Each filter targets a single attribute `key` and matches against the resource's
+**effective** attributes — its own attributes plus any it inherits from its
+ancestors (project → environment → component → instance). A `team` attribute set
+on a project therefore also matches that project's environments and instances.
+
+Pass a list of attribute filters to require several attributes at once; the
+entries are combined with **AND**. Within a single entry, use `in` to match any
+of several values for that key.
+
+```graphql
+# Resources whose effective "team" attribute is "payments"
+{ "attributes": [{ "key": "team", "eq": "payments" }] }
+
+# Resources whose effective "team" is "payments" AND "tier" is "prod" or "staging"
+{
+  "attributes": [
+    { "key": "team", "eq": "payments" },
+    { "key": "tier", "in": ["prod", "staging"] }
+  ]
+}
+```
+"""
+input AttributeFilter {
+  "The attribute key to match, e.g. `team` or `cost_center`."
+  key: String!
+
+  "Return only resources whose value for this key exactly equals this string."
+  eq: String
+
+  "Return resources whose value for this key matches any string in this list."
+  in: [String!]
 }
 
 """

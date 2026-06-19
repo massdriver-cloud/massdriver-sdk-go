@@ -23,9 +23,9 @@ import (
 	"iter"
 	"time"
 
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
@@ -105,6 +105,10 @@ type ListInput struct {
 	ProjectID string
 	// IDs limits results to the named environments.
 	IDs []string
+	// Attributes filters by effective attributes — the environment's own
+	// attributes plus those inherited from its project. Each entry targets one
+	// attribute key; multiple entries are AND'd together.
+	Attributes []types.AttributeFilter
 
 	// SortBy controls the sort field. Empty = NAME.
 	SortBy SortField
@@ -241,10 +245,24 @@ func buildListFilter(input ListInput) *gen.EnvironmentsFilter {
 		filter.Id = &gen.StringFilter{In: input.IDs}
 		set = true
 	}
+	if len(input.Attributes) > 0 {
+		filter.Attributes = toGenAttributeFilters(input.Attributes)
+		set = true
+	}
 	if !set {
 		return nil
 	}
 	return filter
+}
+
+// toGenAttributeFilters maps the SDK's attribute filters onto the generated
+// input type.
+func toGenAttributeFilters(in []types.AttributeFilter) []gen.AttributeFilter {
+	out := make([]gen.AttributeFilter, 0, len(in))
+	for _, a := range in {
+		out = append(out, gen.AttributeFilter{Key: a.Key, Eq: a.Eq, In: a.In})
+	}
+	return out
 }
 
 // Create creates a new environment under the named project. Returns a

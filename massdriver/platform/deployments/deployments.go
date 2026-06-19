@@ -28,9 +28,9 @@ import (
 	"iter"
 	"strings"
 
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
@@ -57,14 +57,14 @@ type Deployment = types.Deployment
 type Status string
 
 const (
-	StatusProposed   Status = "PROPOSED"
-	StatusRejected   Status = "REJECTED"
-	StatusApproved   Status = "APPROVED"
-	StatusPending    Status = "PENDING"
-	StatusRunning    Status = "RUNNING"
-	StatusCompleted  Status = "COMPLETED"
-	StatusFailed     Status = "FAILED"
-	StatusAborted    Status = "ABORTED"
+	StatusProposed  Status = "PROPOSED"
+	StatusRejected  Status = "REJECTED"
+	StatusApproved  Status = "APPROVED"
+	StatusPending   Status = "PENDING"
+	StatusRunning   Status = "RUNNING"
+	StatusCompleted Status = "COMPLETED"
+	StatusFailed    Status = "FAILED"
+	StatusAborted   Status = "ABORTED"
 )
 
 // IsTerminal reports whether the supplied status string is one of the

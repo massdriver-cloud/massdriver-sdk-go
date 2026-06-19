@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/Khan/genqlient/graphql"
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/stretchr/testify/require"
 )
 

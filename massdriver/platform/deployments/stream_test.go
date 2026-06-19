@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/deployments"
 )
 
@@ -45,9 +45,9 @@ func TestTailLogs_AlreadyComplete(t *testing.T) {
 		// (2) GetDeployment — terminal status check.
 		gqltest.RespondWithData(map[string]any{
 			"deployment": map[string]any{
-				"id":     "dep-1",
-				"status": "COMPLETED",
-				"action": "PROVISION",
+				"id":      "dep-1",
+				"status":  "COMPLETED",
+				"action":  "PROVISION",
 				"version": "1.2.3",
 			},
 		}),

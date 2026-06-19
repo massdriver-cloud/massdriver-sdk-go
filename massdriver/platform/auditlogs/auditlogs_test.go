@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/auditlogs"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
@@ -311,4 +311,3 @@ func TestIter_StopsAfterMidIterationError(t *testing.T) {
 		t.Errorf("yield[1].log = %+v, want zero value alongside the error", observed[1].log)
 	}
 }
-

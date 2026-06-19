@@ -100,20 +100,22 @@ Every wrapper returns errors that callers can classify with
 
   - [gql.ErrNotFound] — the requested record doesn't exist (or the
     caller cannot see it).
+
   - [gql.ErrUnauthenticated] — credentials missing, invalid, or expired.
+
   - [gql.ErrForbidden] — caller is authenticated but lacks permission.
 
-	proj, err := c.Projects.Get(ctx, id)
-	switch {
-	case errors.Is(err, gql.ErrNotFound):
-	    // 404 path
-	case errors.Is(err, gql.ErrUnauthenticated):
-	    // re-auth
-	case errors.Is(err, gql.ErrForbidden):
-	    // surface permission gap
-	case err != nil:
-	    return err
-	}
+    proj, err := c.Projects.Get(ctx, id)
+    switch {
+    case errors.Is(err, gql.ErrNotFound):
+    // 404 path
+    case errors.Is(err, gql.ErrUnauthenticated):
+    // re-auth
+    case errors.Is(err, gql.ErrForbidden):
+    // surface permission gap
+    case err != nil:
+    return err
+    }
 
 For mutations that fail server-side validation (the response says
 `successful: false` with field-scoped messages), use

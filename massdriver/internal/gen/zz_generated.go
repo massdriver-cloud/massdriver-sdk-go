@@ -559,7 +559,7 @@ type AddAccountToGroupResponse struct {
 	// mutation returns a `GroupInvitation`. The recipient joins the group when they accept.
 	//
 	// Use inline fragments on the union result to handle both branches in a single client call.
-	// Requires the `group:manage` action on this group.
+	// Requires the `organization:manageGroups` action.
 	AddAccountToGroup AddAccountToGroupAddAccountToGroupAddedAccountToGroupPayload `json:"addAccountToGroup"`
 }
 
@@ -1082,7 +1082,7 @@ type AddServiceAccountToGroupResponse struct {
 	//
 	// The service account immediately gains all permissions associated with the group's role.
 	// A service account can belong to multiple groups — its effective permissions are the union
-	// of all group permissions. Requires `organization_admin` permissions.
+	// of all group permissions. Requires the `organization:manageGroups` action.
 	AddServiceAccountToGroup AddServiceAccountToGroupAddServiceAccountToGroupServiceAccountGroupPayload `json:"addServiceAccountToGroup"`
 }
 
@@ -1286,6 +1286,47 @@ type ApproveDeploymentResponse struct {
 func (v *ApproveDeploymentResponse) GetApproveDeployment() ApproveDeploymentApproveDeploymentDeploymentPayload {
 	return v.ApproveDeployment
 }
+
+// Filter by an effective attribute.
+//
+// Each filter targets a single attribute `key` and matches against the resource's
+// **effective** attributes — its own attributes plus any it inherits from its
+// ancestors (project → environment → component → instance). A `team` attribute set
+// on a project therefore also matches that project's environments and instances.
+//
+// Pass a list of attribute filters to require several attributes at once; the
+// entries are combined with **AND**. Within a single entry, use `in` to match any
+// of several values for that key.
+//
+// ```graphql
+// # Resources whose effective "team" attribute is "payments"
+// { "attributes": [{ "key": "team", "eq": "payments" }] }
+//
+// # Resources whose effective "team" is "payments" AND "tier" is "prod" or "staging"
+// {
+// "attributes": [
+// { "key": "team", "eq": "payments" },
+// { "key": "tier", "in": ["prod", "staging"] }
+// ]
+// }
+// ```
+type AttributeFilter struct {
+	// The attribute key to match, e.g. `team` or `cost_center`.
+	Key string `json:"key"`
+	// Return only resources whose value for this key exactly equals this string.
+	Eq string `json:"eq,omitempty"`
+	// Return resources whose value for this key matches any string in this list.
+	In []string `json:"in,omitempty"`
+}
+
+// GetKey returns AttributeFilter.Key, and is useful for accessing the field via an interface.
+func (v *AttributeFilter) GetKey() string { return v.Key }
+
+// GetEq returns AttributeFilter.Eq, and is useful for accessing the field via an interface.
+func (v *AttributeFilter) GetEq() string { return v.Eq }
+
+// GetIn returns AttributeFilter.In, and is useful for accessing the field via an interface.
+func (v *AttributeFilter) GetIn() []string { return v.In }
 
 // The resource level where a custom attribute applies.
 //
@@ -1744,7 +1785,7 @@ func (v *CopyInstanceCopyInstanceInstancePayloadResultInstance) __premarshalJSON
 	return &retval, nil
 }
 
-// Copy configuration from one instance to another. The source and destination must be instances of the same component. Source params (minus any fields marked non-copyable in the bundle) are written to the destination. Deployment is a separate action — call `createDeployment` on the destination when you're ready to apply.
+// Copy configuration from one instance to another. The source and destination must be instances of the same component. Source params (minus any fields marked non-copyable in the bundle) are written to the destination.
 type CopyInstanceInput struct {
 	// When true, copies remote resource references from the source instance to the destination. Defaults to false.
 	CopyRemoteReferences bool `json:"copyRemoteReferences"`
@@ -2222,7 +2263,7 @@ type CreateCustomAttributeInput struct {
 	Required *bool `json:"required,omitempty"`
 	// The resource level where this attribute is set. Hierarchy scopes (PROJECT, ENVIRONMENT, COMPONENT) cascade values downward to instances, deployments, and resources. REPO scope applies to OCI repositories; the bundle name propagates to derived components, instances, deployments, and resources via the md-repo system attribute.
 	Scope AttributeScope `json:"scope"`
-	// The closed set of values this attribute may take. Must contain at least one entry, no duplicates, and may not contain the literal "*" (reserved for a future "any value" semantic).
+	// The closed set of values this attribute may take. Must contain at least one entry, no duplicates, and may not contain the literal "*".
 	Values []string `json:"values"`
 }
 
@@ -2243,7 +2284,7 @@ type CreateCustomAttributeResponse struct {
 	// Declare a new custom attribute in your organization.
 	//
 	// Once declared, the attribute immediately applies to new resources at the specified scope.
-	// Existing resources are not retroactively validated. Requires the `organization:manage` action.
+	// Existing resources are not retroactively validated. Requires the `organization:manageCustomAttributes` action.
 	CreateCustomAttribute CreateCustomAttributeCreateCustomAttributeCustomAttributePayload `json:"createCustomAttribute"`
 }
 
@@ -3480,7 +3521,7 @@ func (v *CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicyGroup) GetNa
 type CreateGroupPolicyInput struct {
 	// What members of this group can do. Pass one or more action ids in `{entity}:{verb}` form. Conditions apply to every action; actions whose entity does not support a given condition simply never match. Duplicate entries are rejected.
 	Actions []string `json:"actions"`
-	// Restrict the actions to entities whose attributes match every condition. Send the literal `"*"` to apply to all entities of each action's type. Per-key, send `"*"` to match any value or a non-empty list of strings to match a closed set. Within a policy all conditions are AND. Across policies, evaluation is OR.
+	// Restrict the actions to entities whose attributes match every condition. Within a policy all conditions are AND. Across policies, evaluation is OR.
 	Conditions types.PolicyConditions `json:"-"`
 	// ALLOW grants the actions. DENY blocks them and wins over any matching ALLOW.
 	Effect PolicyEffect `json:"effect"`
@@ -3584,7 +3625,7 @@ type CreateGroupResponse struct {
 	// Create a new group in your organization.
 	//
 	// New groups are created with the `CUSTOM` role by default, allowing you to assign
-	// project-level access grants after creation. Requires `organization_admin` permissions.
+	// project-level access grants after creation. Requires the `organization:manageGroups` action.
 	CreateGroup CreateGroupCreateGroupGroupPayload `json:"createGroup"`
 }
 
@@ -5150,7 +5191,7 @@ func (v *CreateResourceGrantCreateResourceGrantGrantPayloadResultGrant) __premar
 type CreateResourceGrantInput struct {
 	// The action being granted on the resource. Currently the only grantable resource action is `resource:export` — resource visibility is inferred from any granted action.
 	Action string `json:"action"`
-	// Restrict this grant to recipient environments whose attributes match every condition. Send the literal `"*"` to apply to every environment in the organization. Per-key, send `"*"` to match any value or a non-empty list of strings to match a closed set.
+	// Restrict this grant to recipient environments whose attributes match every condition.
 	RecipientConditions types.PolicyConditions `json:"-"`
 }
 
@@ -5574,7 +5615,7 @@ type CreateServiceAccountResponse struct {
 	// if it's lost, revoke the token and issue a new one via `createAccessToken`.
 	//
 	// The new service account has no permissions until you add it to a group. Requires
-	// `organization_admin` permissions.
+	// the `organization:manageServiceAccounts` action.
 	//
 	// **Example:**
 	//
@@ -6019,7 +6060,7 @@ type DeleteCustomAttributeResponse struct {
 	// Delete a custom attribute from your organization.
 	//
 	// Removing a custom attribute stops enforcing the rule for future resources.
-	// Existing attributes on resources are not removed. Requires the `organization:manage` action.
+	// Existing attributes on resources are not removed. Requires the `organization:manageCustomAttributes` action.
 	DeleteCustomAttribute DeleteCustomAttributeDeleteCustomAttributeCustomAttributePayload `json:"deleteCustomAttribute"`
 }
 
@@ -6589,7 +6630,7 @@ type DeleteGroupInvitationResponse struct {
 	// Revoke a pending invitation.
 	//
 	// Removes the invitation so the user can no longer accept it. Has no effect if the invitation
-	// was already accepted. Requires `organization_admin` permissions.
+	// was already accepted. Requires the `organization:manageGroups` action.
 	DeleteGroupInvitation DeleteGroupInvitationDeleteGroupInvitationGroupInvitationPayload `json:"deleteGroupInvitation"`
 }
 
@@ -6698,7 +6739,7 @@ type DeleteGroupMemberResponse struct {
 	//
 	// The member immediately loses any access granted by this group. If this was their only
 	// group in the organization, they lose all access to the organization.
-	// Requires `organization_admin` permissions.
+	// Requires the `organization:manageGroups` action.
 	DeleteGroupMember DeleteGroupMemberDeleteGroupMemberDeletedGroupMemberPayload `json:"deleteGroupMember"`
 }
 
@@ -6713,7 +6754,7 @@ type DeleteGroupResponse struct {
 	//
 	// Only groups with the `CUSTOM` role can be deleted. The built-in `organization_admin` and
 	// `organization_viewer` groups are permanent and cannot be removed. All members lose the
-	// access granted by this group immediately upon deletion. Requires `organization_admin` permissions.
+	// access granted by this group immediately upon deletion. Requires the `organization:manageGroups` action.
 	DeleteGroup DeleteGroupDeleteGroupGroupPayload `json:"deleteGroup"`
 }
 
@@ -7074,7 +7115,7 @@ type DeleteOrganizationMemberResponse struct {
 	//
 	// This revokes all group memberships and cancels any pending invitations for the
 	// specified email address. The member immediately loses access to all organization
-	// resources. Requires the `organization:manage` action.
+	// resources. Requires the `organization:manageProfile` action.
 	DeleteOrganizationMember DeleteOrganizationMemberDeleteOrganizationMemberDeletedOrganizationMemberPayload `json:"deleteOrganizationMember"`
 }
 
@@ -7743,7 +7784,7 @@ type DeleteServiceAccountResponse struct {
 	//
 	// This immediately revokes all API access for this service account, including any active
 	// access tokens. All group memberships are removed. This action cannot be undone.
-	// Requires `organization_admin` permissions.
+	// Requires the `organization:manageServiceAccounts` action.
 	DeleteServiceAccount DeleteServiceAccountDeleteServiceAccountServiceAccountPayload `json:"deleteServiceAccount"`
 }
 
@@ -8089,6 +8130,8 @@ type EnvironmentsFilter struct {
 	ProjectId *IdFilter `json:"projectId,omitempty"`
 	// Filter by environment identifier (supports exact match and `in` list).
 	Id *StringFilter `json:"id,omitempty"`
+	// Match by the environment's effective attributes, including those inherited from its project. Each entry targets one attribute key; multiple entries are combined with AND.
+	Attributes []AttributeFilter `json:"attributes,omitempty"`
 }
 
 // GetProjectId returns EnvironmentsFilter.ProjectId, and is useful for accessing the field via an interface.
@@ -8096,6 +8139,9 @@ func (v *EnvironmentsFilter) GetProjectId() *IdFilter { return v.ProjectId }
 
 // GetId returns EnvironmentsFilter.Id, and is useful for accessing the field via an interface.
 func (v *EnvironmentsFilter) GetId() *StringFilter { return v.Id }
+
+// GetAttributes returns EnvironmentsFilter.Attributes, and is useful for accessing the field via an interface.
+func (v *EnvironmentsFilter) GetAttributes() []AttributeFilter { return v.Attributes }
 
 // Sorting options for the environments list. Specify a field and direction.
 type EnvironmentsSort struct {
@@ -9064,7 +9110,7 @@ func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProjec
 	return &retval, nil
 }
 
-// Attributes for the new environment. The fork references the parent via `parentId` and seeds each package from the parent's params. Re-forking against the same parent re-runs the seed — params and version reset to the parent's current values, and the `copy*` flags re-apply — so the mutation behaves as a desired-state converge (use it to reset local edits, or to backfill secrets and remote references that a prior call didn't request). Re-forking with a different parent is rejected; a fork's parent is immutable.
+// Create or update a fork of an existing environment.
 type ForkEnvironmentInput struct {
 	// Key-value attributes for this environment. Keys and values must be strings. Must conform to the organization's custom attributes for the environment scope.
 	Attributes map[string]any `json:"-"`
@@ -11460,6 +11506,22 @@ type GetInstanceInstance struct {
 	AvailableUpgrade string `json:"availableUpgrade"`
 	// Cached configuration parameters from the most recent deployment. Null if the instance has never been deployed.
 	Params map[string]any `json:"-"`
+	// JSON Schema describing the configuration parameters this instance accepts.
+	//
+	// The schema is sourced from the instance's resolved bundle release with
+	// Massdriver's `$md` extensions evaluated against the current instance state:
+	//
+	// - `$md.enum` is replaced with a `oneOf` list whose entries are computed by
+	// running the configured jq expression against the connected resource's
+	// payload. Missing connections or jq errors produce a single placeholder
+	// entry whose `title` begins with `ERROR:`.
+	// - `$md.immutable` is rewritten to `readOnly: true` once the instance has
+	// reached a state where the field can no longer be changed (`PROVISIONED`
+	// or `FAILED`).
+	//
+	// Use this schema to drive form rendering, client-side validation, or to
+	// inspect the contract between the bundle and the deployer.
+	ParamsSchema map[string]any `json:"-"`
 	// Key-value attributes assigned directly to this instance.
 	Attributes map[string]any `json:"-"`
 	// When this instance was created (UTC).
@@ -11511,6 +11573,9 @@ func (v *GetInstanceInstance) GetAvailableUpgrade() string { return v.AvailableU
 // GetParams returns GetInstanceInstance.Params, and is useful for accessing the field via an interface.
 func (v *GetInstanceInstance) GetParams() map[string]any { return v.Params }
 
+// GetParamsSchema returns GetInstanceInstance.ParamsSchema, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstance) GetParamsSchema() map[string]any { return v.ParamsSchema }
+
 // GetAttributes returns GetInstanceInstance.Attributes, and is useful for accessing the field via an interface.
 func (v *GetInstanceInstance) GetAttributes() map[string]any { return v.Attributes }
 
@@ -11550,8 +11615,9 @@ func (v *GetInstanceInstance) UnmarshalJSON(b []byte) error {
 
 	var firstPass struct {
 		*GetInstanceInstance
-		Params     json.RawMessage `json:"params"`
-		Attributes json.RawMessage `json:"attributes"`
+		Params       json.RawMessage `json:"params"`
+		ParamsSchema json.RawMessage `json:"paramsSchema"`
+		Attributes   json.RawMessage `json:"attributes"`
 		graphql.NoUnmarshalJSON
 	}
 	firstPass.GetInstanceInstance = v
@@ -11570,6 +11636,19 @@ func (v *GetInstanceInstance) UnmarshalJSON(b []byte) error {
 			if err != nil {
 				return fmt.Errorf(
 					"unable to unmarshal GetInstanceInstance.Params: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.ParamsSchema
+		src := firstPass.ParamsSchema
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetInstanceInstance.ParamsSchema: %w", err)
 			}
 		}
 	}
@@ -11605,6 +11684,8 @@ type __premarshalGetInstanceInstance struct {
 	AvailableUpgrade string `json:"availableUpgrade"`
 
 	Params json.RawMessage `json:"params"`
+
+	ParamsSchema json.RawMessage `json:"paramsSchema"`
 
 	Attributes json.RawMessage `json:"attributes"`
 
@@ -11653,6 +11734,18 @@ func (v *GetInstanceInstance) __premarshalJSON() (*__premarshalGetInstanceInstan
 		if err != nil {
 			return nil, fmt.Errorf(
 				"unable to marshal GetInstanceInstance.Params: %w", err)
+		}
+	}
+	{
+
+		dst := &retval.ParamsSchema
+		src := v.ParamsSchema
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetInstanceInstance.ParamsSchema: %w", err)
 		}
 	}
 	{
@@ -14010,7 +14103,7 @@ func (v *GetServerServerSsoProvidersSsoProvider) GetUiLabel() string { return v.
 
 // GetServiceAccountResponse is returned by GetServiceAccount on success.
 type GetServiceAccountResponse struct {
-	// Fetch a single service account by id. Requires `organization_admin` permissions.
+	// Fetch a single service account by id. Requires the `organization:manageServiceAccounts` action.
 	ServiceAccount GetServiceAccountServiceAccount `json:"serviceAccount"`
 }
 
@@ -14652,6 +14745,8 @@ type InstancesFilter struct {
 	BundleId *BundleIdFilter `json:"bundleId,omitempty"`
 	// Filter by configuration parameter values. Each entry targets a specific param field; multiple entries are combined with AND.
 	ParamDimension []ParamDimensionFilter `json:"paramDimension,omitempty"`
+	// Match by effective attributes — the instance's own attributes plus those inherited from its component, environment, and project. Each entry targets one attribute key; multiple entries are combined with AND.
+	Attributes []AttributeFilter `json:"attributes,omitempty"`
 }
 
 // GetProjectId returns InstancesFilter.ProjectId, and is useful for accessing the field via an interface.
@@ -14671,6 +14766,9 @@ func (v *InstancesFilter) GetBundleId() *BundleIdFilter { return v.BundleId }
 
 // GetParamDimension returns InstancesFilter.ParamDimension, and is useful for accessing the field via an interface.
 func (v *InstancesFilter) GetParamDimension() []ParamDimensionFilter { return v.ParamDimension }
+
+// GetAttributes returns InstancesFilter.Attributes, and is useful for accessing the field via an interface.
+func (v *InstancesFilter) GetAttributes() []AttributeFilter { return v.Attributes }
 
 // Sorting options for the instances list.
 type InstancesSort struct {
@@ -18989,7 +19087,7 @@ type ListServiceAccountsResponse struct {
 	// Returns a cursor-paginated list. Use `filter` to narrow by id or to search across each
 	// service account's name and description. Use `sort` to control ordering (defaults to name
 	// ascending; relevance ranking is used instead when `search` is active and no `sort` is given).
-	// Requires `organization_admin` permissions.
+	// Requires the `organization:manageServiceAccounts` action.
 	//
 	// ```graphql
 	// query {
@@ -19497,6 +19595,15 @@ var AllPolicyEffect = []PolicyEffect{
 	PolicyEffectAllow,
 	PolicyEffectDeny,
 }
+
+// Filters for narrowing the projects list. All filters are optional and combine with AND logic.
+type ProjectsFilter struct {
+	// Match by the project's effective attributes. Each entry targets one attribute key; multiple entries are combined with AND.
+	Attributes []AttributeFilter `json:"attributes,omitempty"`
+}
+
+// GetAttributes returns ProjectsFilter.Attributes, and is useful for accessing the field via an interface.
+func (v *ProjectsFilter) GetAttributes() []AttributeFilter { return v.Attributes }
 
 // Sorting options for the projects list. Specify a field and direction.
 type ProjectsSort struct {
@@ -20520,7 +20627,7 @@ type RemoveServiceAccountFromGroupResponse struct {
 	//
 	// The service account immediately loses all permissions granted by this group. If this was
 	// its only group, the service account retains its identity but has no access to any resources.
-	// Requires `organization_admin` permissions.
+	// Requires the `organization:manageGroups` action.
 	RemoveServiceAccountFromGroup RemoveServiceAccountFromGroupRemoveServiceAccountFromGroupServiceAccountGroupPayload `json:"removeServiceAccountFromGroup"`
 }
 
@@ -21744,7 +21851,7 @@ func (v *UpdateComponentUpdateComponentComponentPayloadResultComponentOciRepo) G
 type UpdateCustomAttributeInput struct {
 	// Whether this attribute must be set when creating a resource at the specified scope.
 	Required *bool `json:"required,omitempty"`
-	// The closed set of values this attribute may take. Must contain at least one entry, no duplicates, and may not contain the literal "*" (reserved for a future "any value" semantic). Replaces the current set in full.
+	// The closed set of values this attribute may take. Must contain at least one entry, no duplicates, and may not contain the literal "*". Replaces the current set in full.
 	Values []string `json:"values"`
 }
 
@@ -21761,7 +21868,7 @@ type UpdateCustomAttributeResponse struct {
 	// Changing `values` does not retroactively validate or rewrite resources
 	// that were tagged before this update. Subsequent writes (and policy conditions
 	// referencing this key) must use a value from the new set. Requires the
-	// `organization:manage` action.
+	// `organization:manageCustomAttributes` action.
 	UpdateCustomAttribute UpdateCustomAttributeUpdateCustomAttributeCustomAttributePayload `json:"updateCustomAttribute"`
 }
 
@@ -22417,7 +22524,7 @@ type UpdateGroupResponse struct {
 	// Update a group's name or description.
 	//
 	// Only the `name` and `description` fields can be modified. The group's role cannot be
-	// changed after creation. Requires `organization_admin` permissions.
+	// changed after creation. Requires the `organization:manageGroups` action.
 	UpdateGroup UpdateGroupUpdateGroupGroupPayload `json:"updateGroup"`
 }
 
@@ -23346,7 +23453,7 @@ func (v *UpdateOrganizationInput) GetName() string { return v.Name }
 
 // UpdateOrganizationResponse is returned by UpdateOrganization on success.
 type UpdateOrganizationResponse struct {
-	// Update mutable organization settings. Requires the `organization:manage` action.
+	// Update mutable organization settings. Requires the `organization:manageProfile` action.
 	UpdateOrganization UpdateOrganizationUpdateOrganizationOrganizationPayload `json:"updateOrganization"`
 }
 
@@ -23504,7 +23611,7 @@ func (v *UpdateOrganizationUpdateOrganizationOrganizationPayloadResultOrganizati
 type UpdatePolicyInput struct {
 	// Replace the policy's full action list. Pass one or more action ids in `{entity}:{verb}` form. Omit the field to leave the existing list unchanged. Duplicate entries are rejected.
 	Actions []string `json:"actions,omitempty"`
-	// Restrict the actions to entities whose attributes match every condition. Pass `"*"` to clear all conditions and make the policy a wildcard. Per-key, send `"*"` to match any value or a non-empty list of strings to match a closed set. Omit the field to leave conditions unchanged.
+	// Restrict the actions to entities whose attributes match every condition. Omit the field to leave conditions unchanged.
 	Conditions *types.PolicyConditions `json:"-"`
 	// ALLOW grants the actions. DENY blocks them and wins over any matching ALLOW.
 	Effect PolicyEffect `json:"effect,omitempty"`
@@ -24556,7 +24663,7 @@ func (v *UpdateServiceAccountInput) GetName() string { return v.Name }
 type UpdateServiceAccountResponse struct {
 	// Update a service account's name or description.
 	//
-	// Send only the fields you want to change. Requires `organization_admin` permissions.
+	// Send only the fields you want to change. Requires the `organization:manageServiceAccounts` action.
 	UpdateServiceAccount UpdateServiceAccountUpdateServiceAccountServiceAccountPayload `json:"updateServiceAccount"`
 }
 
@@ -25666,12 +25773,16 @@ func (v *__ListPolicyEntitiesInput) GetOrganizationId() string { return v.Organi
 // __ListProjectsInput is used internally by genqlient
 type __ListProjectsInput struct {
 	OrganizationId string          `json:"organizationId"`
+	Filter         *ProjectsFilter `json:"filter,omitempty"`
 	Sort           *ProjectsSort   `json:"sort,omitempty"`
 	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
 }
 
 // GetOrganizationId returns __ListProjectsInput.OrganizationId, and is useful for accessing the field via an interface.
 func (v *__ListProjectsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetFilter returns __ListProjectsInput.Filter, and is useful for accessing the field via an interface.
+func (v *__ListProjectsInput) GetFilter() *ProjectsFilter { return v.Filter }
 
 // GetSort returns __ListProjectsInput.Sort, and is useful for accessing the field via an interface.
 func (v *__ListProjectsInput) GetSort() *ProjectsSort { return v.Sort }
@@ -28505,6 +28616,7 @@ query GetInstance ($organizationId: ID!, $id: ID!) {
 		deployedVersion
 		availableUpgrade
 		params
+		paramsSchema
 		attributes
 		createdAt
 		updatedAt
@@ -29820,8 +29932,8 @@ func ListPolicyEntities(
 
 // The query executed by ListProjects.
 const ListProjects_Operation = `
-query ListProjects ($organizationId: ID!, $sort: ProjectsSort, $cursor: Cursor) {
-	projects(organizationId: $organizationId, sort: $sort, cursor: $cursor) {
+query ListProjects ($organizationId: ID!, $filter: ProjectsFilter, $sort: ProjectsSort, $cursor: Cursor) {
+	projects(organizationId: $organizationId, filter: $filter, sort: $sort, cursor: $cursor) {
 		cursor {
 			next
 			previous
@@ -29898,6 +30010,7 @@ func ListProjects(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	organizationId string,
+	filter *ProjectsFilter,
 	sort *ProjectsSort,
 	cursor *scalars.Cursor,
 ) (data_ *ListProjectsResponse, err_ error) {
@@ -29906,6 +30019,7 @@ func ListProjects(
 		Query:  ListProjects_Operation,
 		Variables: &__ListProjectsInput{
 			OrganizationId: organizationId,
+			Filter:         filter,
 			Sort:           sort,
 			Cursor:         cursor,
 		},

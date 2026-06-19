@@ -6,10 +6,10 @@ import (
 
 	"oras.land/oras-go/v2/registry/remote"
 
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/ocirepos"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )

@@ -22,6 +22,7 @@ type Instance struct {
 	DeployedVersion  string         `json:"deployedVersion,omitempty" mapstructure:"deployedVersion"`
 	AvailableUpgrade string         `json:"availableUpgrade,omitempty" mapstructure:"availableUpgrade"`
 	Params           map[string]any `json:"params,omitempty" mapstructure:"params"`
+	ParamsSchema     map[string]any `json:"paramsSchema,omitempty" mapstructure:"paramsSchema,omitempty"`
 	Attributes       map[string]any `json:"attributes,omitempty" mapstructure:"attributes,omitempty"`
 	CreatedAt        time.Time      `json:"createdAt,omitzero" mapstructure:"createdAt"`
 	UpdatedAt        time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
@@ -39,4 +40,14 @@ type Instance struct {
 type InstanceStatePath struct {
 	StepName string `json:"stepName" mapstructure:"stepName"`
 	StateURL string `json:"stateUrl" mapstructure:"stateUrl"`
+}
+
+// InstanceSecret is metadata for an encrypted secret attached to an
+// [Instance]. The value is never returned by the API — only the name, the
+// SHA-256 fingerprint, and timestamps are exposed.
+type InstanceSecret struct {
+	Name      string    `json:"name" mapstructure:"name"`
+	SHA256    string    `json:"sha256,omitempty" mapstructure:"sha256"`
+	CreatedAt time.Time `json:"createdAt,omitzero" mapstructure:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
 }
