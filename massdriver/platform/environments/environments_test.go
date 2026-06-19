@@ -36,6 +36,18 @@ func TestGet(t *testing.T) {
 					"description": "Storefront",
 					"attributes":  map[string]any{"team": "platform"},
 				},
+				"defaults": map[string]any{
+					"items": []map[string]any{
+						{
+							"id": "default-vpc",
+							"resource": map[string]any{
+								"id":           "res-vpc",
+								"name":         "shared-vpc",
+								"resourceType": map[string]any{"id": "aws-vpc", "name": "AWS VPC"},
+							},
+						},
+					},
+				},
 			},
 		}),
 	)
@@ -46,6 +58,20 @@ func TestGet(t *testing.T) {
 	}
 	if got.ID != "ecomm-prod" {
 		t.Errorf("ID = %q, want ecomm-prod", got.ID)
+	}
+	// defaults arrives as a paginated items envelope; assert it unwraps into
+	// the flat Defaults slice.
+	if len(got.Defaults) != 1 {
+		t.Fatalf("Defaults len = %d, want 1", len(got.Defaults))
+	}
+	if got.Defaults[0].ID != "default-vpc" {
+		t.Errorf("Defaults[0].ID = %q, want default-vpc", got.Defaults[0].ID)
+	}
+	if got.Defaults[0].Resource.ID != "res-vpc" {
+		t.Errorf("Defaults[0].Resource.ID = %q, want res-vpc", got.Defaults[0].Resource.ID)
+	}
+	if rt := got.Defaults[0].Resource.ResourceType; rt == nil || rt.ID != "aws-vpc" {
+		t.Errorf("Defaults[0].Resource.ResourceType = %+v, want ID aws-vpc", rt)
 	}
 	// The embedded Project is the same type as platform/projects.Project; assert
 	// the fuller shape populates so callers can read description/attributes

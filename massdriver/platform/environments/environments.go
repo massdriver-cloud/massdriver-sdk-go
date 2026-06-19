@@ -413,6 +413,21 @@ func toEnvironment(v any) (*Environment, error) {
 	if err := decode.Decode(v, &e); err != nil {
 		return nil, fmt.Errorf("decode environment: %w", err)
 	}
+
+	// defaults arrives as a paginated `defaults.items` envelope; unwrap it
+	// into the flat Defaults slice (mirrors toProject's handling of
+	// environments.items). Only GetEnvironment selects it; for queries that
+	// don't, the field is absent and Defaults stays nil.
+	type page[T any] struct {
+		Items []T `mapstructure:"items"`
+	}
+	type wrapper struct {
+		Defaults *page[types.EnvironmentDefault] `mapstructure:"defaults"`
+	}
+	var w wrapper
+	if err := decode.Decode(v, &w); err == nil && w.Defaults != nil {
+		e.Defaults = w.Defaults.Items
+	}
 	return &e, nil
 }
 
