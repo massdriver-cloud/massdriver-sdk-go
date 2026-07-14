@@ -1565,6 +1565,52 @@ mutation DeleteOciRepo($organizationId: ID!, $id: ID!) {
   }
 }
 
+mutation CreateRepoGrant(
+  $organizationId: ID!,
+  $repoId: ID!,
+  $input: CreateRepoGrantInput!
+) {
+  createRepoGrant(organizationId: $organizationId, repoId: $repoId, input: $input) {
+    result {
+      id
+      action
+      recipientConditions
+      createdAt
+      updatedAt
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+query ListOciRepoGrants(
+  $organizationId: ID!,
+  $id: ID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  ociRepo(organizationId: $organizationId, id: $id) {
+    id
+    grants(cursor: $cursor) {
+      cursor {
+        next
+        previous
+      }
+      items {
+        id
+        action
+        recipientConditions
+        createdAt
+        updatedAt
+      }
+    }
+  }
+}
+
 
 # ORGANIZATIONS
 
@@ -2232,6 +2278,30 @@ mutation DeleteGrant($organizationId: ID!, $id: UUID!) {
       code
       field
       message
+    }
+  }
+}
+
+query ListResourceGrants(
+  $organizationId: ID!,
+  $id: ID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  resource(organizationId: $organizationId, id: $id) {
+    id
+    grants(cursor: $cursor) {
+      cursor {
+        next
+        previous
+      }
+      items {
+        id
+        action
+        recipientConditions
+        createdAt
+        updatedAt
+      }
     }
   }
 }

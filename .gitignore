@@ -45,3 +45,6 @@ ehthumbs.db
 
 # Mage build tool (if used)
 mage_output_file.go
+
+# Integration test credentials
+massdriver/test/credentials.env

@@ -410,3 +410,104 @@ func TestDeleteGrant(t *testing.T) {
 		t.Fatalf("DeleteGrant: %v", err)
 	}
 }
+
+func TestIterGrants_AutoPaginates(t *testing.T) {
+	// Page 1: 2 grants + next cursor.
+	page1 := gqltest.RespondWithData(map[string]any{
+		"resource": map[string]any{
+			"id": "res-1",
+			"grants": map[string]any{
+				"cursor": map[string]any{"next": "cursor-page-2"},
+				"items": []map[string]any{
+					{"id": "g-1", "action": "resource:export", "recipientConditions": "*"},
+					{"id": "g-2", "action": "resource:export", "recipientConditions": `{"md-environment":["prod"]}`},
+				},
+			},
+		},
+	})
+	// Page 2: 1 grant, no next cursor — terminates the loop.
+	page2 := gqltest.RespondWithData(map[string]any{
+		"resource": map[string]any{
+			"id": "res-1",
+			"grants": map[string]any{
+				"cursor": map[string]any{},
+				"items": []map[string]any{
+					{"id": "g-3", "action": "resource:export", "recipientConditions": "*"},
+				},
+			},
+		},
+	})
+	gqlClient := gqltest.NewClient(page1, page2)
+
+	got, err := types.Collect(newService(gqlClient).IterGrants(t.Context(), "res-1", resources.ListGrantsInput{}))
+	if err != nil {
+		t.Fatalf("IterGrants: %v", err)
+	}
+	if len(got) != 3 {
+		t.Fatalf("got %d grants, want 3 (across two pages)", len(got))
+	}
+	if got[0].RecipientConditions != nil {
+		t.Errorf("grant 0 RecipientConditions = %v, want nil (wildcard)", got[0].RecipientConditions)
+	}
+	if envs := got[1].RecipientConditions["md-environment"]; len(envs) != 1 || envs[0] != "prod" {
+		t.Errorf("grant 1 RecipientConditions[md-environment] = %v, want [prod]", envs)
+	}
+
+	reqs := gqlClient.Requests()
+	if len(reqs) != 2 {
+		t.Fatalf("expected 2 paginated requests, got %d", len(reqs))
+	}
+	// Page 2 must carry the cursor handed back from page 1.
+	cursor, ok := reqs[1].Variables["cursor"].(map[string]any)
+	if !ok {
+		t.Fatalf("page 2 cursor = %v, want map", reqs[1].Variables["cursor"])
+	}
+	if cursor["next"] != "cursor-page-2" {
+		t.Errorf("page 2 cursor.next = %v, want cursor-page-2", cursor["next"])
+	}
+	if gqlClient.Pending() != 0 {
+		t.Errorf("Pending = %d, want 0 (all queued responses consumed)", gqlClient.Pending())
+	}
+}
+
+func TestIterGrants_NotFound(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{"resource": nil}),
+	)
+
+	_, err := types.Collect(newService(gqlClient).IterGrants(t.Context(), "no-such-resource", resources.ListGrantsInput{}))
+	if !errors.Is(err, gql.ErrNotFound) {
+		t.Errorf("err = %v, want gql.ErrNotFound", err)
+	}
+}
+
+func TestListGrantsPage(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"resource": map[string]any{
+				"id": "res-1",
+				"grants": map[string]any{
+					"cursor": map[string]any{"next": "cursor-page-2"},
+					"items": []map[string]any{
+						{"id": "g-1", "action": "resource:export", "recipientConditions": "*"},
+					},
+				},
+			},
+		}),
+	)
+
+	page, err := newService(gqlClient).ListGrantsPage(t.Context(), "res-1", resources.ListGrantsInput{})
+	if err != nil {
+		t.Fatalf("ListGrantsPage: %v", err)
+	}
+	if len(page.Items) != 1 {
+		t.Fatalf("got %d grants, want 1", len(page.Items))
+	}
+	if page.Next != "cursor-page-2" {
+		t.Errorf("Next = %q, want cursor-page-2", page.Next)
+	}
+	// Zero-valued input must omit the cursor variable entirely.
+	if cursor := gqlClient.Requests()[0].Variables["cursor"]; cursor != nil {
+		t.Errorf("cursor variable = %v, want nil (omitted)", cursor)
+	}
+}
