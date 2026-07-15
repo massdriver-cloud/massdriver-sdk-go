@@ -373,3 +373,187 @@ func TestTarget_BadURL(t *testing.T) {
 		t.Error("expected error from malformed URL, got nil")
 	}
 }
+
+func TestCreateGrant_WildcardRecipients(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"createRepoGrant": map[string]any{
+				"result": map[string]any{
+					"id":                  "g-1",
+					"action":              "repo:pull",
+					"recipientConditions": "*",
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).CreateGrant(t.Context(), "aws-rds", ocirepos.CreateGrantInput{
+		Action:              "repo:pull",
+		RecipientConditions: nil, // wildcard
+	})
+	if err != nil {
+		t.Fatalf("CreateGrant: %v", err)
+	}
+	if got.Action != "repo:pull" {
+		t.Errorf("Action = %q, want repo:pull", got.Action)
+	}
+	if got.RecipientConditions != nil {
+		t.Errorf("RecipientConditions = %v, want nil (wildcard)", got.RecipientConditions)
+	}
+	// The nil conditions must reach the wire as the "*" wildcard string.
+	input, ok := gqlClient.Requests()[0].Variables["input"].(map[string]any)
+	if !ok {
+		t.Fatalf("input = %v, want map", gqlClient.Requests()[0].Variables["input"])
+	}
+	if input["recipientConditions"] != "*" {
+		t.Errorf("wire recipientConditions = %v, want *", input["recipientConditions"])
+	}
+}
+
+func TestCreateGrant_AttributeRecipients(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"createRepoGrant": map[string]any{
+				"result": map[string]any{
+					"id":                  "g-2",
+					"action":              "repo:pull",
+					"recipientConditions": `{"team":["platform"]}`,
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).CreateGrant(t.Context(), "aws-rds", ocirepos.CreateGrantInput{
+		Action: "repo:pull",
+		RecipientConditions: types.PolicyConditions{
+			"team": []string{"platform"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CreateGrant: %v", err)
+	}
+	if teams := got.RecipientConditions["team"]; len(teams) != 1 || teams[0] != "platform" {
+		t.Errorf("RecipientConditions[team] = %v, want [platform]", teams)
+	}
+}
+
+func TestDeleteGrant(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"deleteGrant": map[string]any{
+				"result":     map[string]any{"id": "g-1", "action": "repo:pull"},
+				"successful": true,
+			},
+		}),
+	)
+
+	if err := newService(gqlClient).DeleteGrant(t.Context(), "g-1"); err != nil {
+		t.Fatalf("DeleteGrant: %v", err)
+	}
+	if op := gqlClient.Requests()[0].OpName; op != "DeleteGrant" {
+		t.Errorf("OpName = %q, want DeleteGrant", op)
+	}
+}
+
+func TestIterGrants_AutoPaginates(t *testing.T) {
+	// Page 1: 2 grants + next cursor.
+	page1 := gqltest.RespondWithData(map[string]any{
+		"ociRepo": map[string]any{
+			"id": "aws-rds",
+			"grants": map[string]any{
+				"cursor": map[string]any{"next": "cursor-page-2"},
+				"items": []map[string]any{
+					{"id": "g-1", "action": "repo:pull", "recipientConditions": "*"},
+					{"id": "g-2", "action": "repo:pull", "recipientConditions": `{"team":["platform"]}`},
+				},
+			},
+		},
+	})
+	// Page 2: 1 grant, no next cursor — terminates the loop.
+	page2 := gqltest.RespondWithData(map[string]any{
+		"ociRepo": map[string]any{
+			"id": "aws-rds",
+			"grants": map[string]any{
+				"cursor": map[string]any{},
+				"items": []map[string]any{
+					{"id": "g-3", "action": "repo:pull", "recipientConditions": "*"},
+				},
+			},
+		},
+	})
+	gqlClient := gqltest.NewClient(page1, page2)
+
+	got, err := types.Collect(newService(gqlClient).IterGrants(t.Context(), "aws-rds", ocirepos.ListGrantsInput{}))
+	if err != nil {
+		t.Fatalf("IterGrants: %v", err)
+	}
+	if len(got) != 3 {
+		t.Fatalf("got %d grants, want 3 (across two pages)", len(got))
+	}
+	if got[0].RecipientConditions != nil {
+		t.Errorf("grant 0 RecipientConditions = %v, want nil (wildcard)", got[0].RecipientConditions)
+	}
+	if teams := got[1].RecipientConditions["team"]; len(teams) != 1 || teams[0] != "platform" {
+		t.Errorf("grant 1 RecipientConditions[team] = %v, want [platform]", teams)
+	}
+
+	reqs := gqlClient.Requests()
+	if len(reqs) != 2 {
+		t.Fatalf("expected 2 paginated requests, got %d", len(reqs))
+	}
+	// Page 2 must carry the cursor handed back from page 1.
+	cursor, ok := reqs[1].Variables["cursor"].(map[string]any)
+	if !ok {
+		t.Fatalf("page 2 cursor = %v, want map", reqs[1].Variables["cursor"])
+	}
+	if cursor["next"] != "cursor-page-2" {
+		t.Errorf("page 2 cursor.next = %v, want cursor-page-2", cursor["next"])
+	}
+	if gqlClient.Pending() != 0 {
+		t.Errorf("Pending = %d, want 0 (all queued responses consumed)", gqlClient.Pending())
+	}
+}
+
+func TestIterGrants_NotFound(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{"ociRepo": nil}),
+	)
+
+	_, err := types.Collect(newService(gqlClient).IterGrants(t.Context(), "no-such-repo", ocirepos.ListGrantsInput{}))
+	if !errors.Is(err, gql.ErrNotFound) {
+		t.Errorf("err = %v, want gql.ErrNotFound", err)
+	}
+}
+
+func TestListGrantsPage(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"ociRepo": map[string]any{
+				"id": "aws-rds",
+				"grants": map[string]any{
+					"cursor": map[string]any{"next": "cursor-page-2"},
+					"items": []map[string]any{
+						{"id": "g-1", "action": "repo:pull", "recipientConditions": "*"},
+					},
+				},
+			},
+		}),
+	)
+
+	page, err := newService(gqlClient).ListGrantsPage(t.Context(), "aws-rds", ocirepos.ListGrantsInput{})
+	if err != nil {
+		t.Fatalf("ListGrantsPage: %v", err)
+	}
+	if len(page.Items) != 1 {
+		t.Fatalf("got %d grants, want 1", len(page.Items))
+	}
+	if page.Next != "cursor-page-2" {
+		t.Errorf("Next = %q, want cursor-page-2", page.Next)
+	}
+	// Zero-valued input must omit the cursor variable entirely.
+	if cursor := gqlClient.Requests()[0].Variables["cursor"]; cursor != nil {
+		t.Errorf("cursor variable = %v, want nil (omitted)", cursor)
+	}
+}

@@ -100,3 +100,107 @@ func TestIntegration_OciRepos_NotFoundClassification(t *testing.T) {
 		t.Errorf("Get nonexistent: got %v, want errors.Is(err, gql.ErrNotFound)", err)
 	}
 }
+
+// TestIntegration_OciRepoGrants walks the full grant lifecycle on a
+// fixture repository: create (wildcard + attribute-conditioned) → list →
+// paginate → delete → list empty. Grants are immutable so there is no
+// update leg.
+func TestIntegration_OciRepoGrants(t *testing.T) {
+	c := inttest.Client(t)
+	ctx := context.Background()
+
+	id := inttest.FixtureName(t, "ocirepo")
+
+	if _, err := c.OciRepos.Create(ctx, ocirepos.CreateInput{
+		ID:           id,
+		ArtifactType: ocirepos.ArtifactTypeBundle,
+		Attributes: map[string]any{
+			"created-by": "sdk-integration-test",
+		},
+	}); err != nil {
+		t.Fatalf("Create repo: %v", err)
+	}
+	t.Cleanup(func() {
+		if _, err := c.OciRepos.Delete(ctx, id); err != nil && !errors.Is(err, gql.ErrNotFound) {
+			t.Logf("cleanup: failed to delete fixture %s: %v", id, err)
+		}
+	})
+
+	wildcard, err := c.OciRepos.CreateGrant(ctx, id, ocirepos.CreateGrantInput{
+		Action:              "repo:pull",
+		RecipientConditions: nil, // wildcard
+	})
+	if err != nil {
+		t.Fatalf("CreateGrant (wildcard): %v", err)
+	}
+	t.Cleanup(func() {
+		if err := c.OciRepos.DeleteGrant(ctx, wildcard.ID); err != nil && !errors.Is(err, gql.ErrNotFound) {
+			t.Logf("cleanup: failed to delete grant %s: %v", wildcard.ID, err)
+		}
+	})
+	if wildcard.RecipientConditions != nil {
+		t.Errorf("wildcard grant RecipientConditions = %v, want nil", wildcard.RecipientConditions)
+	}
+
+	conditioned, err := c.OciRepos.CreateGrant(ctx, id, ocirepos.CreateGrantInput{
+		Action: "repo:pull",
+		RecipientConditions: types.PolicyConditions{
+			"created-by": []string{"sdk-integration-test"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CreateGrant (conditioned): %v", err)
+	}
+	t.Cleanup(func() {
+		if err := c.OciRepos.DeleteGrant(ctx, conditioned.ID); err != nil && !errors.Is(err, gql.ErrNotFound) {
+			t.Logf("cleanup: failed to delete grant %s: %v", conditioned.ID, err)
+		}
+	})
+
+	got, err := types.Collect(c.OciRepos.IterGrants(ctx, id, ocirepos.ListGrantsInput{}))
+	if err != nil {
+		t.Fatalf("IterGrants: %v", err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("got %d grants, want 2", len(got))
+	}
+	found := map[string]bool{}
+	for _, g := range got {
+		found[g.ID] = true
+	}
+	if !found[wildcard.ID] || !found[conditioned.ID] {
+		t.Errorf("IterGrants returned %v, want both %s and %s", found, wildcard.ID, conditioned.ID)
+	}
+
+	// A one-item page over two grants must hand back a next cursor.
+	page, err := c.OciRepos.ListGrantsPage(ctx, id, ocirepos.ListGrantsInput{PageSize: 1})
+	if err != nil {
+		t.Fatalf("ListGrantsPage: %v", err)
+	}
+	if len(page.Items) != 1 {
+		t.Errorf("page has %d items, want 1", len(page.Items))
+	}
+	if page.Next == "" {
+		t.Error("page.Next is empty, want a cursor to the second page")
+	}
+
+	for _, grantID := range []string{wildcard.ID, conditioned.ID} {
+		if err := c.OciRepos.DeleteGrant(ctx, grantID); err != nil {
+			t.Fatalf("DeleteGrant %s: %v", grantID, err)
+		}
+	}
+
+	got, err = types.Collect(c.OciRepos.IterGrants(ctx, id, ocirepos.ListGrantsInput{}))
+	if err != nil {
+		t.Fatalf("IterGrants after delete: %v", err)
+	}
+	if len(got) != 0 {
+		t.Errorf("got %d grants after delete, want 0", len(got))
+	}
+
+	// Listing grants on a nonexistent repo classifies as not-found.
+	_, err = types.Collect(c.OciRepos.IterGrants(ctx, "definitely-not-a-real-ocirepo-12345", ocirepos.ListGrantsInput{}))
+	if !errors.Is(err, gql.ErrNotFound) {
+		t.Errorf("IterGrants nonexistent: got %v, want errors.Is(err, gql.ErrNotFound)", err)
+	}
+}

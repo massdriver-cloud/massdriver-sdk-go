@@ -6,7 +6,8 @@
 //
 //   - GraphQL CRUD against the repository record (Get, List, Create, Update,
 //     Delete). These operate on Massdriver's metadata for the repo —
-//     attributes, timestamps, the OCI reference, etc.
+//     attributes, timestamps, the OCI reference, etc. Sharing grants on a
+//     repository are managed here too (CreateGrant, IterGrants, DeleteGrant).
 //   - [Service.Target], which returns an oras.Target for pulling/pushing artifacts
 //     directly via the OCI Distribution protocol. Use this for code that needs
 //     to push a bundle or fetch a manifest by tag.

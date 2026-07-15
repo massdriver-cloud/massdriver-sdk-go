@@ -4736,6 +4736,294 @@ func (v *CreateProjectResponse) GetCreateProject() CreateProjectCreateProjectPro
 	return v.CreateProject
 }
 
+// CreateRepoGrantCreateRepoGrantGrantPayload includes the requested fields of the GraphQL type GrantPayload.
+type CreateRepoGrantCreateRepoGrantGrantPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []CreateRepoGrantCreateRepoGrantGrantPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns CreateRepoGrantCreateRepoGrantGrantPayload.Result, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantCreateRepoGrantGrantPayload) GetResult() CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant {
+	return v.Result
+}
+
+// GetSuccessful returns CreateRepoGrantCreateRepoGrantGrantPayload.Successful, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantCreateRepoGrantGrantPayload) GetSuccessful() bool { return v.Successful }
+
+// GetMessages returns CreateRepoGrantCreateRepoGrantGrantPayload.Messages, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantCreateRepoGrantGrantPayload) GetMessages() []CreateRepoGrantCreateRepoGrantGrantPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// CreateRepoGrantCreateRepoGrantGrantPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type CreateRepoGrantCreateRepoGrantGrantPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns CreateRepoGrantCreateRepoGrantGrantPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantCreateRepoGrantGrantPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns CreateRepoGrantCreateRepoGrantGrantPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantCreateRepoGrantGrantPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns CreateRepoGrantCreateRepoGrantGrantPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantCreateRepoGrantGrantPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant includes the requested fields of the GraphQL type Grant.
+// The GraphQL type's documentation follows.
+//
+// A grant: a specific OCI repo or resource shared with recipient projects /
+// environments matching `recipientConditions`.
+type CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant struct {
+	// Unique identifier for this grant.
+	Id string `json:"id"`
+	// The action being granted on the source. Repo grants take `repo:view`/`repo:pull`/`repo:push`; resource grants take `resource:view`/`resource:export`.
+	Action string `json:"action"`
+	// Either `"*"` (the grant is a wildcard — every recipient in the org sees the source) or a JSON-encoded object of attribute conditions the recipient project / environment must satisfy. Keys are attribute names; values are a string or list of strings.
+	RecipientConditions types.PolicyConditions `json:"-"`
+	// When this grant was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// When this grant was last updated.
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant.Id, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant) GetId() string { return v.Id }
+
+// GetAction returns CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant.Action, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant) GetAction() string { return v.Action }
+
+// GetRecipientConditions returns CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant.RecipientConditions, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant) GetRecipientConditions() types.PolicyConditions {
+	return v.RecipientConditions
+}
+
+// GetCreatedAt returns CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant
+		RecipientConditions json.RawMessage `json:"recipientConditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.RecipientConditions
+		src := firstPass.RecipientConditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant.RecipientConditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCreateRepoGrantCreateRepoGrantGrantPayloadResultGrant struct {
+	Id string `json:"id"`
+
+	Action string `json:"action"`
+
+	RecipientConditions json.RawMessage `json:"recipientConditions"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant) __premarshalJSON() (*__premarshalCreateRepoGrantCreateRepoGrantGrantPayloadResultGrant, error) {
+	var retval __premarshalCreateRepoGrantCreateRepoGrantGrantPayloadResultGrant
+
+	retval.Id = v.Id
+	retval.Action = v.Action
+	{
+
+		dst := &retval.RecipientConditions
+		src := v.RecipientConditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CreateRepoGrantCreateRepoGrantGrantPayloadResultGrant.RecipientConditions: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// Share an OCI repo with recipient projects matching attribute conditions. The caller must have `repo:grant` on the source repo.
+type CreateRepoGrantInput struct {
+	// The action being granted on the repo. Currently the only grantable repo action is `repo:pull` — repo visibility is inferred from any granted action, and publishing is not a sharing concern.
+	Action string `json:"action"`
+	// Restrict this grant to recipient projects whose attributes match every condition.
+	RecipientConditions types.PolicyConditions `json:"-"`
+}
+
+// GetAction returns CreateRepoGrantInput.Action, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantInput) GetAction() string { return v.Action }
+
+// GetRecipientConditions returns CreateRepoGrantInput.RecipientConditions, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantInput) GetRecipientConditions() types.PolicyConditions {
+	return v.RecipientConditions
+}
+
+func (v *CreateRepoGrantInput) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CreateRepoGrantInput
+		RecipientConditions json.RawMessage `json:"recipientConditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CreateRepoGrantInput = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.RecipientConditions
+		src := firstPass.RecipientConditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CreateRepoGrantInput.RecipientConditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCreateRepoGrantInput struct {
+	Action string `json:"action"`
+
+	RecipientConditions json.RawMessage `json:"recipientConditions"`
+}
+
+func (v *CreateRepoGrantInput) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CreateRepoGrantInput) __premarshalJSON() (*__premarshalCreateRepoGrantInput, error) {
+	var retval __premarshalCreateRepoGrantInput
+
+	retval.Action = v.Action
+	{
+
+		dst := &retval.RecipientConditions
+		src := v.RecipientConditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CreateRepoGrantInput.RecipientConditions: %w", err)
+		}
+	}
+	return &retval, nil
+}
+
+// CreateRepoGrantResponse is returned by CreateRepoGrant on success.
+type CreateRepoGrantResponse struct {
+	// Share an OCI repo with recipient projects matching `recipientConditions`.
+	//
+	// The caller must have `repo:grant` on the source repo. Grants are immutable —
+	// to change `action` or `recipientConditions`, delete and re-create.
+	CreateRepoGrant CreateRepoGrantCreateRepoGrantGrantPayload `json:"createRepoGrant"`
+}
+
+// GetCreateRepoGrant returns CreateRepoGrantResponse.CreateRepoGrant, and is useful for accessing the field via an interface.
+func (v *CreateRepoGrantResponse) GetCreateRepoGrant() CreateRepoGrantCreateRepoGrantGrantPayload {
+	return v.CreateRepoGrant
+}
+
 // CreateResourceCreateResourceResourcePayload includes the requested fields of the GraphQL type ResourcePayload.
 type CreateResourceCreateResourceResourcePayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -17616,6 +17904,227 @@ func (v *ListInstancesResponse) GetInstances() ListInstancesInstancesInstancesPa
 	return v.Instances
 }
 
+// ListOciRepoGrantsOciRepo includes the requested fields of the GraphQL type OciRepo.
+// The GraphQL type's documentation follows.
+//
+// An OCI repository in your organization's bundle catalog.
+//
+// An OCI repository is the container for all published versions of a single
+// infrastructure-as-code package. It is analogous to a Docker image repository
+// but for Massdriver bundles.
+//
+// Each repository has a unique `name` (e.g., `aws-aurora-postgres`) and contains:
+//
+// - **Tags** -- the individual published versions (`1.0.0`, `1.1.0`, `1.2.3`, etc.)
+// - **Release channels** -- auto-resolving version constraints (`latest`, `~1`, `~1.2`)
+// that always point to the newest matching tag
+//
+// To fetch a specific bundle version from a repository, use the `bundle` query
+// with a `BundleId` like `aws-aurora-postgres@1.2.3` or `aws-aurora-postgres@~1`.
+type ListOciRepoGrantsOciRepo struct {
+	Id string `json:"id"`
+	// Grants the publisher has authored on this repository — what it is shared as,
+	// and which recipient projects qualify. If you can see this repository you can
+	// see all of its grants; grants are publisher-side metadata, not visibility-gated
+	// themselves.
+	Grants ListOciRepoGrantsOciRepoGrantsGrantsPage `json:"grants"`
+}
+
+// GetId returns ListOciRepoGrantsOciRepo.Id, and is useful for accessing the field via an interface.
+func (v *ListOciRepoGrantsOciRepo) GetId() string { return v.Id }
+
+// GetGrants returns ListOciRepoGrantsOciRepo.Grants, and is useful for accessing the field via an interface.
+func (v *ListOciRepoGrantsOciRepo) GetGrants() ListOciRepoGrantsOciRepoGrantsGrantsPage {
+	return v.Grants
+}
+
+// ListOciRepoGrantsOciRepoGrantsGrantsPage includes the requested fields of the GraphQL type GrantsPage.
+type ListOciRepoGrantsOciRepoGrantsGrantsPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListOciRepoGrantsOciRepoGrantsGrantsPageCursorPaginationCursor `json:"cursor"`
+	// A list of type grant.
+	Items []ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant `json:"items"`
+}
+
+// GetCursor returns ListOciRepoGrantsOciRepoGrantsGrantsPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListOciRepoGrantsOciRepoGrantsGrantsPage) GetCursor() ListOciRepoGrantsOciRepoGrantsGrantsPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListOciRepoGrantsOciRepoGrantsGrantsPage.Items, and is useful for accessing the field via an interface.
+func (v *ListOciRepoGrantsOciRepoGrantsGrantsPage) GetItems() []ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant {
+	return v.Items
+}
+
+// ListOciRepoGrantsOciRepoGrantsGrantsPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListOciRepoGrantsOciRepoGrantsGrantsPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListOciRepoGrantsOciRepoGrantsGrantsPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListOciRepoGrantsOciRepoGrantsGrantsPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListOciRepoGrantsOciRepoGrantsGrantsPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListOciRepoGrantsOciRepoGrantsGrantsPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant includes the requested fields of the GraphQL type Grant.
+// The GraphQL type's documentation follows.
+//
+// A grant: a specific OCI repo or resource shared with recipient projects /
+// environments matching `recipientConditions`.
+type ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant struct {
+	// Unique identifier for this grant.
+	Id string `json:"id"`
+	// The action being granted on the source. Repo grants take `repo:view`/`repo:pull`/`repo:push`; resource grants take `resource:view`/`resource:export`.
+	Action string `json:"action"`
+	// Either `"*"` (the grant is a wildcard — every recipient in the org sees the source) or a JSON-encoded object of attribute conditions the recipient project / environment must satisfy. Keys are attribute names; values are a string or list of strings.
+	RecipientConditions types.PolicyConditions `json:"-"`
+	// When this grant was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// When this grant was last updated.
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant.Id, and is useful for accessing the field via an interface.
+func (v *ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant) GetId() string { return v.Id }
+
+// GetAction returns ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant.Action, and is useful for accessing the field via an interface.
+func (v *ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant) GetAction() string { return v.Action }
+
+// GetRecipientConditions returns ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant.RecipientConditions, and is useful for accessing the field via an interface.
+func (v *ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant) GetRecipientConditions() types.PolicyConditions {
+	return v.RecipientConditions
+}
+
+// GetCreatedAt returns ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant
+		RecipientConditions json.RawMessage `json:"recipientConditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.RecipientConditions
+		src := firstPass.RecipientConditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant.RecipientConditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant struct {
+	Id string `json:"id"`
+
+	Action string `json:"action"`
+
+	RecipientConditions json.RawMessage `json:"recipientConditions"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant) __premarshalJSON() (*__premarshalListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant, error) {
+	var retval __premarshalListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant
+
+	retval.Id = v.Id
+	retval.Action = v.Action
+	{
+
+		dst := &retval.RecipientConditions
+		src := v.RecipientConditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListOciRepoGrantsOciRepoGrantsGrantsPageItemsGrant.RecipientConditions: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// ListOciRepoGrantsResponse is returned by ListOciRepoGrants on success.
+type ListOciRepoGrantsResponse struct {
+	// Fetch a single OCI repository by name.
+	//
+	// Returns the repository along with its nested `tags` and `releaseChannels`
+	// collections. Returns `null` with a `NOT_FOUND` error if the repository
+	// does not exist in your organization.
+	//
+	// ```graphql
+	// query {
+	// ociRepo(organizationId: "your-org-id", id: "aws-aurora-postgres") {
+	// id
+	// name
+	// artifactType
+	// tags(sort: { field: VERSION, order: DESC }) {
+	// items { tag createdAt }
+	// cursor { next }
+	// }
+	// releaseChannels(filter: { stable: true }) {
+	// items { name tag }
+	// }
+	// }
+	// }
+	// ```
+	OciRepo ListOciRepoGrantsOciRepo `json:"ociRepo"`
+}
+
+// GetOciRepo returns ListOciRepoGrantsResponse.OciRepo, and is useful for accessing the field via an interface.
+func (v *ListOciRepoGrantsResponse) GetOciRepo() ListOciRepoGrantsOciRepo { return v.OciRepo }
+
 // ListOciReposOciReposOciReposPage includes the requested fields of the GraphQL type OciReposPage.
 type ListOciReposOciReposOciReposPage struct {
 	// Pagination cursors for navigating between pages.
@@ -18903,6 +19412,206 @@ type ListProjectsResponse struct {
 
 // GetProjects returns ListProjectsResponse.Projects, and is useful for accessing the field via an interface.
 func (v *ListProjectsResponse) GetProjects() ListProjectsProjectsProjectsPage { return v.Projects }
+
+// ListResourceGrantsResource includes the requested fields of the GraphQL type Resource.
+// The GraphQL type's documentation follows.
+//
+// A cloud credential, database connection string, network configuration, or other
+// infrastructure output produced by (or imported into) Massdriver.
+//
+// Resources are the connective tissue between instances. When an instance is deployed, it
+// produces resources as outputs. Other instances can consume those resources as inputs,
+// creating a dependency graph of your infrastructure.
+//
+// Resources have two origins:
+// - **Imported** — created directly through the API (e.g., uploading existing AWS credentials).
+// You have full CRUD control over these resources.
+// - **Provisioned** — created automatically when an instance is deployed. These are read-only
+// and managed entirely by the owning instance's lifecycle.
+type ListResourceGrantsResource struct {
+	// Unique identifier for this resource.
+	Id string `json:"id"`
+	// Grants the publisher has authored on this resource — what it is shared as, and which
+	// recipient projects / environments qualify. If you can see this resource you can see all
+	// of its grants; grants are publisher-side metadata, not visibility-gated themselves.
+	Grants ListResourceGrantsResourceGrantsGrantsPage `json:"grants"`
+}
+
+// GetId returns ListResourceGrantsResource.Id, and is useful for accessing the field via an interface.
+func (v *ListResourceGrantsResource) GetId() string { return v.Id }
+
+// GetGrants returns ListResourceGrantsResource.Grants, and is useful for accessing the field via an interface.
+func (v *ListResourceGrantsResource) GetGrants() ListResourceGrantsResourceGrantsGrantsPage {
+	return v.Grants
+}
+
+// ListResourceGrantsResourceGrantsGrantsPage includes the requested fields of the GraphQL type GrantsPage.
+type ListResourceGrantsResourceGrantsGrantsPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListResourceGrantsResourceGrantsGrantsPageCursorPaginationCursor `json:"cursor"`
+	// A list of type grant.
+	Items []ListResourceGrantsResourceGrantsGrantsPageItemsGrant `json:"items"`
+}
+
+// GetCursor returns ListResourceGrantsResourceGrantsGrantsPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListResourceGrantsResourceGrantsGrantsPage) GetCursor() ListResourceGrantsResourceGrantsGrantsPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListResourceGrantsResourceGrantsGrantsPage.Items, and is useful for accessing the field via an interface.
+func (v *ListResourceGrantsResourceGrantsGrantsPage) GetItems() []ListResourceGrantsResourceGrantsGrantsPageItemsGrant {
+	return v.Items
+}
+
+// ListResourceGrantsResourceGrantsGrantsPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListResourceGrantsResourceGrantsGrantsPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListResourceGrantsResourceGrantsGrantsPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListResourceGrantsResourceGrantsGrantsPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListResourceGrantsResourceGrantsGrantsPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListResourceGrantsResourceGrantsGrantsPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListResourceGrantsResourceGrantsGrantsPageItemsGrant includes the requested fields of the GraphQL type Grant.
+// The GraphQL type's documentation follows.
+//
+// A grant: a specific OCI repo or resource shared with recipient projects /
+// environments matching `recipientConditions`.
+type ListResourceGrantsResourceGrantsGrantsPageItemsGrant struct {
+	// Unique identifier for this grant.
+	Id string `json:"id"`
+	// The action being granted on the source. Repo grants take `repo:view`/`repo:pull`/`repo:push`; resource grants take `resource:view`/`resource:export`.
+	Action string `json:"action"`
+	// Either `"*"` (the grant is a wildcard — every recipient in the org sees the source) or a JSON-encoded object of attribute conditions the recipient project / environment must satisfy. Keys are attribute names; values are a string or list of strings.
+	RecipientConditions types.PolicyConditions `json:"-"`
+	// When this grant was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// When this grant was last updated.
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns ListResourceGrantsResourceGrantsGrantsPageItemsGrant.Id, and is useful for accessing the field via an interface.
+func (v *ListResourceGrantsResourceGrantsGrantsPageItemsGrant) GetId() string { return v.Id }
+
+// GetAction returns ListResourceGrantsResourceGrantsGrantsPageItemsGrant.Action, and is useful for accessing the field via an interface.
+func (v *ListResourceGrantsResourceGrantsGrantsPageItemsGrant) GetAction() string { return v.Action }
+
+// GetRecipientConditions returns ListResourceGrantsResourceGrantsGrantsPageItemsGrant.RecipientConditions, and is useful for accessing the field via an interface.
+func (v *ListResourceGrantsResourceGrantsGrantsPageItemsGrant) GetRecipientConditions() types.PolicyConditions {
+	return v.RecipientConditions
+}
+
+// GetCreatedAt returns ListResourceGrantsResourceGrantsGrantsPageItemsGrant.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListResourceGrantsResourceGrantsGrantsPageItemsGrant) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns ListResourceGrantsResourceGrantsGrantsPageItemsGrant.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ListResourceGrantsResourceGrantsGrantsPageItemsGrant) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *ListResourceGrantsResourceGrantsGrantsPageItemsGrant) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ListResourceGrantsResourceGrantsGrantsPageItemsGrant
+		RecipientConditions json.RawMessage `json:"recipientConditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ListResourceGrantsResourceGrantsGrantsPageItemsGrant = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.RecipientConditions
+		src := firstPass.RecipientConditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListResourceGrantsResourceGrantsGrantsPageItemsGrant.RecipientConditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalListResourceGrantsResourceGrantsGrantsPageItemsGrant struct {
+	Id string `json:"id"`
+
+	Action string `json:"action"`
+
+	RecipientConditions json.RawMessage `json:"recipientConditions"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *ListResourceGrantsResourceGrantsGrantsPageItemsGrant) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ListResourceGrantsResourceGrantsGrantsPageItemsGrant) __premarshalJSON() (*__premarshalListResourceGrantsResourceGrantsGrantsPageItemsGrant, error) {
+	var retval __premarshalListResourceGrantsResourceGrantsGrantsPageItemsGrant
+
+	retval.Id = v.Id
+	retval.Action = v.Action
+	{
+
+		dst := &retval.RecipientConditions
+		src := v.RecipientConditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListResourceGrantsResourceGrantsGrantsPageItemsGrant.RecipientConditions: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// ListResourceGrantsResponse is returned by ListResourceGrants on success.
+type ListResourceGrantsResponse struct {
+	// Fetch a single resource by its unique identifier.
+	//
+	// Returns the full resource record including its origin, resource type, and timestamps.
+	Resource ListResourceGrantsResource `json:"resource"`
+}
+
+// GetResource returns ListResourceGrantsResponse.Resource, and is useful for accessing the field via an interface.
+func (v *ListResourceGrantsResponse) GetResource() ListResourceGrantsResource { return v.Resource }
 
 // ListResourcesResourcesResourcesPage includes the requested fields of the GraphQL type ResourcesPage.
 type ListResourcesResourcesResourcesPage struct {
@@ -25172,6 +25881,22 @@ func (v *__CreateProjectInput) GetOrganizationId() string { return v.Organizatio
 // GetInput returns __CreateProjectInput.Input, and is useful for accessing the field via an interface.
 func (v *__CreateProjectInput) GetInput() CreateProjectInput { return v.Input }
 
+// __CreateRepoGrantInput is used internally by genqlient
+type __CreateRepoGrantInput struct {
+	OrganizationId string               `json:"organizationId"`
+	RepoId         string               `json:"repoId"`
+	Input          CreateRepoGrantInput `json:"input"`
+}
+
+// GetOrganizationId returns __CreateRepoGrantInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__CreateRepoGrantInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetRepoId returns __CreateRepoGrantInput.RepoId, and is useful for accessing the field via an interface.
+func (v *__CreateRepoGrantInput) GetRepoId() string { return v.RepoId }
+
+// GetInput returns __CreateRepoGrantInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreateRepoGrantInput) GetInput() CreateRepoGrantInput { return v.Input }
+
 // __CreateResourceGrantInput is used internally by genqlient
 type __CreateResourceGrantInput struct {
 	OrganizationId string                   `json:"organizationId"`
@@ -25868,6 +26593,22 @@ func (v *__ListInstancesInput) GetSort() *InstancesSort { return v.Sort }
 // GetCursor returns __ListInstancesInput.Cursor, and is useful for accessing the field via an interface.
 func (v *__ListInstancesInput) GetCursor() *scalars.Cursor { return v.Cursor }
 
+// __ListOciRepoGrantsInput is used internally by genqlient
+type __ListOciRepoGrantsInput struct {
+	OrganizationId string          `json:"organizationId"`
+	Id             string          `json:"id"`
+	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListOciRepoGrantsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListOciRepoGrantsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __ListOciRepoGrantsInput.Id, and is useful for accessing the field via an interface.
+func (v *__ListOciRepoGrantsInput) GetId() string { return v.Id }
+
+// GetCursor returns __ListOciRepoGrantsInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListOciRepoGrantsInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
 // __ListOciReposInput is used internally by genqlient
 type __ListOciReposInput struct {
 	OrganizationId string          `json:"organizationId"`
@@ -25923,6 +26664,22 @@ func (v *__ListProjectsInput) GetSort() *ProjectsSort { return v.Sort }
 
 // GetCursor returns __ListProjectsInput.Cursor, and is useful for accessing the field via an interface.
 func (v *__ListProjectsInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+// __ListResourceGrantsInput is used internally by genqlient
+type __ListResourceGrantsInput struct {
+	OrganizationId string          `json:"organizationId"`
+	Id             string          `json:"id"`
+	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListResourceGrantsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListResourceGrantsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __ListResourceGrantsInput.Id, and is useful for accessing the field via an interface.
+func (v *__ListResourceGrantsInput) GetId() string { return v.Id }
+
+// GetCursor returns __ListResourceGrantsInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListResourceGrantsInput) GetCursor() *scalars.Cursor { return v.Cursor }
 
 // __ListResourcesInput is used internally by genqlient
 type __ListResourcesInput struct {
@@ -27130,6 +27887,56 @@ func CreateProject(
 	}
 
 	data_ = &CreateProjectResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by CreateRepoGrant.
+const CreateRepoGrant_Operation = `
+mutation CreateRepoGrant ($organizationId: ID!, $repoId: ID!, $input: CreateRepoGrantInput!) {
+	createRepoGrant(organizationId: $organizationId, repoId: $repoId, input: $input) {
+		result {
+			id
+			action
+			recipientConditions
+			createdAt
+			updatedAt
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func CreateRepoGrant(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	repoId string,
+	input CreateRepoGrantInput,
+) (data_ *CreateRepoGrantResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "CreateRepoGrant",
+		Query:  CreateRepoGrant_Operation,
+		Variables: &__CreateRepoGrantInput{
+			OrganizationId: organizationId,
+			RepoId:         repoId,
+			Input:          input,
+		},
+	}
+
+	data_ = &CreateRepoGrantResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -29944,6 +30751,57 @@ func ListInstances(
 	return data_, err_
 }
 
+// The query executed by ListOciRepoGrants.
+const ListOciRepoGrants_Operation = `
+query ListOciRepoGrants ($organizationId: ID!, $id: ID!, $cursor: Cursor) {
+	ociRepo(organizationId: $organizationId, id: $id) {
+		id
+		grants(cursor: $cursor) {
+			cursor {
+				next
+				previous
+			}
+			items {
+				id
+				action
+				recipientConditions
+				createdAt
+				updatedAt
+			}
+		}
+	}
+}
+`
+
+func ListOciRepoGrants(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+	cursor *scalars.Cursor,
+) (data_ *ListOciRepoGrantsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListOciRepoGrants",
+		Query:  ListOciRepoGrants_Operation,
+		Variables: &__ListOciRepoGrantsInput{
+			OrganizationId: organizationId,
+			Id:             id,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListOciRepoGrantsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The query executed by ListOciRepos.
 const ListOciRepos_Operation = `
 query ListOciRepos ($organizationId: ID!, $filter: OciReposFilter, $sort: OciReposSort, $cursor: Cursor) {
@@ -30176,6 +31034,57 @@ func ListProjects(
 	}
 
 	data_ = &ListProjectsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListResourceGrants.
+const ListResourceGrants_Operation = `
+query ListResourceGrants ($organizationId: ID!, $id: ID!, $cursor: Cursor) {
+	resource(organizationId: $organizationId, id: $id) {
+		id
+		grants(cursor: $cursor) {
+			cursor {
+				next
+				previous
+			}
+			items {
+				id
+				action
+				recipientConditions
+				createdAt
+				updatedAt
+			}
+		}
+	}
+}
+`
+
+func ListResourceGrants(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+	cursor *scalars.Cursor,
+) (data_ *ListResourceGrantsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListResourceGrants",
+		Query:  ListResourceGrants_Operation,
+		Variables: &__ListResourceGrantsInput{
+			OrganizationId: organizationId,
+			Id:             id,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListResourceGrantsResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
