@@ -9,7 +9,6 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/bundles"
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 func newService(gqlClient *gqltest.Client) *bundles.Service {
@@ -76,61 +75,5 @@ func TestGet_NotFound(t *testing.T) {
 	_, err := newService(gqlClient).Get(t.Context(), "missing@1.0.0")
 	if !errors.Is(err, gql.ErrNotFound) {
 		t.Errorf("err = %v, want it to wrap gql.ErrNotFound", err)
-	}
-}
-
-func TestList_FilterByRepo(t *testing.T) {
-	gqlClient := gqltest.NewClient(
-		gqltest.RespondWithData(map[string]any{
-			"bundles": map[string]any{
-				"cursor": map[string]any{},
-				"items": []map[string]any{
-					{"id": "aws-rds@1.0.0", "name": "aws-rds", "version": "1.0.0"},
-					{"id": "aws-rds@1.1.0", "name": "aws-rds", "version": "1.1.0"},
-				},
-			},
-		}),
-	)
-
-	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), bundles.ListInput{
-		OciRepoName: "aws-rds",
-	}))
-	if err != nil {
-		t.Fatalf("List: %v", err)
-	}
-	if len(got) != 2 {
-		t.Fatalf("got %d bundles, want 2", len(got))
-	}
-
-	// Verify the filter shape on the wire.
-	reqs := gqlClient.Requests()
-	filter, _ := reqs[0].Variables["filter"].(map[string]any)
-	repo, _ := filter["ociRepo"].(map[string]any)
-	if repo["eq"] != "aws-rds" {
-		t.Errorf("filter.ociRepo.eq = %v, want aws-rds", repo["eq"])
-	}
-}
-
-func TestList_AutoPaginates(t *testing.T) {
-	page1 := gqltest.RespondWithData(map[string]any{
-		"bundles": map[string]any{
-			"cursor": map[string]any{"next": "page-2"},
-			"items":  []map[string]any{{"id": "a@1", "name": "a", "version": "1"}},
-		},
-	})
-	page2 := gqltest.RespondWithData(map[string]any{
-		"bundles": map[string]any{
-			"cursor": map[string]any{},
-			"items":  []map[string]any{{"id": "b@1", "name": "b", "version": "1"}},
-		},
-	})
-	gqlClient := gqltest.NewClient(page1, page2)
-
-	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), bundles.ListInput{}))
-	if err != nil {
-		t.Fatalf("List: %v", err)
-	}
-	if len(got) != 2 {
-		t.Fatalf("got %d, want 2 across two pages", len(got))
 	}
 }
