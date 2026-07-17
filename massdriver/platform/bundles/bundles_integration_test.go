@@ -9,23 +9,7 @@ import (
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/bundles"
-	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
-
-// TestIntegration_Bundles_List confirms List returns without error and
-// produces a slice. Bundles are a read-only catalog; the result may
-// legitimately be empty in a fresh sandbox.
-func TestIntegration_Bundles_List(t *testing.T) {
-	c := inttest.Client(t)
-	ctx := context.Background()
-
-	got, err := types.Collect(c.Bundles.Iter(ctx, bundles.ListInput{}))
-	if err != nil {
-		t.Fatalf("List: %v", err)
-	}
-	_ = len(got)
-}
 
 // TestIntegration_Bundles_NotFoundClassification confirms Get for a
 // non-existent ID returns ErrNotFound. This is the live-API

@@ -175,41 +175,6 @@ query GetBundle($organizationId: ID!, $id: BundleId!) {
   }
 }
 
-# @genqlient(for: "BundlesFilter.ociRepo", omitempty: true, pointer: true)
-# @genqlient(for: "BundlesFilter.resourceType", omitempty: true, pointer: true)
-# @genqlient(for: "BundlesFilter.dependencyType", omitempty: true, pointer: true)
-# @genqlient(for: "BundlesFilter.search", omitempty: true)
-# @genqlient(for: "StringFilter.eq", omitempty: true)
-# @genqlient(for: "StringFilter.in", omitempty: true)
-query ListBundles(
-  $organizationId: ID!,
-  # @genqlient(omitempty: true, pointer: true)
-  $filter: BundlesFilter,
-  # @genqlient(omitempty: true, pointer: true)
-  $sort: BundlesSort,
-  # @genqlient(omitempty: true, pointer: true)
-  $cursor: Cursor
-) {
-  bundles(organizationId: $organizationId, filter: $filter, sort: $sort, cursor: $cursor) {
-    cursor {
-      next
-      previous
-    }
-    items {
-      id
-      name
-      version
-      description
-      icon
-      sourceUrl
-      repo
-      createdAt
-      updatedAt
-    }
-  }
-}
-
-
 # COMPONENTS
 
 query GetComponent($organizationId: ID!, $id: ID!) {
