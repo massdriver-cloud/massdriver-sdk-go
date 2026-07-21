@@ -9,8 +9,8 @@
 // configuration that takes effect on the next deployment.
 //
 // Sub-resources fold into this package by file: alarms.go, secrets.go,
-// resources.go. They share the same client and follow the same wrapper
-// shape as the core instance operations.
+// resources.go, remote_references.go. They share the same client and follow
+// the same wrapper shape as the core instance operations.
 //
 // Construct a [*Service] with [New] passing the low-level client, or use the
 // pre-wired [massdriver.Client.Instances] field on the top-level SDK client.

@@ -402,3 +402,95 @@ func TestApproveRejectAbort(t *testing.T) {
 		})
 	}
 }
+
+func TestPlan(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"planDeployment": map[string]any{
+				"result": map[string]any{
+					"id":      "dep-2",
+					"status":  "PENDING",
+					"action":  "PLAN",
+					"message": "Plan of deployment dep-1",
+					"instance": map[string]any{
+						"id":   "ecomm-prod-database",
+						"name": "Primary Database",
+					},
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).Plan(t.Context(), "dep-1")
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+	// The result is the NEW plan deployment, not the source.
+	if got.ID != "dep-2" {
+		t.Errorf("ID = %q, want dep-2", got.ID)
+	}
+	if got.Action != "PLAN" {
+		t.Errorf("Action = %q, want PLAN", got.Action)
+	}
+
+	reqs := gqlClient.Requests()
+	if reqs[0].OpName != "PlanDeployment" {
+		t.Errorf("OpName = %q, want PlanDeployment", reqs[0].OpName)
+	}
+	if reqs[0].Variables["id"] != "dep-1" {
+		t.Errorf("id variable = %v, want dep-1", reqs[0].Variables["id"])
+	}
+}
+
+func TestRollback(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"rollbackDeployment": map[string]any{
+				"result": map[string]any{
+					"id":      "dep-3",
+					"status":  "PROPOSED",
+					"action":  "PROVISION",
+					"version": "1.2.3",
+					"message": "Rollback to deployment dep-1",
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).Rollback(t.Context(), "dep-1")
+	if err != nil {
+		t.Fatalf("Rollback: %v", err)
+	}
+	// Rollback creates a PROPOSED PROVISION deployment for review.
+	if got.ID != "dep-3" {
+		t.Errorf("ID = %q, want dep-3", got.ID)
+	}
+	if got.Status != "PROPOSED" {
+		t.Errorf("Status = %q, want PROPOSED", got.Status)
+	}
+}
+
+func TestRollback_NotCompleted(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"rollbackDeployment": map[string]any{
+				"result":     nil,
+				"successful": false,
+				"messages": []map[string]any{
+					{"code": "invalid", "field": "id", "message": "must be a completed provision deployment"},
+				},
+			},
+		}),
+	)
+
+	_, err := newService(gqlClient).Rollback(t.Context(), "dep-1")
+	mf, ok := gql.AsMutationFailedError(err)
+	if !ok {
+		t.Fatalf("expected *gql.MutationFailedError, got %T: %v", err, err)
+	}
+	if mf.Op != "rollback deployment" {
+		t.Errorf("Op = %q, want rollback deployment", mf.Op)
+	}
+}

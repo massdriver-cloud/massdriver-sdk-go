@@ -128,6 +128,51 @@ func TestIntegration_Environments_List(t *testing.T) {
 	}
 }
 
+// TestIntegration_Environments_Compare diffs two freshly-created sibling
+// environments. The parent project has no components, so the comparison's
+// instance list is empty — the test exercises the query wiring and the
+// same-project pairing end-to-end; per-instance diffing is covered by the
+// unit test.
+func TestIntegration_Environments_Compare(t *testing.T) {
+	c := inttest.Client(t)
+	ctx := context.Background()
+
+	projectID := newProjectFixture(t, ctx)
+
+	source, err := c.Environments.Create(ctx, projectID, environments.CreateInput{
+		ID:   "cmpsrc",
+		Name: "Compare source",
+	})
+	if err != nil {
+		t.Fatalf("Create source env: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = c.Environments.Delete(ctx, source.ID)
+	})
+
+	target, err := c.Environments.Create(ctx, projectID, environments.CreateInput{
+		ID:   "cmptgt",
+		Name: "Compare target",
+	})
+	if err != nil {
+		t.Fatalf("Create target env: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = c.Environments.Delete(ctx, target.ID)
+	})
+
+	cmp, err := c.Environments.Compare(ctx, source.ID, target.ID)
+	if err != nil {
+		t.Fatalf("Compare: %v", err)
+	}
+	if cmp.Source.ID != source.ID || cmp.Target.ID != target.ID {
+		t.Errorf("Compare Source/Target IDs = %q/%q, want %q/%q", cmp.Source.ID, cmp.Target.ID, source.ID, target.ID)
+	}
+	if len(cmp.Instances) != 0 {
+		t.Errorf("Instances len = %d, want 0 for a component-less project", len(cmp.Instances))
+	}
+}
+
 // TestIntegration_Environments_NotFoundClassification confirms Get for
 // a non-existent ID returns ErrNotFound. This is the live-API
 // counterpart to the unit tests that mock the wire-level nil; here

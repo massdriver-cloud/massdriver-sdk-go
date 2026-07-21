@@ -122,6 +122,97 @@ func TestIntegration_Projects_List(t *testing.T) {
 	}
 }
 
+// TestIntegration_Projects_NameAndSearchFilters confirms the server-side
+// name/search filters narrow the list to the fixture. The fixture gets a
+// unique random name so the assertions hold regardless of what else is in
+// the sandbox.
+func TestIntegration_Projects_NameAndSearchFilters(t *testing.T) {
+	c := inttest.Client(t)
+	ctx := context.Background()
+
+	_, _ = c.Projects.Delete(ctx, projectFixtureID) // best-effort pre-clean
+
+	uniqueName := inttest.FixtureName(t, "search")
+	if _, err := c.Projects.Create(ctx, projects.CreateInput{
+		ID:   projectFixtureID,
+		Name: uniqueName,
+	}); err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = c.Projects.Delete(ctx, projectFixtureID)
+	})
+
+	byName, err := types.Collect(c.Projects.Iter(ctx, projects.ListInput{Name: uniqueName}))
+	if err != nil {
+		t.Fatalf("List by name: %v", err)
+	}
+	if len(byName) != 1 || byName[0].ID != projectFixtureID {
+		t.Errorf("List by name = %+v, want exactly the fixture %s", byName, projectFixtureID)
+	}
+
+	bySearch, err := types.Collect(c.Projects.Iter(ctx, projects.ListInput{Search: uniqueName}))
+	if err != nil {
+		t.Fatalf("List by search: %v", err)
+	}
+	var found bool
+	for _, p := range bySearch {
+		if p.ID == projectFixtureID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("List by search %q did not contain the fixture; got %d projects", uniqueName, len(bySearch))
+	}
+}
+
+// TestIntegration_Projects_Clone clones the fixture into a second project
+// and confirms the new project exists independently. The source has an
+// empty blueprint, so this exercises the mutation wiring rather than
+// component copying (covered by the unit test).
+func TestIntegration_Projects_Clone(t *testing.T) {
+	c := inttest.Client(t)
+	ctx := context.Background()
+
+	const cloneID = "inttestclone"
+	_, _ = c.Projects.Delete(ctx, projectFixtureID) // best-effort pre-clean
+	_, _ = c.Projects.Delete(ctx, cloneID)
+
+	if _, err := c.Projects.Create(ctx, projects.CreateInput{
+		ID:   projectFixtureID,
+		Name: "Clone source",
+	}); err != nil {
+		t.Fatalf("Create source: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = c.Projects.Delete(ctx, projectFixtureID)
+	})
+
+	cloned, err := c.Projects.Clone(ctx, projectFixtureID, projects.CloneInput{
+		ID:          cloneID,
+		Name:        "Clone target",
+		Description: "Created by SDK integration test; safe to delete.",
+	})
+	if err != nil {
+		t.Fatalf("Clone: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = c.Projects.Delete(ctx, cloneID)
+	})
+	if cloned.ID != cloneID {
+		t.Errorf("Clone returned ID %q, want %q", cloned.ID, cloneID)
+	}
+
+	got, err := c.Projects.Get(ctx, cloneID)
+	if err != nil {
+		t.Fatalf("Get clone: %v", err)
+	}
+	if got.Name != "Clone target" {
+		t.Errorf("clone Name = %q, want Clone target", got.Name)
+	}
+}
+
 // TestIntegration_Projects_NotFoundClassification confirms Get for a
 // non-existent ID returns ErrNotFound. This is the live-API
 // counterpart to the unit tests that mock the wire-level nil; here

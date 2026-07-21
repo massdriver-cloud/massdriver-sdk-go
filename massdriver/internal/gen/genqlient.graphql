@@ -526,6 +526,102 @@ mutation AbortDeployment($organizationId: ID!, $id: UUID!) {
   }
 }
 
+mutation PlanDeployment($organizationId: ID!, $id: UUID!) {
+  planDeployment(organizationId: $organizationId, id: $id) {
+    result {
+      id
+      status
+      action
+      version
+      message
+      createdAt
+      instance {
+        id
+        name
+      }
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+mutation RollbackDeployment($organizationId: ID!, $id: UUID!) {
+  rollbackDeployment(organizationId: $organizationId, id: $id) {
+    result {
+      id
+      status
+      action
+      version
+      message
+      createdAt
+      instance {
+        id
+        name
+      }
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+query CompareDeployments($organizationId: ID!, $sourceId: UUID!, $targetId: UUID!) {
+  compareDeployments(organizationId: $organizationId, sourceId: $sourceId, targetId: $targetId) {
+    source {
+      id
+      status
+      action
+      version
+      message
+      deployedBy
+      createdAt
+      updatedAt
+      instance {
+        id
+        name
+      }
+    }
+    target {
+      id
+      status
+      action
+      version
+      message
+      deployedBy
+      createdAt
+      updatedAt
+      instance {
+        id
+        name
+      }
+    }
+    version {
+      source
+      target
+      equal
+    }
+    params {
+      path
+      equal
+      source {
+        present
+        value
+      }
+      target {
+        present
+        value
+      }
+    }
+  }
+}
+
 
 # ENVIRONMENTS
 
@@ -782,6 +878,65 @@ mutation SetEnvironmentDefault($organizationId: ID!, $environmentId: ID!, $resou
       code
       field
       message
+    }
+  }
+}
+
+query CompareEnvironments($organizationId: ID!, $sourceId: ID!, $targetId: ID!) {
+  compareEnvironments(organizationId: $organizationId, sourceId: $sourceId, targetId: $targetId) {
+    source {
+      id
+      name
+      description
+      createdAt
+      updatedAt
+    }
+    target {
+      id
+      name
+      description
+      createdAt
+      updatedAt
+    }
+    instances {
+      component {
+        id
+        name
+      }
+      # @genqlient(pointer: true)
+      source {
+        id
+        name
+        status
+        version
+        resolvedVersion
+      }
+      # @genqlient(pointer: true)
+      target {
+        id
+        name
+        status
+        version
+        resolvedVersion
+      }
+      version {
+        source
+        target
+        equal
+      }
+      params {
+        path
+        equal
+        source {
+          present
+          value
+        }
+        target {
+          present
+          value
+        }
+      }
+      equal
     }
   }
 }
@@ -1394,6 +1549,58 @@ mutation RemoveInstanceSecret($organizationId: ID!, $id: ID!, $name: String!) {
   }
 }
 
+mutation SetRemoteReference($organizationId: ID!, $instanceId: ID!, $resourceId: ID!, $input: SetRemoteReferenceInput!) {
+  setRemoteReference(organizationId: $organizationId, instanceId: $instanceId, resourceId: $resourceId, input: $input) {
+    result {
+      id
+      field
+      createdAt
+      updatedAt
+      resource {
+        id
+        name
+        resourceType {
+          id
+          name
+          icon
+        }
+      }
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+mutation RemoveRemoteReference($organizationId: ID!, $instanceId: ID!, $input: RemoveRemoteReferenceInput!) {
+  removeRemoteReference(organizationId: $organizationId, instanceId: $instanceId, input: $input) {
+    result {
+      id
+      field
+      createdAt
+      updatedAt
+      resource {
+        id
+        name
+        resourceType {
+          id
+          name
+          icon
+        }
+      }
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
 
 # OCI REPOS
 
@@ -1912,7 +2119,11 @@ query GetProject($organizationId: ID!, $id: ID!) {
   }
 }
 
+# @genqlient(for: "ProjectsFilter.name", omitempty: true, pointer: true)
+# @genqlient(for: "ProjectsFilter.search", omitempty: true)
 # @genqlient(for: "ProjectsFilter.attributes", omitempty: true)
+# @genqlient(for: "StringFilter.eq", omitempty: true)
+# @genqlient(for: "StringFilter.in", omitempty: true)
 # @genqlient(for: "AttributeFilter.eq", omitempty: true)
 # @genqlient(for: "AttributeFilter.in", omitempty: true)
 query ListProjects(
@@ -2028,6 +2239,53 @@ mutation DeleteProject($organizationId: ID!, $id: ID!) {
       id
       name
       description
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+mutation CloneProject($organizationId: ID!, $sourceProjectId: ID!, $input: CloneProjectInput!) {
+  cloneProject(organizationId: $organizationId, sourceProjectId: $sourceProjectId, input: $input) {
+    result {
+      id
+      name
+      description
+      attributes
+      createdAt
+      updatedAt
+      components {
+        id
+        name
+        description
+        attributes
+        createdAt
+        updatedAt
+        ociRepo {
+          id
+          name
+          reference
+        }
+      }
+      links {
+        id
+        fromField
+        toField
+        createdAt
+        updatedAt
+        fromComponent {
+          id
+          name
+        }
+        toComponent {
+          id
+          name
+        }
+      }
     }
     successful
     messages {

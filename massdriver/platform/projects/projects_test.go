@@ -344,3 +344,155 @@ func TestGet_HTTP403Forbidden(t *testing.T) {
 		t.Errorf("err = %v, want it to wrap gql.ErrForbidden", err)
 	}
 }
+
+// TestList_ZeroInputOmitsFilter confirms a zero ListInput sends no filter at
+// all — the server should see `filter` absent, not an empty object.
+func TestList_ZeroInputOmitsFilter(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"projects": map[string]any{"items": []map[string]any{}},
+		}),
+	)
+
+	if _, err := newService(gqlClient).ListPage(t.Context(), projects.ListInput{}); err != nil {
+		t.Fatalf("ListPage: %v", err)
+	}
+	if f, ok := gqlClient.Requests()[0].Variables["filter"]; ok && f != nil {
+		t.Errorf("filter variable = %v, want it omitted", f)
+	}
+}
+
+func TestList_NameAndSearchFilters(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"projects": map[string]any{
+				"items": []map[string]any{
+					{"id": "ecomm", "name": "E-Commerce"},
+				},
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).ListPage(t.Context(), projects.ListInput{
+		Name:   "E-Commerce",
+		Search: "commerce",
+	})
+	if err != nil {
+		t.Fatalf("ListPage: %v", err)
+	}
+	if len(got.Items) != 1 || got.Items[0].ID != "ecomm" {
+		t.Fatalf("Items = %+v, want one project ecomm", got.Items)
+	}
+
+	filter, _ := gqlClient.Requests()[0].Variables["filter"].(map[string]any)
+	name, _ := filter["name"].(map[string]any)
+	if name["eq"] != "E-Commerce" {
+		t.Errorf("filter.name.eq = %v, want E-Commerce", name["eq"])
+	}
+	if filter["search"] != "commerce" {
+		t.Errorf("filter.search = %v, want commerce", filter["search"])
+	}
+}
+
+func TestList_NameInFilter(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"projects": map[string]any{"items": []map[string]any{}},
+		}),
+	)
+
+	if _, err := newService(gqlClient).ListPage(t.Context(), projects.ListInput{
+		NameIn: []string{"Staging", "Production"},
+	}); err != nil {
+		t.Fatalf("ListPage: %v", err)
+	}
+
+	filter, _ := gqlClient.Requests()[0].Variables["filter"].(map[string]any)
+	name, _ := filter["name"].(map[string]any)
+	in, _ := name["in"].([]any)
+	if len(in) != 2 || in[0] != "Staging" || in[1] != "Production" {
+		t.Errorf("filter.name.in = %v, want [Staging Production]", name["in"])
+	}
+}
+
+func TestClone(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"cloneProject": map[string]any{
+				"result": map[string]any{
+					"id":          "ecomm2",
+					"name":        "E-Commerce EU",
+					"description": "clone of ecomm",
+					"components": []map[string]any{
+						{
+							"id":      "ecomm2-database",
+							"name":    "Primary Database",
+							"ociRepo": map[string]any{"id": "aws-aurora-postgres", "name": "aws-aurora-postgres"},
+						},
+					},
+					"links": []map[string]any{
+						{
+							"id":            "link-1",
+							"fromField":     "authentication",
+							"toField":       "database",
+							"fromComponent": map[string]any{"id": "ecomm2-database", "name": "Primary Database"},
+							"toComponent":   map[string]any{"id": "ecomm2-app", "name": "App"},
+						},
+					},
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).Clone(t.Context(), "ecomm", projects.CloneInput{
+		ID:          "ecomm2",
+		Name:        "E-Commerce EU",
+		Description: "clone of ecomm",
+	})
+	if err != nil {
+		t.Fatalf("Clone: %v", err)
+	}
+	if got.ID != "ecomm2" {
+		t.Errorf("ID = %q, want ecomm2", got.ID)
+	}
+	// The cloned blueprint must come back populated.
+	if len(got.Components) != 1 || got.Components[0].ID != "ecomm2-database" {
+		t.Errorf("Components = %+v, want one component ecomm2-database", got.Components)
+	}
+	if len(got.Links) != 1 || got.Links[0].FromField != "authentication" {
+		t.Errorf("Links = %+v, want one link fromField=authentication", got.Links)
+	}
+
+	reqs := gqlClient.Requests()
+	if reqs[0].Variables["sourceProjectId"] != "ecomm" {
+		t.Errorf("sourceProjectId = %v, want ecomm", reqs[0].Variables["sourceProjectId"])
+	}
+	input, _ := reqs[0].Variables["input"].(map[string]any)
+	if input["id"] != "ecomm2" || input["name"] != "E-Commerce EU" {
+		t.Errorf("input = %v, want id=ecomm2 name=E-Commerce EU", input)
+	}
+}
+
+func TestClone_ValidationFailure(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"cloneProject": map[string]any{
+				"result":     nil,
+				"successful": false,
+				"messages": []map[string]any{
+					{"code": "taken", "field": "id", "message": "has already been taken"},
+				},
+			},
+		}),
+	)
+
+	_, err := newService(gqlClient).Clone(t.Context(), "ecomm", projects.CloneInput{ID: "ecomm"})
+	mf, ok := gql.AsMutationFailedError(err)
+	if !ok {
+		t.Fatalf("expected *gql.MutationFailedError, got %T: %v", err, err)
+	}
+	if mf.Op != "clone project" {
+		t.Errorf("Op = %q, want clone project", mf.Op)
+	}
+}
