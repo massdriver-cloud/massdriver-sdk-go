@@ -13,6 +13,9 @@
 // a pointer between an environment and an existing resource, not a record
 // allocated by this call.
 //
+// [Service.Compare] diffs two environments in the same project,
+// instance-by-instance.
+//
 // Construct a [*Service] with [New] passing the low-level client, or use the
 // pre-wired [massdriver.Client.Environments] field on the top-level SDK client.
 package environments

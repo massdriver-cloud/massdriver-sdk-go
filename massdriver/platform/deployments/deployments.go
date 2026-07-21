@@ -6,7 +6,7 @@
 // lifecycle [Status]. Deployments are immutable once created — modifications
 // happen by creating new deployments.
 //
-// The package surfaces three flavors of deployment creation:
+// The package surfaces several flavors of deployment creation:
 //
 //   - [Service.Create] — start a deployment immediately. The standard path.
 //   - [Service.Propose] — create a deployment in PROPOSED status that requires
@@ -14,6 +14,11 @@
 //     an operator must review params before they apply.
 //   - [Service.Approve] / [Service.Reject] — release or discard a proposal.
 //     [Service.Abort] cancels any pending/approved/running deployment.
+//   - [Service.Plan] — re-run an existing deployment's params as a dry-run
+//     preview, without mutating anything.
+//   - [Service.Rollback] — propose a return to a past deployment's exact state.
+//
+// [Service.Compare] diffs two deployments' snapshotted configuration.
 //
 // Logs are accessed separately via [Service.GetLogs] to keep the standard
 // [Service.Get]/[Service.Iter] payloads small.
@@ -317,6 +322,47 @@ func (s *Service) Reject(ctx context.Context, id string) (*Deployment, error) {
 		return nil, err
 	}
 	return toDeployment(resp.RejectDeployment.Result)
+}
+
+// Plan runs a fresh PLAN against an existing deployment's params. The source
+// deployment's params are copied onto a new deployment with action PLAN,
+// which runs as a dry-run preview — nothing on the source deployment, the
+// instance's saved configuration, or any other deployment is mutated.
+//
+// The source can be in any status: use it to preview a proposal before
+// approving, replay a completed deployment, or scope out a rollback against
+// an older snapshot. The returned deployment is the new PLAN, not the source.
+func (s *Service) Plan(ctx context.Context, id string) (*Deployment, error) {
+	resp, err := gen.PlanDeployment(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id)
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("plan deployment %s: %w", id, err))
+	}
+	if err := gql.CheckMutation("plan deployment", resp.PlanDeployment.Successful, resp.PlanDeployment.Messages); err != nil {
+		return nil, err
+	}
+	return toDeployment(resp.PlanDeployment.Result)
+}
+
+// Rollback proposes a return to a past deployment's exact state. It takes the
+// source deployment — the historical run to return to, which must be a
+// COMPLETED PROVISION — and creates a new PROPOSED PROVISION deployment that
+// snapshots the source's params, connection wiring, bundle version, and
+// release.
+//
+// The returned proposal goes through the normal review flow: approve with
+// [Service.Approve], discard with [Service.Reject], or preview with
+// [Service.Plan]. On approval the instance is pinned to the source
+// deployment's exact bundle version, params, and connection snapshot —
+// overriding whatever release is currently configured.
+func (s *Service) Rollback(ctx context.Context, id string) (*Deployment, error) {
+	resp, err := gen.RollbackDeployment(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id)
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("rollback deployment %s: %w", id, err))
+	}
+	if err := gql.CheckMutation("rollback deployment", resp.RollbackDeployment.Successful, resp.RollbackDeployment.Messages); err != nil {
+		return nil, err
+	}
+	return toDeployment(resp.RollbackDeployment.Result)
 }
 
 // Abort cancels a PENDING, APPROVED, or RUNNING deployment. The deployment

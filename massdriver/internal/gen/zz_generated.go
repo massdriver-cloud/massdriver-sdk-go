@@ -1496,6 +1496,1646 @@ func (v *BundleIdFilter) GetEq() string { return v.Eq }
 // GetIn returns BundleIdFilter.In, and is useful for accessing the field via an interface.
 func (v *BundleIdFilter) GetIn() []string { return v.In }
 
+// CloneProjectCloneProjectProjectPayload includes the requested fields of the GraphQL type ProjectPayload.
+type CloneProjectCloneProjectProjectPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result CloneProjectCloneProjectProjectPayloadResultProject `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []CloneProjectCloneProjectProjectPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns CloneProjectCloneProjectProjectPayload.Result, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayload) GetResult() CloneProjectCloneProjectProjectPayloadResultProject {
+	return v.Result
+}
+
+// GetSuccessful returns CloneProjectCloneProjectProjectPayload.Successful, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayload) GetSuccessful() bool { return v.Successful }
+
+// GetMessages returns CloneProjectCloneProjectProjectPayload.Messages, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayload) GetMessages() []CloneProjectCloneProjectProjectPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// CloneProjectCloneProjectProjectPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type CloneProjectCloneProjectProjectPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns CloneProjectCloneProjectProjectPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns CloneProjectCloneProjectProjectPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns CloneProjectCloneProjectProjectPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// CloneProjectCloneProjectProjectPayloadResultProject includes the requested fields of the GraphQL type Project.
+// The GraphQL type's documentation follows.
+//
+// A project organizes related infrastructure under a single blueprint.
+//
+// Each project contains a **Blueprint** that defines your infrastructure architecture -- which
+// bundles to use and how they connect -- and one or more **Environments** (like staging or
+// production) where that architecture is actually deployed.
+//
+// ```mermaid
+// graph LR
+// P["Project"] --> B["Blueprint"]
+// P --> E1["Environment: staging"]
+// P --> E2["Environment: production"]
+// B --> C1["Component: database"]
+// B --> C2["Component: cache"]
+// C1 -.->|"Link"| C2
+// ```
+//
+// Attributes set on a project are inherited by all environments and instances within it.
+type CloneProjectCloneProjectProjectPayloadResultProject struct {
+	Id string `json:"id"`
+	// Display name shown in the UI and CLI. Must be unique within the organization.
+	Name string `json:"name"`
+	// Free-text description of what this project is for.
+	Description string `json:"description"`
+	// Key-value attributes assigned directly to this project. Attributes cascade to environments and instances. Must conform to your organization's custom attributes for the `PROJECT` scope.
+	Attributes map[string]any `json:"-"`
+	// When this project was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this project was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// Components that make up the project's infrastructure architecture.
+	Components []CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent `json:"components"`
+	// Links between components that wire one component's output to another's input.
+	Links []CloneProjectCloneProjectProjectPayloadResultProjectLinksLink `json:"links"`
+}
+
+// GetId returns CloneProjectCloneProjectProjectPayloadResultProject.Id, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProject) GetId() string { return v.Id }
+
+// GetName returns CloneProjectCloneProjectProjectPayloadResultProject.Name, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProject) GetName() string { return v.Name }
+
+// GetDescription returns CloneProjectCloneProjectProjectPayloadResultProject.Description, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProject) GetDescription() string {
+	return v.Description
+}
+
+// GetAttributes returns CloneProjectCloneProjectProjectPayloadResultProject.Attributes, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProject) GetAttributes() map[string]any {
+	return v.Attributes
+}
+
+// GetCreatedAt returns CloneProjectCloneProjectProjectPayloadResultProject.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProject) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns CloneProjectCloneProjectProjectPayloadResultProject.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProject) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetComponents returns CloneProjectCloneProjectProjectPayloadResultProject.Components, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProject) GetComponents() []CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent {
+	return v.Components
+}
+
+// GetLinks returns CloneProjectCloneProjectProjectPayloadResultProject.Links, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProject) GetLinks() []CloneProjectCloneProjectProjectPayloadResultProjectLinksLink {
+	return v.Links
+}
+
+func (v *CloneProjectCloneProjectProjectPayloadResultProject) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CloneProjectCloneProjectProjectPayloadResultProject
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CloneProjectCloneProjectProjectPayloadResultProject = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CloneProjectCloneProjectProjectPayloadResultProject.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCloneProjectCloneProjectProjectPayloadResultProject struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Description string `json:"description"`
+
+	Attributes json.RawMessage `json:"attributes"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	Components []CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent `json:"components"`
+
+	Links []CloneProjectCloneProjectProjectPayloadResultProjectLinksLink `json:"links"`
+}
+
+func (v *CloneProjectCloneProjectProjectPayloadResultProject) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CloneProjectCloneProjectProjectPayloadResultProject) __premarshalJSON() (*__premarshalCloneProjectCloneProjectProjectPayloadResultProject, error) {
+	var retval __premarshalCloneProjectCloneProjectProjectPayloadResultProject
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Description = v.Description
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CloneProjectCloneProjectProjectPayloadResultProject.Attributes: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	retval.Components = v.Components
+	retval.Links = v.Links
+	return &retval, nil
+}
+
+// CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent includes the requested fields of the GraphQL type Component.
+// The GraphQL type's documentation follows.
+//
+// A bundle placed in a project's blueprint, representing a slot for deployable infrastructure.
+//
+// A component is the **design-time** building block of your architecture. It says
+// "I want a database here" or "I need a Kubernetes cluster there." The component
+// defines *what* to deploy; the actual running infrastructure lives in **instances**
+// -- one per environment the component is deployed to.
+//
+// Components are connected to each other via **links**, which declare that one
+// component's output (e.g., a connection string) should be wired into another
+// component's input.
+type CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent struct {
+	Id string `json:"id"`
+	// Human-readable display name shown in the UI.
+	Name string `json:"name"`
+	// Optional free-text description of this component's purpose.
+	Description string `json:"description"`
+	// Key-value attributes assigned directly to this component.
+	Attributes map[string]any `json:"-"`
+	// When this component was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this component was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The OCI repository (bundle) this component is based on.
+	OciRepo CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponentOciRepo `json:"ociRepo"`
+}
+
+// GetId returns CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent.Id, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent) GetId() string {
+	return v.Id
+}
+
+// GetName returns CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent.Name, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent) GetName() string {
+	return v.Name
+}
+
+// GetDescription returns CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent.Description, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent) GetDescription() string {
+	return v.Description
+}
+
+// GetAttributes returns CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent.Attributes, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent) GetAttributes() map[string]any {
+	return v.Attributes
+}
+
+// GetCreatedAt returns CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetOciRepo returns CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent.OciRepo, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent) GetOciRepo() CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponentOciRepo {
+	return v.OciRepo
+}
+
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Description string `json:"description"`
+
+	Attributes json.RawMessage `json:"attributes"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	OciRepo CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponentOciRepo `json:"ociRepo"`
+}
+
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent) __premarshalJSON() (*__premarshalCloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent, error) {
+	var retval __premarshalCloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Description = v.Description
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponent.Attributes: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	retval.OciRepo = v.OciRepo
+	return &retval, nil
+}
+
+// CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponentOciRepo includes the requested fields of the GraphQL type OciRepo.
+// The GraphQL type's documentation follows.
+//
+// An OCI repository in your organization's bundle catalog.
+//
+// An OCI repository is the container for all published versions of a single
+// infrastructure-as-code package. It is analogous to a Docker image repository
+// but for Massdriver bundles.
+//
+// Each repository has a unique `name` (e.g., `aws-aurora-postgres`) and contains:
+//
+// - **Tags** -- the individual published versions (`1.0.0`, `1.1.0`, `1.2.3`, etc.)
+// - **Release channels** -- auto-resolving version constraints (`latest`, `~1`, `~1.2`)
+// that always point to the newest matching tag
+//
+// To fetch a specific bundle version from a repository, use the `bundle` query
+// with a `BundleId` like `aws-aurora-postgres@1.2.3` or `aws-aurora-postgres@~1`.
+type CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponentOciRepo struct {
+	Id string `json:"id"`
+	// Repository name, unique within your organization (e.g., `aws-aurora-postgres`).
+	Name string `json:"name"`
+	// The bare [OCI reference](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#pulling-manifests)
+	// for this repository: `<registry>/<org>/<repo>` (for example,
+	// `api.massdriver.cloud/acme/aws-aurora-postgres`).
+	//
+	// Append `:<tag>` or `@<digest>` to address a specific manifest and use the
+	// result directly with `oras`, `docker`, or any OCI-compliant client:
+	//
+	// ```bash
+	// oras pull api.massdriver.cloud/acme/aws-aurora-postgres:1.2.3
+	// ```
+	Reference string `json:"reference"`
+}
+
+// GetId returns CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponentOciRepo.Id, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponentOciRepo) GetId() string {
+	return v.Id
+}
+
+// GetName returns CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponentOciRepo.Name, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponentOciRepo) GetName() string {
+	return v.Name
+}
+
+// GetReference returns CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponentOciRepo.Reference, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectComponentsComponentOciRepo) GetReference() string {
+	return v.Reference
+}
+
+// CloneProjectCloneProjectProjectPayloadResultProjectLinksLink includes the requested fields of the GraphQL type Link.
+// The GraphQL type's documentation follows.
+//
+// A design-time dependency between two components in a blueprint.
+//
+// A link declares that one component's output should be wired into another
+// component's input. For example, a link from a database component's
+// `authentication` output to an application component's `database` input
+// ensures the app receives the database connection string.
+//
+// At deploy time, each link is realized as a **connection** in the environment,
+// wiring the actual instance outputs to instance inputs.
+type CloneProjectCloneProjectProjectPayloadResultProjectLinksLink struct {
+	// Unique identifier for this link.
+	Id string `json:"id"`
+	// The output field name on the source component (e.g., `authentication`).
+	FromField string `json:"fromField"`
+	// The input field name on the destination component (e.g., `database`).
+	ToField string `json:"toField"`
+	// When this link was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this link was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The source component that produces the output.
+	FromComponent CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkFromComponent `json:"fromComponent"`
+	// The destination component that consumes the input.
+	ToComponent CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkToComponent `json:"toComponent"`
+}
+
+// GetId returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLink.Id, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLink) GetId() string { return v.Id }
+
+// GetFromField returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLink.FromField, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLink) GetFromField() string {
+	return v.FromField
+}
+
+// GetToField returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLink.ToField, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLink) GetToField() string {
+	return v.ToField
+}
+
+// GetCreatedAt returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLink.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLink) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLink.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLink) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetFromComponent returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLink.FromComponent, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLink) GetFromComponent() CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkFromComponent {
+	return v.FromComponent
+}
+
+// GetToComponent returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLink.ToComponent, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLink) GetToComponent() CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkToComponent {
+	return v.ToComponent
+}
+
+// CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkFromComponent includes the requested fields of the GraphQL type Component.
+// The GraphQL type's documentation follows.
+//
+// A bundle placed in a project's blueprint, representing a slot for deployable infrastructure.
+//
+// A component is the **design-time** building block of your architecture. It says
+// "I want a database here" or "I need a Kubernetes cluster there." The component
+// defines *what* to deploy; the actual running infrastructure lives in **instances**
+// -- one per environment the component is deployed to.
+//
+// Components are connected to each other via **links**, which declare that one
+// component's output (e.g., a connection string) should be wired into another
+// component's input.
+type CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkFromComponent struct {
+	Id string `json:"id"`
+	// Human-readable display name shown in the UI.
+	Name string `json:"name"`
+}
+
+// GetId returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkFromComponent.Id, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkFromComponent) GetId() string {
+	return v.Id
+}
+
+// GetName returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkFromComponent.Name, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkFromComponent) GetName() string {
+	return v.Name
+}
+
+// CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkToComponent includes the requested fields of the GraphQL type Component.
+// The GraphQL type's documentation follows.
+//
+// A bundle placed in a project's blueprint, representing a slot for deployable infrastructure.
+//
+// A component is the **design-time** building block of your architecture. It says
+// "I want a database here" or "I need a Kubernetes cluster there." The component
+// defines *what* to deploy; the actual running infrastructure lives in **instances**
+// -- one per environment the component is deployed to.
+//
+// Components are connected to each other via **links**, which declare that one
+// component's output (e.g., a connection string) should be wired into another
+// component's input.
+type CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkToComponent struct {
+	Id string `json:"id"`
+	// Human-readable display name shown in the UI.
+	Name string `json:"name"`
+}
+
+// GetId returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkToComponent.Id, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkToComponent) GetId() string {
+	return v.Id
+}
+
+// GetName returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkToComponent.Name, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLinkToComponent) GetName() string {
+	return v.Name
+}
+
+// Attributes for the new project.
+type CloneProjectInput struct {
+	// Key-value attributes for this project. Keys and values must be strings. Must conform to the organization's custom attributes for the project scope.
+	Attributes map[string]any `json:"-"`
+	// An optional description of the project's purpose or contents
+	Description string `json:"description"`
+	// A short, memorable identifier for looking up this project in the API and CLI. This becomes the first segment of all resource identifiers within the project. Max 20 characters, lowercase alphanumeric only (a-z, 0-9). Immutable after creation.
+	Id string `json:"id"`
+	// A human-readable name for the new project
+	Name string `json:"name"`
+}
+
+// GetAttributes returns CloneProjectInput.Attributes, and is useful for accessing the field via an interface.
+func (v *CloneProjectInput) GetAttributes() map[string]any { return v.Attributes }
+
+// GetDescription returns CloneProjectInput.Description, and is useful for accessing the field via an interface.
+func (v *CloneProjectInput) GetDescription() string { return v.Description }
+
+// GetId returns CloneProjectInput.Id, and is useful for accessing the field via an interface.
+func (v *CloneProjectInput) GetId() string { return v.Id }
+
+// GetName returns CloneProjectInput.Name, and is useful for accessing the field via an interface.
+func (v *CloneProjectInput) GetName() string { return v.Name }
+
+func (v *CloneProjectInput) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CloneProjectInput
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CloneProjectInput = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CloneProjectInput.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCloneProjectInput struct {
+	Attributes json.RawMessage `json:"attributes"`
+
+	Description string `json:"description"`
+
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+}
+
+func (v *CloneProjectInput) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CloneProjectInput) __premarshalJSON() (*__premarshalCloneProjectInput, error) {
+	var retval __premarshalCloneProjectInput
+
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CloneProjectInput.Attributes: %w", err)
+		}
+	}
+	retval.Description = v.Description
+	retval.Id = v.Id
+	retval.Name = v.Name
+	return &retval, nil
+}
+
+// CloneProjectResponse is returned by CloneProject on success.
+type CloneProjectResponse struct {
+	// Create a new project by cloning another project's blueprint.
+	//
+	// All components and links from the source project are copied into the new project.
+	// The new project gets its own independent blueprint -- subsequent changes do not
+	// affect the source. Environments are **not** cloned; you must create them separately.
+	CloneProject CloneProjectCloneProjectProjectPayload `json:"cloneProject"`
+}
+
+// GetCloneProject returns CloneProjectResponse.CloneProject, and is useful for accessing the field via an interface.
+func (v *CloneProjectResponse) GetCloneProject() CloneProjectCloneProjectProjectPayload {
+	return v.CloneProject
+}
+
+// CompareDeploymentsCompareDeploymentsDeploymentComparison includes the requested fields of the GraphQL type DeploymentComparison.
+// The GraphQL type's documentation follows.
+//
+// Side-by-side comparison of two deployments.
+//
+// Returned by `compareDeployments`. Use this to audit what changed between two
+// points in an instance's history ("what did this deploy change?") or to
+// contrast two different deployments against each other.
+//
+// The comparison is limited to snapshotted configuration — bundle version and
+// params. Runtime state, logs, and produced artifacts are out of scope.
+type CompareDeploymentsCompareDeploymentsDeploymentComparison struct {
+	// The deployment on the source side of the comparison.
+	Source CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment `json:"source"`
+	// The deployment on the target side of the comparison.
+	Target CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment `json:"target"`
+	// Bundle version on each side, with an `equal` flag for quick check.
+	Version CompareDeploymentsCompareDeploymentsDeploymentComparisonVersionVersionComparison `json:"version"`
+	// Flat, leaf-level diff of the two deployments' snapshotted params. Empty when both snapshots have no values to compare.
+	Params []CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparison `json:"params"`
+}
+
+// GetSource returns CompareDeploymentsCompareDeploymentsDeploymentComparison.Source, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparison) GetSource() CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment {
+	return v.Source
+}
+
+// GetTarget returns CompareDeploymentsCompareDeploymentsDeploymentComparison.Target, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparison) GetTarget() CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment {
+	return v.Target
+}
+
+// GetVersion returns CompareDeploymentsCompareDeploymentsDeploymentComparison.Version, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparison) GetVersion() CompareDeploymentsCompareDeploymentsDeploymentComparisonVersionVersionComparison {
+	return v.Version
+}
+
+// GetParams returns CompareDeploymentsCompareDeploymentsDeploymentComparison.Params, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparison) GetParams() []CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparison {
+	return v.Params
+}
+
+// CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparison includes the requested fields of the GraphQL type ParamComparison.
+// The GraphQL type's documentation follows.
+//
+// A single leaf-level comparison between two params maps.
+//
+// The list of `ParamComparison` entries returned by a comparison query is flat:
+// every entry is a terminal leaf (maps and arrays are walked to the bottom).
+// Use `equal` to filter to only the entries that differ.
+type CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparison struct {
+	// jq-style path to this leaf value, e.g. `.database.port` or `.containers[0].image`. Paths are stable across both sides of the comparison.
+	Path string `json:"path"`
+	// `true` when both sides have the same presence and the same value. `false` when either the key is only on one side or the values differ.
+	Equal bool `json:"equal"`
+	// The value (or absence) on the source side of the comparison.
+	Source CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonSourceParamValue `json:"source"`
+	// The value (or absence) on the target side of the comparison.
+	Target CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonTargetParamValue `json:"target"`
+}
+
+// GetPath returns CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparison.Path, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparison) GetPath() string {
+	return v.Path
+}
+
+// GetEqual returns CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparison.Equal, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparison) GetEqual() bool {
+	return v.Equal
+}
+
+// GetSource returns CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparison.Source, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparison) GetSource() CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonSourceParamValue {
+	return v.Source
+}
+
+// GetTarget returns CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparison.Target, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparison) GetTarget() CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonTargetParamValue {
+	return v.Target
+}
+
+// CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonSourceParamValue includes the requested fields of the GraphQL type ParamValue.
+// The GraphQL type's documentation follows.
+//
+// One leaf value in a params comparison, captured for a single side.
+//
+// `present` indicates whether the key exists on this side:
+// - `present: false` means the key is missing entirely.
+// - `present: true, value: null` means the key exists with a JSON `null` value.
+// - `present: true, value: "..."` means the key exists with the given value.
+//
+// `value` is a display string — for non-string leaves (numbers, booleans,
+// arrays), the value is rendered as text (`"5432"`, `"true"`, `"[1,2,3]"`).
+// Use the corresponding `paramDimensions` entry or the bundle schema for
+// the original type.
+type CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonSourceParamValue struct {
+	// Whether a value exists at this path on this side of the comparison.
+	Present bool `json:"present"`
+	// Display-ready string form of the leaf value. `null` when the key is missing or its value is JSON `null` — disambiguate with `present`.
+	Value string `json:"value"`
+}
+
+// GetPresent returns CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonSourceParamValue.Present, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonSourceParamValue) GetPresent() bool {
+	return v.Present
+}
+
+// GetValue returns CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonSourceParamValue.Value, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonSourceParamValue) GetValue() string {
+	return v.Value
+}
+
+// CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonTargetParamValue includes the requested fields of the GraphQL type ParamValue.
+// The GraphQL type's documentation follows.
+//
+// One leaf value in a params comparison, captured for a single side.
+//
+// `present` indicates whether the key exists on this side:
+// - `present: false` means the key is missing entirely.
+// - `present: true, value: null` means the key exists with a JSON `null` value.
+// - `present: true, value: "..."` means the key exists with the given value.
+//
+// `value` is a display string — for non-string leaves (numbers, booleans,
+// arrays), the value is rendered as text (`"5432"`, `"true"`, `"[1,2,3]"`).
+// Use the corresponding `paramDimensions` entry or the bundle schema for
+// the original type.
+type CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonTargetParamValue struct {
+	// Whether a value exists at this path on this side of the comparison.
+	Present bool `json:"present"`
+	// Display-ready string form of the leaf value. `null` when the key is missing or its value is JSON `null` — disambiguate with `present`.
+	Value string `json:"value"`
+}
+
+// GetPresent returns CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonTargetParamValue.Present, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonTargetParamValue) GetPresent() bool {
+	return v.Present
+}
+
+// GetValue returns CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonTargetParamValue.Value, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonParamsParamComparisonTargetParamValue) GetValue() string {
+	return v.Value
+}
+
+// CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment includes the requested fields of the GraphQL type Deployment.
+// The GraphQL type's documentation follows.
+//
+// A record of an infrastructure provisioning operation.
+//
+// Each deployment tracks a single action (`PROVISION`, `DECOMMISSION`, or `PLAN`) against
+// an instance. Deployments are immutable once created — you cannot modify a deployment,
+// only create new ones.
+//
+// Use the `status` field to monitor progress and `elapsed_time` to track duration.
+// The `deployed_by` field identifies the user or service account that initiated the operation.
+type CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment struct {
+	// Unique identifier for this deployment.
+	Id string `json:"id"`
+	// Current lifecycle state of this deployment.
+	Status DeploymentStatus `json:"status"`
+	// The infrastructure operation this deployment performs.
+	Action DeploymentAction `json:"action"`
+	// The bundle version used for this deployment (e.g., `1.2.0`).
+	Version string `json:"version"`
+	// An optional message describing the purpose of this deployment, similar to a commit message.
+	Message string `json:"message"`
+	// The name of the user or service account that initiated this deployment. Null if the initiator has been removed.
+	DeployedBy string `json:"deployedBy"`
+	// When this deployment was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this deployment record was last updated (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The instance that this deployment operates on.
+	Instance CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeploymentInstance `json:"instance"`
+}
+
+// GetId returns CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment.Id, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment) GetId() string {
+	return v.Id
+}
+
+// GetStatus returns CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment.Status, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment) GetStatus() DeploymentStatus {
+	return v.Status
+}
+
+// GetAction returns CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment.Action, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment) GetAction() DeploymentAction {
+	return v.Action
+}
+
+// GetVersion returns CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment.Version, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment) GetVersion() string {
+	return v.Version
+}
+
+// GetMessage returns CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment.Message, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment) GetMessage() string {
+	return v.Message
+}
+
+// GetDeployedBy returns CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment.DeployedBy, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment) GetDeployedBy() string {
+	return v.DeployedBy
+}
+
+// GetCreatedAt returns CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetInstance returns CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment.Instance, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment) GetInstance() CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeploymentInstance {
+	return v.Instance
+}
+
+// CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeploymentInstance includes the requested fields of the GraphQL type Instance.
+// The GraphQL type's documentation follows.
+//
+// A deployed piece of infrastructure in an environment.
+//
+// An instance is the **runtime representation** of a component. When you add a
+// "database" component to your blueprint and deploy it to the `staging`
+// environment, Massdriver creates an instance that tracks the database's
+// configuration, deployment state, costs, and produced resources.
+//
+// **Lifecycle:** Instances progress through a well-defined set of states:
+//
+// ```mermaid
+// stateDiagram-v2
+// [*] --> INITIALIZED: "Component added to environment"
+// INITIALIZED --> PROVISIONED: "Deployment succeeds"
+// INITIALIZED --> FAILED: "Deployment fails"
+// PROVISIONED --> PROVISIONED: "Redeploy / update"
+// PROVISIONED --> DECOMMISSIONED: "Decommission succeeds"
+// PROVISIONED --> FAILED: "Deployment fails"
+// FAILED --> PROVISIONED: "Retry succeeds"
+// FAILED --> DECOMMISSIONED: "Decommission"
+// ```
+//
+// **Version resolution:** Each instance has a `version` constraint (e.g., `~1.0`)
+// and a `releaseStrategy` (stable or development). Together these determine
+// the `resolvedVersion` that will be used on the next deployment. Compare
+// `resolvedVersion` with `deployedVersion` to see if a redeployment is needed,
+// or check `availableUpgrade` for newer matching releases.
+type CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeploymentInstance struct {
+	Id string `json:"id"`
+	// Name of the instance.
+	Name string `json:"name"`
+}
+
+// GetId returns CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeploymentInstance.Id, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeploymentInstance) GetId() string {
+	return v.Id
+}
+
+// GetName returns CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeploymentInstance.Name, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeploymentInstance) GetName() string {
+	return v.Name
+}
+
+// CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment includes the requested fields of the GraphQL type Deployment.
+// The GraphQL type's documentation follows.
+//
+// A record of an infrastructure provisioning operation.
+//
+// Each deployment tracks a single action (`PROVISION`, `DECOMMISSION`, or `PLAN`) against
+// an instance. Deployments are immutable once created — you cannot modify a deployment,
+// only create new ones.
+//
+// Use the `status` field to monitor progress and `elapsed_time` to track duration.
+// The `deployed_by` field identifies the user or service account that initiated the operation.
+type CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment struct {
+	// Unique identifier for this deployment.
+	Id string `json:"id"`
+	// Current lifecycle state of this deployment.
+	Status DeploymentStatus `json:"status"`
+	// The infrastructure operation this deployment performs.
+	Action DeploymentAction `json:"action"`
+	// The bundle version used for this deployment (e.g., `1.2.0`).
+	Version string `json:"version"`
+	// An optional message describing the purpose of this deployment, similar to a commit message.
+	Message string `json:"message"`
+	// The name of the user or service account that initiated this deployment. Null if the initiator has been removed.
+	DeployedBy string `json:"deployedBy"`
+	// When this deployment was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this deployment record was last updated (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The instance that this deployment operates on.
+	Instance CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeploymentInstance `json:"instance"`
+}
+
+// GetId returns CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment.Id, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment) GetId() string {
+	return v.Id
+}
+
+// GetStatus returns CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment.Status, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment) GetStatus() DeploymentStatus {
+	return v.Status
+}
+
+// GetAction returns CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment.Action, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment) GetAction() DeploymentAction {
+	return v.Action
+}
+
+// GetVersion returns CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment.Version, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment) GetVersion() string {
+	return v.Version
+}
+
+// GetMessage returns CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment.Message, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment) GetMessage() string {
+	return v.Message
+}
+
+// GetDeployedBy returns CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment.DeployedBy, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment) GetDeployedBy() string {
+	return v.DeployedBy
+}
+
+// GetCreatedAt returns CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetInstance returns CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment.Instance, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment) GetInstance() CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeploymentInstance {
+	return v.Instance
+}
+
+// CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeploymentInstance includes the requested fields of the GraphQL type Instance.
+// The GraphQL type's documentation follows.
+//
+// A deployed piece of infrastructure in an environment.
+//
+// An instance is the **runtime representation** of a component. When you add a
+// "database" component to your blueprint and deploy it to the `staging`
+// environment, Massdriver creates an instance that tracks the database's
+// configuration, deployment state, costs, and produced resources.
+//
+// **Lifecycle:** Instances progress through a well-defined set of states:
+//
+// ```mermaid
+// stateDiagram-v2
+// [*] --> INITIALIZED: "Component added to environment"
+// INITIALIZED --> PROVISIONED: "Deployment succeeds"
+// INITIALIZED --> FAILED: "Deployment fails"
+// PROVISIONED --> PROVISIONED: "Redeploy / update"
+// PROVISIONED --> DECOMMISSIONED: "Decommission succeeds"
+// PROVISIONED --> FAILED: "Deployment fails"
+// FAILED --> PROVISIONED: "Retry succeeds"
+// FAILED --> DECOMMISSIONED: "Decommission"
+// ```
+//
+// **Version resolution:** Each instance has a `version` constraint (e.g., `~1.0`)
+// and a `releaseStrategy` (stable or development). Together these determine
+// the `resolvedVersion` that will be used on the next deployment. Compare
+// `resolvedVersion` with `deployedVersion` to see if a redeployment is needed,
+// or check `availableUpgrade` for newer matching releases.
+type CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeploymentInstance struct {
+	Id string `json:"id"`
+	// Name of the instance.
+	Name string `json:"name"`
+}
+
+// GetId returns CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeploymentInstance.Id, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeploymentInstance) GetId() string {
+	return v.Id
+}
+
+// GetName returns CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeploymentInstance.Name, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeploymentInstance) GetName() string {
+	return v.Name
+}
+
+// CompareDeploymentsCompareDeploymentsDeploymentComparisonVersionVersionComparison includes the requested fields of the GraphQL type VersionComparison.
+// The GraphQL type's documentation follows.
+//
+// A comparison of a single version string between two sides.
+//
+// `source` and `target` may each be `null` when the corresponding side has no
+// version to report (e.g., an instance that exists on one side of an
+// environment comparison but not the other).
+type CompareDeploymentsCompareDeploymentsDeploymentComparisonVersionVersionComparison struct {
+	// The version on the source side, or `null` if no version applies.
+	Source string `json:"source"`
+	// The version on the target side, or `null` if no version applies.
+	Target string `json:"target"`
+	// `true` when both sides have the same version string (including both being `null`).
+	Equal bool `json:"equal"`
+}
+
+// GetSource returns CompareDeploymentsCompareDeploymentsDeploymentComparisonVersionVersionComparison.Source, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonVersionVersionComparison) GetSource() string {
+	return v.Source
+}
+
+// GetTarget returns CompareDeploymentsCompareDeploymentsDeploymentComparisonVersionVersionComparison.Target, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonVersionVersionComparison) GetTarget() string {
+	return v.Target
+}
+
+// GetEqual returns CompareDeploymentsCompareDeploymentsDeploymentComparisonVersionVersionComparison.Equal, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsCompareDeploymentsDeploymentComparisonVersionVersionComparison) GetEqual() bool {
+	return v.Equal
+}
+
+// CompareDeploymentsResponse is returned by CompareDeployments on success.
+type CompareDeploymentsResponse struct {
+	// Compare two deployments side-by-side.
+	//
+	// Returns the bundle version on each side and a flat, leaf-level diff of
+	// the snapshotted params. Useful for auditing what a deploy changed, or
+	// for contrasting deploys from different points in time.
+	//
+	// Both deployments must belong to the requesting organization. There is no
+	// requirement that they target the same instance — callers can pass any
+	// two deployments they have access to, though comparisons across unrelated
+	// instances will naturally show every leaf as "only on one side".
+	//
+	// ```graphql
+	// query {
+	// compareDeployments(organizationId: "my-org", sourceId: "<uuid-a>", targetId: "<uuid-b>") {
+	// source { id status version }
+	// target { id status version }
+	// version { source target equal }
+	// params { path source { value } target { value } equal }
+	// }
+	// }
+	// ```
+	CompareDeployments CompareDeploymentsCompareDeploymentsDeploymentComparison `json:"compareDeployments"`
+}
+
+// GetCompareDeployments returns CompareDeploymentsResponse.CompareDeployments, and is useful for accessing the field via an interface.
+func (v *CompareDeploymentsResponse) GetCompareDeployments() CompareDeploymentsCompareDeploymentsDeploymentComparison {
+	return v.CompareDeployments
+}
+
+// CompareEnvironmentsCompareEnvironmentsEnvironmentComparison includes the requested fields of the GraphQL type EnvironmentComparison.
+// The GraphQL type's documentation follows.
+//
+// Side-by-side comparison of two environments in the same project.
+//
+// Returned by `compareEnvironments`. The comparison pairs instances by
+// component and reports a per-instance diff of the resolved version and
+// configured params. Environment-level attributes and default resource wiring
+// are intentionally out of scope.
+//
+// Environments must belong to the same project — cross-project comparisons
+// are not meaningful because components are project-scoped.
+type CompareEnvironmentsCompareEnvironmentsEnvironmentComparison struct {
+	// The environment on the source side of the comparison.
+	Source CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment `json:"source"`
+	// The environment on the target side of the comparison.
+	Target CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment `json:"target"`
+	// Per-component diff, sorted by component identifier for a stable output.
+	Instances []CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison `json:"instances"`
+}
+
+// GetSource returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparison.Source, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparison) GetSource() CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment {
+	return v.Source
+}
+
+// GetTarget returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparison.Target, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparison) GetTarget() CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment {
+	return v.Target
+}
+
+// GetInstances returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparison.Instances, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparison) GetInstances() []CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison {
+	return v.Instances
+}
+
+// CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison includes the requested fields of the GraphQL type InstanceComparison.
+// The GraphQL type's documentation follows.
+//
+// A per-component comparison between two environments.
+//
+// Instances are paired across environments by their underlying component.
+// When only one side has an instance for a given component, the other
+// side's `source`/`target` is `null`, and every param appears as present
+// on the populated side only.
+type CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison struct {
+	// The component shared (or would-be-shared) by the two instances being compared.
+	Component CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonComponent `json:"component"`
+	// The instance on the source environment, or `null` if the component is not deployed there.
+	Source *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance `json:"source"`
+	// The instance on the target environment, or `null` if the component is not deployed there.
+	Target *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance `json:"target"`
+	// The instance's resolved version on each side, with an `equal` flag.
+	Version CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonVersionVersionComparison `json:"version"`
+	// Flat, leaf-level diff of the two instances' configured params.
+	Params []CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparison `json:"params"`
+	// `true` when both instances are present, the versions match, and every param is equal.
+	Equal bool `json:"equal"`
+}
+
+// GetComponent returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison.Component, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison) GetComponent() CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonComponent {
+	return v.Component
+}
+
+// GetSource returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison.Source, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison) GetSource() *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance {
+	return v.Source
+}
+
+// GetTarget returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison.Target, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison) GetTarget() *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance {
+	return v.Target
+}
+
+// GetVersion returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison.Version, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison) GetVersion() CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonVersionVersionComparison {
+	return v.Version
+}
+
+// GetParams returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison.Params, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison) GetParams() []CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparison {
+	return v.Params
+}
+
+// GetEqual returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison.Equal, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparison) GetEqual() bool {
+	return v.Equal
+}
+
+// CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonComponent includes the requested fields of the GraphQL type Component.
+// The GraphQL type's documentation follows.
+//
+// A bundle placed in a project's blueprint, representing a slot for deployable infrastructure.
+//
+// A component is the **design-time** building block of your architecture. It says
+// "I want a database here" or "I need a Kubernetes cluster there." The component
+// defines *what* to deploy; the actual running infrastructure lives in **instances**
+// -- one per environment the component is deployed to.
+//
+// Components are connected to each other via **links**, which declare that one
+// component's output (e.g., a connection string) should be wired into another
+// component's input.
+type CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonComponent struct {
+	Id string `json:"id"`
+	// Human-readable display name shown in the UI.
+	Name string `json:"name"`
+}
+
+// GetId returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonComponent.Id, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonComponent) GetId() string {
+	return v.Id
+}
+
+// GetName returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonComponent.Name, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonComponent) GetName() string {
+	return v.Name
+}
+
+// CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparison includes the requested fields of the GraphQL type ParamComparison.
+// The GraphQL type's documentation follows.
+//
+// A single leaf-level comparison between two params maps.
+//
+// The list of `ParamComparison` entries returned by a comparison query is flat:
+// every entry is a terminal leaf (maps and arrays are walked to the bottom).
+// Use `equal` to filter to only the entries that differ.
+type CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparison struct {
+	// jq-style path to this leaf value, e.g. `.database.port` or `.containers[0].image`. Paths are stable across both sides of the comparison.
+	Path string `json:"path"`
+	// `true` when both sides have the same presence and the same value. `false` when either the key is only on one side or the values differ.
+	Equal bool `json:"equal"`
+	// The value (or absence) on the source side of the comparison.
+	Source CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonSourceParamValue `json:"source"`
+	// The value (or absence) on the target side of the comparison.
+	Target CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonTargetParamValue `json:"target"`
+}
+
+// GetPath returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparison.Path, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparison) GetPath() string {
+	return v.Path
+}
+
+// GetEqual returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparison.Equal, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparison) GetEqual() bool {
+	return v.Equal
+}
+
+// GetSource returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparison.Source, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparison) GetSource() CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonSourceParamValue {
+	return v.Source
+}
+
+// GetTarget returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparison.Target, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparison) GetTarget() CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonTargetParamValue {
+	return v.Target
+}
+
+// CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonSourceParamValue includes the requested fields of the GraphQL type ParamValue.
+// The GraphQL type's documentation follows.
+//
+// One leaf value in a params comparison, captured for a single side.
+//
+// `present` indicates whether the key exists on this side:
+// - `present: false` means the key is missing entirely.
+// - `present: true, value: null` means the key exists with a JSON `null` value.
+// - `present: true, value: "..."` means the key exists with the given value.
+//
+// `value` is a display string — for non-string leaves (numbers, booleans,
+// arrays), the value is rendered as text (`"5432"`, `"true"`, `"[1,2,3]"`).
+// Use the corresponding `paramDimensions` entry or the bundle schema for
+// the original type.
+type CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonSourceParamValue struct {
+	// Whether a value exists at this path on this side of the comparison.
+	Present bool `json:"present"`
+	// Display-ready string form of the leaf value. `null` when the key is missing or its value is JSON `null` — disambiguate with `present`.
+	Value string `json:"value"`
+}
+
+// GetPresent returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonSourceParamValue.Present, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonSourceParamValue) GetPresent() bool {
+	return v.Present
+}
+
+// GetValue returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonSourceParamValue.Value, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonSourceParamValue) GetValue() string {
+	return v.Value
+}
+
+// CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonTargetParamValue includes the requested fields of the GraphQL type ParamValue.
+// The GraphQL type's documentation follows.
+//
+// One leaf value in a params comparison, captured for a single side.
+//
+// `present` indicates whether the key exists on this side:
+// - `present: false` means the key is missing entirely.
+// - `present: true, value: null` means the key exists with a JSON `null` value.
+// - `present: true, value: "..."` means the key exists with the given value.
+//
+// `value` is a display string — for non-string leaves (numbers, booleans,
+// arrays), the value is rendered as text (`"5432"`, `"true"`, `"[1,2,3]"`).
+// Use the corresponding `paramDimensions` entry or the bundle schema for
+// the original type.
+type CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonTargetParamValue struct {
+	// Whether a value exists at this path on this side of the comparison.
+	Present bool `json:"present"`
+	// Display-ready string form of the leaf value. `null` when the key is missing or its value is JSON `null` — disambiguate with `present`.
+	Value string `json:"value"`
+}
+
+// GetPresent returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonTargetParamValue.Present, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonTargetParamValue) GetPresent() bool {
+	return v.Present
+}
+
+// GetValue returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonTargetParamValue.Value, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonParamsParamComparisonTargetParamValue) GetValue() string {
+	return v.Value
+}
+
+// CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance includes the requested fields of the GraphQL type Instance.
+// The GraphQL type's documentation follows.
+//
+// A deployed piece of infrastructure in an environment.
+//
+// An instance is the **runtime representation** of a component. When you add a
+// "database" component to your blueprint and deploy it to the `staging`
+// environment, Massdriver creates an instance that tracks the database's
+// configuration, deployment state, costs, and produced resources.
+//
+// **Lifecycle:** Instances progress through a well-defined set of states:
+//
+// ```mermaid
+// stateDiagram-v2
+// [*] --> INITIALIZED: "Component added to environment"
+// INITIALIZED --> PROVISIONED: "Deployment succeeds"
+// INITIALIZED --> FAILED: "Deployment fails"
+// PROVISIONED --> PROVISIONED: "Redeploy / update"
+// PROVISIONED --> DECOMMISSIONED: "Decommission succeeds"
+// PROVISIONED --> FAILED: "Deployment fails"
+// FAILED --> PROVISIONED: "Retry succeeds"
+// FAILED --> DECOMMISSIONED: "Decommission"
+// ```
+//
+// **Version resolution:** Each instance has a `version` constraint (e.g., `~1.0`)
+// and a `releaseStrategy` (stable or development). Together these determine
+// the `resolvedVersion` that will be used on the next deployment. Compare
+// `resolvedVersion` with `deployedVersion` to see if a redeployment is needed,
+// or check `availableUpgrade` for newer matching releases.
+type CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance struct {
+	Id string `json:"id"`
+	// Name of the instance.
+	Name string `json:"name"`
+	// Current lifecycle state of the instance.
+	Status InstanceStatus `json:"status"`
+	// The version constraint controlling which bundle releases are eligible for deployment. Accepts any value accepted by the `VersionConstraint` scalar: a pinned semver (e.g., `1.2.3`) or a release channel name as listed by `ociRepo.releaseChannels` (e.g., `latest`, `~1.2`, `~1.2+dev`). Round-trips: the value returned here is valid input for the next `updateInstance` mutation.
+	Version string `json:"version"`
+	// The concrete bundle version resolved from the version constraint and release strategy.
+	//
+	// This is the version that will be used on the **next** deployment. Compare
+	// with `deployedVersion` to determine if a redeployment would change anything.
+	ResolvedVersion string `json:"resolvedVersion"`
+}
+
+// GetId returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance.Id, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance) GetId() string {
+	return v.Id
+}
+
+// GetName returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance.Name, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance) GetName() string {
+	return v.Name
+}
+
+// GetStatus returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance.Status, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance) GetStatus() InstanceStatus {
+	return v.Status
+}
+
+// GetVersion returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance.Version, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance) GetVersion() string {
+	return v.Version
+}
+
+// GetResolvedVersion returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance.ResolvedVersion, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonSourceInstance) GetResolvedVersion() string {
+	return v.ResolvedVersion
+}
+
+// CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance includes the requested fields of the GraphQL type Instance.
+// The GraphQL type's documentation follows.
+//
+// A deployed piece of infrastructure in an environment.
+//
+// An instance is the **runtime representation** of a component. When you add a
+// "database" component to your blueprint and deploy it to the `staging`
+// environment, Massdriver creates an instance that tracks the database's
+// configuration, deployment state, costs, and produced resources.
+//
+// **Lifecycle:** Instances progress through a well-defined set of states:
+//
+// ```mermaid
+// stateDiagram-v2
+// [*] --> INITIALIZED: "Component added to environment"
+// INITIALIZED --> PROVISIONED: "Deployment succeeds"
+// INITIALIZED --> FAILED: "Deployment fails"
+// PROVISIONED --> PROVISIONED: "Redeploy / update"
+// PROVISIONED --> DECOMMISSIONED: "Decommission succeeds"
+// PROVISIONED --> FAILED: "Deployment fails"
+// FAILED --> PROVISIONED: "Retry succeeds"
+// FAILED --> DECOMMISSIONED: "Decommission"
+// ```
+//
+// **Version resolution:** Each instance has a `version` constraint (e.g., `~1.0`)
+// and a `releaseStrategy` (stable or development). Together these determine
+// the `resolvedVersion` that will be used on the next deployment. Compare
+// `resolvedVersion` with `deployedVersion` to see if a redeployment is needed,
+// or check `availableUpgrade` for newer matching releases.
+type CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance struct {
+	Id string `json:"id"`
+	// Name of the instance.
+	Name string `json:"name"`
+	// Current lifecycle state of the instance.
+	Status InstanceStatus `json:"status"`
+	// The version constraint controlling which bundle releases are eligible for deployment. Accepts any value accepted by the `VersionConstraint` scalar: a pinned semver (e.g., `1.2.3`) or a release channel name as listed by `ociRepo.releaseChannels` (e.g., `latest`, `~1.2`, `~1.2+dev`). Round-trips: the value returned here is valid input for the next `updateInstance` mutation.
+	Version string `json:"version"`
+	// The concrete bundle version resolved from the version constraint and release strategy.
+	//
+	// This is the version that will be used on the **next** deployment. Compare
+	// with `deployedVersion` to determine if a redeployment would change anything.
+	ResolvedVersion string `json:"resolvedVersion"`
+}
+
+// GetId returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance.Id, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance) GetId() string {
+	return v.Id
+}
+
+// GetName returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance.Name, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance) GetName() string {
+	return v.Name
+}
+
+// GetStatus returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance.Status, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance) GetStatus() InstanceStatus {
+	return v.Status
+}
+
+// GetVersion returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance.Version, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance) GetVersion() string {
+	return v.Version
+}
+
+// GetResolvedVersion returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance.ResolvedVersion, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonTargetInstance) GetResolvedVersion() string {
+	return v.ResolvedVersion
+}
+
+// CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonVersionVersionComparison includes the requested fields of the GraphQL type VersionComparison.
+// The GraphQL type's documentation follows.
+//
+// A comparison of a single version string between two sides.
+//
+// `source` and `target` may each be `null` when the corresponding side has no
+// version to report (e.g., an instance that exists on one side of an
+// environment comparison but not the other).
+type CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonVersionVersionComparison struct {
+	// The version on the source side, or `null` if no version applies.
+	Source string `json:"source"`
+	// The version on the target side, or `null` if no version applies.
+	Target string `json:"target"`
+	// `true` when both sides have the same version string (including both being `null`).
+	Equal bool `json:"equal"`
+}
+
+// GetSource returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonVersionVersionComparison.Source, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonVersionVersionComparison) GetSource() string {
+	return v.Source
+}
+
+// GetTarget returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonVersionVersionComparison.Target, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonVersionVersionComparison) GetTarget() string {
+	return v.Target
+}
+
+// GetEqual returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonVersionVersionComparison.Equal, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonInstancesInstanceComparisonVersionVersionComparison) GetEqual() bool {
+	return v.Equal
+}
+
+// CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment includes the requested fields of the GraphQL type Environment.
+// The GraphQL type's documentation follows.
+//
+// A deployment target within a project where blueprint components become live infrastructure.
+//
+// Each project can have multiple environments (e.g., `staging`, `production`). When you deploy
+// to an environment, every component in the project's blueprint is realized as an **Instance** --
+// a running piece of cloud infrastructure with its own configuration, state, and cost data.
+//
+// Environments inherit attributes from their parent project. You can also set environment-scoped attributes
+// that cascade down to all instances within the environment. **Defaults** let you pre-assign
+// resources (like a shared VPC or DNS zone) so that new instances automatically receive them.
+//
+// Before deleting an environment, all instances must be decommissioned. Use the `deletable`
+// field to check for blocking constraints.
+type CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment struct {
+	Id string `json:"id"`
+	// Display name shown in the UI and CLI. Must be unique within the project.
+	Name string `json:"name"`
+	// Free-text description of what this environment is for.
+	Description string `json:"description"`
+	// When this environment was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this environment was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment.Id, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment) GetId() string {
+	return v.Id
+}
+
+// GetName returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment.Name, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment) GetName() string {
+	return v.Name
+}
+
+// GetDescription returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment.Description, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment) GetDescription() string {
+	return v.Description
+}
+
+// GetCreatedAt returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonSourceEnvironment) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment includes the requested fields of the GraphQL type Environment.
+// The GraphQL type's documentation follows.
+//
+// A deployment target within a project where blueprint components become live infrastructure.
+//
+// Each project can have multiple environments (e.g., `staging`, `production`). When you deploy
+// to an environment, every component in the project's blueprint is realized as an **Instance** --
+// a running piece of cloud infrastructure with its own configuration, state, and cost data.
+//
+// Environments inherit attributes from their parent project. You can also set environment-scoped attributes
+// that cascade down to all instances within the environment. **Defaults** let you pre-assign
+// resources (like a shared VPC or DNS zone) so that new instances automatically receive them.
+//
+// Before deleting an environment, all instances must be decommissioned. Use the `deletable`
+// field to check for blocking constraints.
+type CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment struct {
+	Id string `json:"id"`
+	// Display name shown in the UI and CLI. Must be unique within the project.
+	Name string `json:"name"`
+	// Free-text description of what this environment is for.
+	Description string `json:"description"`
+	// When this environment was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this environment was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment.Id, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment) GetId() string {
+	return v.Id
+}
+
+// GetName returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment.Name, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment) GetName() string {
+	return v.Name
+}
+
+// GetDescription returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment.Description, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment) GetDescription() string {
+	return v.Description
+}
+
+// GetCreatedAt returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsCompareEnvironmentsEnvironmentComparisonTargetEnvironment) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// CompareEnvironmentsResponse is returned by CompareEnvironments on success.
+type CompareEnvironmentsResponse struct {
+	// Compare two environments in the same project, instance-by-instance.
+	//
+	// Instances are paired by component. For each component, the result reports
+	// the resolved version on each side and a flat, leaf-level diff of the
+	// configured params. Environment-level attributes and default wiring are not part
+	// of the comparison.
+	//
+	// Both environments must belong to the same project; passing environments
+	// from different projects returns a `FORBIDDEN` error because components
+	// don't cross project boundaries.
+	//
+	// ```graphql
+	// query {
+	// compareEnvironments(organizationId: "my-org", sourceId: "staging", targetId: "prod") {
+	// source { id } target { id }
+	// instances {
+	// component { id name }
+	// source { id } target { id }
+	// version { source target equal }
+	// params { path equal source { value } target { value } }
+	// equal
+	// }
+	// }
+	// }
+	// ```
+	CompareEnvironments CompareEnvironmentsCompareEnvironmentsEnvironmentComparison `json:"compareEnvironments"`
+}
+
+// GetCompareEnvironments returns CompareEnvironmentsResponse.CompareEnvironments, and is useful for accessing the field via an interface.
+func (v *CompareEnvironmentsResponse) GetCompareEnvironments() CompareEnvironmentsCompareEnvironmentsEnvironmentComparison {
+	return v.CompareEnvironments
+}
+
 // CopyInstanceCopyInstanceInstancePayload includes the requested fields of the GraphQL type InstancePayload.
 type CopyInstanceCopyInstanceInstancePayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -20198,6 +21838,225 @@ func (v *ParamDimensionFilter) GetIn() []string { return v.In }
 // GetContains returns ParamDimensionFilter.Contains, and is useful for accessing the field via an interface.
 func (v *ParamDimensionFilter) GetContains() string { return v.Contains }
 
+// PlanDeploymentPlanDeploymentDeploymentPayload includes the requested fields of the GraphQL type DeploymentPayload.
+type PlanDeploymentPlanDeploymentDeploymentPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []PlanDeploymentPlanDeploymentDeploymentPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns PlanDeploymentPlanDeploymentDeploymentPayload.Result, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayload) GetResult() PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment {
+	return v.Result
+}
+
+// GetSuccessful returns PlanDeploymentPlanDeploymentDeploymentPayload.Successful, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayload) GetSuccessful() bool { return v.Successful }
+
+// GetMessages returns PlanDeploymentPlanDeploymentDeploymentPayload.Messages, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayload) GetMessages() []PlanDeploymentPlanDeploymentDeploymentPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// PlanDeploymentPlanDeploymentDeploymentPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type PlanDeploymentPlanDeploymentDeploymentPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns PlanDeploymentPlanDeploymentDeploymentPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns PlanDeploymentPlanDeploymentDeploymentPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns PlanDeploymentPlanDeploymentDeploymentPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment includes the requested fields of the GraphQL type Deployment.
+// The GraphQL type's documentation follows.
+//
+// A record of an infrastructure provisioning operation.
+//
+// Each deployment tracks a single action (`PROVISION`, `DECOMMISSION`, or `PLAN`) against
+// an instance. Deployments are immutable once created — you cannot modify a deployment,
+// only create new ones.
+//
+// Use the `status` field to monitor progress and `elapsed_time` to track duration.
+// The `deployed_by` field identifies the user or service account that initiated the operation.
+type PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment struct {
+	// Unique identifier for this deployment.
+	Id string `json:"id"`
+	// Current lifecycle state of this deployment.
+	Status DeploymentStatus `json:"status"`
+	// The infrastructure operation this deployment performs.
+	Action DeploymentAction `json:"action"`
+	// The bundle version used for this deployment (e.g., `1.2.0`).
+	Version string `json:"version"`
+	// An optional message describing the purpose of this deployment, similar to a commit message.
+	Message string `json:"message"`
+	// When this deployment was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// The instance that this deployment operates on.
+	Instance PlanDeploymentPlanDeploymentDeploymentPayloadResultDeploymentInstance `json:"instance"`
+}
+
+// GetId returns PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment.Id, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment) GetId() string { return v.Id }
+
+// GetStatus returns PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment.Status, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment) GetStatus() DeploymentStatus {
+	return v.Status
+}
+
+// GetAction returns PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment.Action, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment) GetAction() DeploymentAction {
+	return v.Action
+}
+
+// GetVersion returns PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment.Version, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment) GetVersion() string {
+	return v.Version
+}
+
+// GetMessage returns PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment.Message, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment) GetMessage() string {
+	return v.Message
+}
+
+// GetCreatedAt returns PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment.CreatedAt, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetInstance returns PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment.Instance, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayloadResultDeployment) GetInstance() PlanDeploymentPlanDeploymentDeploymentPayloadResultDeploymentInstance {
+	return v.Instance
+}
+
+// PlanDeploymentPlanDeploymentDeploymentPayloadResultDeploymentInstance includes the requested fields of the GraphQL type Instance.
+// The GraphQL type's documentation follows.
+//
+// A deployed piece of infrastructure in an environment.
+//
+// An instance is the **runtime representation** of a component. When you add a
+// "database" component to your blueprint and deploy it to the `staging`
+// environment, Massdriver creates an instance that tracks the database's
+// configuration, deployment state, costs, and produced resources.
+//
+// **Lifecycle:** Instances progress through a well-defined set of states:
+//
+// ```mermaid
+// stateDiagram-v2
+// [*] --> INITIALIZED: "Component added to environment"
+// INITIALIZED --> PROVISIONED: "Deployment succeeds"
+// INITIALIZED --> FAILED: "Deployment fails"
+// PROVISIONED --> PROVISIONED: "Redeploy / update"
+// PROVISIONED --> DECOMMISSIONED: "Decommission succeeds"
+// PROVISIONED --> FAILED: "Deployment fails"
+// FAILED --> PROVISIONED: "Retry succeeds"
+// FAILED --> DECOMMISSIONED: "Decommission"
+// ```
+//
+// **Version resolution:** Each instance has a `version` constraint (e.g., `~1.0`)
+// and a `releaseStrategy` (stable or development). Together these determine
+// the `resolvedVersion` that will be used on the next deployment. Compare
+// `resolvedVersion` with `deployedVersion` to see if a redeployment is needed,
+// or check `availableUpgrade` for newer matching releases.
+type PlanDeploymentPlanDeploymentDeploymentPayloadResultDeploymentInstance struct {
+	Id string `json:"id"`
+	// Name of the instance.
+	Name string `json:"name"`
+}
+
+// GetId returns PlanDeploymentPlanDeploymentDeploymentPayloadResultDeploymentInstance.Id, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayloadResultDeploymentInstance) GetId() string {
+	return v.Id
+}
+
+// GetName returns PlanDeploymentPlanDeploymentDeploymentPayloadResultDeploymentInstance.Name, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentPlanDeploymentDeploymentPayloadResultDeploymentInstance) GetName() string {
+	return v.Name
+}
+
+// PlanDeploymentResponse is returned by PlanDeployment on success.
+type PlanDeploymentResponse struct {
+	// Run a fresh `PLAN` against an existing deployment's params.
+	//
+	// The source deployment's params are copied (without `md_metadata`) onto a new
+	// deployment with action `PLAN`, which runs as a dry-run preview. Nothing on
+	// the source deployment, the instance's saved configuration, or any other
+	// deployment is mutated. The plan's `message` is synthesized from the source
+	// so the preview is traceable back to what it was run against.
+	//
+	// The source can be in any status — useful for previewing a proposal before
+	// approving, replaying a completed deployment, or scoping out a rollback
+	// against an older snapshot. Authorization is checked with `instance:plan` on
+	// the source's instance.
+	//
+	// ```graphql
+	// mutation {
+	// planDeployment(
+	// organizationId: "my-org"
+	// id: "550e8400-e29b-41d4-a716-446655440000"
+	// ) {
+	// result { id status action }
+	// successful
+	// messages { field message }
+	// }
+	// }
+	// ```
+	PlanDeployment PlanDeploymentPlanDeploymentDeploymentPayload `json:"planDeployment"`
+}
+
+// GetPlanDeployment returns PlanDeploymentResponse.PlanDeployment, and is useful for accessing the field via an interface.
+func (v *PlanDeploymentResponse) GetPlanDeployment() PlanDeploymentPlanDeploymentDeploymentPayload {
+	return v.PlanDeployment
+}
+
 // A single permission question inside an `evaluatePolicies` request.
 type PolicyDecisionInput struct {
 	// Action id in `entity:verb` form (for example `project:view`). Query `policyActions` for the catalog.
@@ -20232,9 +22091,19 @@ var AllPolicyEffect = []PolicyEffect{
 
 // Filters for narrowing the projects list. All filters are optional and combine with AND logic.
 type ProjectsFilter struct {
+	// Match by the project's exact display name (`eq`) or a set of names (`in`). For partial or approximate matching, use `search` instead.
+	Name *StringFilter `json:"name,omitempty"`
+	// Free-text search across the project's name and description. Matches whole words anywhere in the text, so it is forgiving of partial or out-of-order terms. When `search` is active and no explicit `sort` is provided, results are ranked by relevance.
+	Search string `json:"search,omitempty"`
 	// Match by the project's effective attributes. Each entry targets one attribute key; multiple entries are combined with AND.
 	Attributes []AttributeFilter `json:"attributes,omitempty"`
 }
+
+// GetName returns ProjectsFilter.Name, and is useful for accessing the field via an interface.
+func (v *ProjectsFilter) GetName() *StringFilter { return v.Name }
+
+// GetSearch returns ProjectsFilter.Search, and is useful for accessing the field via an interface.
+func (v *ProjectsFilter) GetSearch() string { return v.Search }
 
 // GetAttributes returns ProjectsFilter.Attributes, and is useful for accessing the field via an interface.
 func (v *ProjectsFilter) GetAttributes() []AttributeFilter { return v.Attributes }
@@ -21138,6 +23007,257 @@ func (v *RemoveInstanceSecretResponse) GetRemoveInstanceSecret() RemoveInstanceS
 	return v.RemoveInstanceSecret
 }
 
+// Remove a remote reference from an instance. The reference can only be removed if no provisioned instances are connected through it.
+type RemoveRemoteReferenceInput struct {
+	// The resource field to remove the reference from
+	Field string `json:"field"`
+}
+
+// GetField returns RemoveRemoteReferenceInput.Field, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceInput) GetField() string { return v.Field }
+
+// RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayload includes the requested fields of the GraphQL type RemoteReferencePayload.
+type RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayload.Result, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayload) GetResult() RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference {
+	return v.Result
+}
+
+// GetSuccessful returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayload.Successful, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayload.Messages, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayload) GetMessages() []RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference includes the requested fields of the GraphQL type RemoteReference.
+// The GraphQL type's documentation follows.
+//
+// A per-instance override of a single connection slot. The blueprint Link wires
+// a slot from a sibling package's output; a remote reference overrides that
+// wiring on one instance, pointing the slot at a resource from another project
+// (or an imported resource) instead.
+//
+// Remote references enable cross-project infrastructure sharing. For example, a
+// networking team provisions a VPC in one project, and application teams override
+// the `vpc` connection slot on their database/cache/etc. instances to point at
+// that shared VPC.
+//
+// Each remote reference binds a specific `field` on the instance — a key in the
+// instance's bundle's `connectionsSchema` — to the target resource. The override
+// takes priority over any blueprint-level Link on the same slot, and reverts to
+// the Link (or environment default) when removed.
+type RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference struct {
+	// Unique identifier for this remote reference.
+	Id string `json:"id"`
+	// The name of the resource field on the instance that this reference satisfies (e.g., `aws_authentication` or `vpc`).
+	Field string `json:"field"`
+	// When this remote reference was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this remote reference was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The resource from another project (or an imported resource) that this reference points to.
+	Resource RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource `json:"resource"`
+}
+
+// GetId returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference.Id, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference) GetId() string {
+	return v.Id
+}
+
+// GetField returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference.Field, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference) GetField() string {
+	return v.Field
+}
+
+// GetCreatedAt returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference.CreatedAt, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetResource returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference.Resource, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReference) GetResource() RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource {
+	return v.Resource
+}
+
+// RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource includes the requested fields of the GraphQL type Resource.
+// The GraphQL type's documentation follows.
+//
+// A cloud credential, database connection string, network configuration, or other
+// infrastructure output produced by (or imported into) Massdriver.
+//
+// Resources are the connective tissue between instances. When an instance is deployed, it
+// produces resources as outputs. Other instances can consume those resources as inputs,
+// creating a dependency graph of your infrastructure.
+//
+// Resources have two origins:
+// - **Imported** — created directly through the API (e.g., uploading existing AWS credentials).
+// You have full CRUD control over these resources.
+// - **Provisioned** — created automatically when an instance is deployed. These are read-only
+// and managed entirely by the owning instance's lifecycle.
+type RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource struct {
+	// Unique identifier for this resource.
+	Id string `json:"id"`
+	// Human-readable display name for this resource.
+	Name string `json:"name"`
+	// The resource type that this resource conforms to, defining its schema and validation rules.
+	ResourceType RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType `json:"resourceType"`
+}
+
+// GetId returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource.Id, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource) GetId() string {
+	return v.Id
+}
+
+// GetName returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource.Name, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource) GetName() string {
+	return v.Name
+}
+
+// GetResourceType returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource.ResourceType, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource) GetResourceType() RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType {
+	return v.ResourceType
+}
+
+// RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType includes the requested fields of the GraphQL type ResourceType.
+// The GraphQL type's documentation follows.
+//
+// A resource type that defines what kind of infrastructure a resource represents.
+//
+// Resource types are the schema layer for Massdriver's connection system. Every
+// dependency a bundle declares and every resource a bundle produces references a
+// resource type. This is what makes bundles composable -- a database bundle that
+// produces an `aws-rds-instance` resource can be connected to any application
+// bundle that declares an `aws-rds-instance` dependency.
+//
+// Resource types include both public types provided by Massdriver (e.g.,
+// `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
+// organization for custom infrastructure.
+type RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType struct {
+	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	Id string `json:"id"`
+	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
+	Name string `json:"name"`
+	// URL to the icon representing this resource type, if available.
+	Icon string `json:"icon"`
+}
+
+// GetId returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType.Id, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType) GetId() string {
+	return v.Id
+}
+
+// GetName returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType.Name, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType) GetName() string {
+	return v.Name
+}
+
+// GetIcon returns RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType.Icon, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType) GetIcon() string {
+	return v.Icon
+}
+
+// RemoveRemoteReferenceResponse is returned by RemoveRemoteReference on success.
+type RemoveRemoteReferenceResponse struct {
+	// Remove a per-instance remote-reference override. The slot reverts to its
+	// blueprint Link (if any) or the environment default at the next deploy.
+	//
+	// The instance must **not** be in `PROVISIONED` or `FAILED` status — taking
+	// an override off a deployed instance would change the resolved connection
+	// map under the running deployment.
+	//
+	// ```graphql
+	// mutation {
+	// removeRemoteReference(
+	// organizationId: "my-org"
+	// instanceId: "my-app"
+	// input: { field: "aws_authentication" }
+	// ) {
+	// result { id field }
+	// successful
+	// messages { field message }
+	// }
+	// }
+	// ```
+	RemoveRemoteReference RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayload `json:"removeRemoteReference"`
+}
+
+// GetRemoveRemoteReference returns RemoveRemoteReferenceResponse.RemoveRemoteReference, and is useful for accessing the field via an interface.
+func (v *RemoveRemoteReferenceResponse) GetRemoveRemoteReference() RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayload {
+	return v.RemoveRemoteReference
+}
+
 // RemoveServiceAccountFromGroupRemoveServiceAccountFromGroupServiceAccountGroupPayload includes the requested fields of the GraphQL type ServiceAccountGroupPayload.
 type RemoveServiceAccountFromGroupRemoveServiceAccountFromGroupServiceAccountGroupPayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -21501,6 +23621,229 @@ func (v *RevokeAccessTokenRevokeAccessTokenAccessTokenPayloadResultAccessToken) 
 // GetRevokedAt returns RevokeAccessTokenRevokeAccessTokenAccessTokenPayloadResultAccessToken.RevokedAt, and is useful for accessing the field via an interface.
 func (v *RevokeAccessTokenRevokeAccessTokenAccessTokenPayloadResultAccessToken) GetRevokedAt() time.Time {
 	return v.RevokedAt
+}
+
+// RollbackDeploymentResponse is returned by RollbackDeployment on success.
+type RollbackDeploymentResponse struct {
+	// Propose a rollback to a past deployment's exact state.
+	//
+	// Takes the **source deployment** — the historical run you want to return
+	// to — and creates a new `PROPOSED` `PROVISION` deployment that snapshots
+	// the source's params, connection wiring, bundle version, and release.
+	// The source must be a `COMPLETED` `PROVISION` deployment.
+	//
+	// The rollback proposal can be approved (`approveDeployment`), rejected
+	// (`rejectDeployment`), or planned (`planDeployment`) like any other
+	// proposed deployment. **On approval**, the instance is pinned to the
+	// source deployment's exact bundle version, params, and connection
+	// snapshot — overriding whatever release is currently configured.
+	//
+	// ```graphql
+	// mutation {
+	// rollbackDeployment(
+	// organizationId: "my-org"
+	// id: "550e8400-e29b-41d4-a716-446655440000"
+	// ) {
+	// result { id status action message }
+	// successful
+	// messages { field message }
+	// }
+	// }
+	// ```
+	RollbackDeployment RollbackDeploymentRollbackDeploymentDeploymentPayload `json:"rollbackDeployment"`
+}
+
+// GetRollbackDeployment returns RollbackDeploymentResponse.RollbackDeployment, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentResponse) GetRollbackDeployment() RollbackDeploymentRollbackDeploymentDeploymentPayload {
+	return v.RollbackDeployment
+}
+
+// RollbackDeploymentRollbackDeploymentDeploymentPayload includes the requested fields of the GraphQL type DeploymentPayload.
+type RollbackDeploymentRollbackDeploymentDeploymentPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []RollbackDeploymentRollbackDeploymentDeploymentPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns RollbackDeploymentRollbackDeploymentDeploymentPayload.Result, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayload) GetResult() RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment {
+	return v.Result
+}
+
+// GetSuccessful returns RollbackDeploymentRollbackDeploymentDeploymentPayload.Successful, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns RollbackDeploymentRollbackDeploymentDeploymentPayload.Messages, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayload) GetMessages() []RollbackDeploymentRollbackDeploymentDeploymentPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// RollbackDeploymentRollbackDeploymentDeploymentPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type RollbackDeploymentRollbackDeploymentDeploymentPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns RollbackDeploymentRollbackDeploymentDeploymentPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns RollbackDeploymentRollbackDeploymentDeploymentPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns RollbackDeploymentRollbackDeploymentDeploymentPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment includes the requested fields of the GraphQL type Deployment.
+// The GraphQL type's documentation follows.
+//
+// A record of an infrastructure provisioning operation.
+//
+// Each deployment tracks a single action (`PROVISION`, `DECOMMISSION`, or `PLAN`) against
+// an instance. Deployments are immutable once created — you cannot modify a deployment,
+// only create new ones.
+//
+// Use the `status` field to monitor progress and `elapsed_time` to track duration.
+// The `deployed_by` field identifies the user or service account that initiated the operation.
+type RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment struct {
+	// Unique identifier for this deployment.
+	Id string `json:"id"`
+	// Current lifecycle state of this deployment.
+	Status DeploymentStatus `json:"status"`
+	// The infrastructure operation this deployment performs.
+	Action DeploymentAction `json:"action"`
+	// The bundle version used for this deployment (e.g., `1.2.0`).
+	Version string `json:"version"`
+	// An optional message describing the purpose of this deployment, similar to a commit message.
+	Message string `json:"message"`
+	// When this deployment was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// The instance that this deployment operates on.
+	Instance RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeploymentInstance `json:"instance"`
+}
+
+// GetId returns RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment.Id, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment) GetId() string {
+	return v.Id
+}
+
+// GetStatus returns RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment.Status, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment) GetStatus() DeploymentStatus {
+	return v.Status
+}
+
+// GetAction returns RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment.Action, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment) GetAction() DeploymentAction {
+	return v.Action
+}
+
+// GetVersion returns RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment.Version, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment) GetVersion() string {
+	return v.Version
+}
+
+// GetMessage returns RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment.Message, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment) GetMessage() string {
+	return v.Message
+}
+
+// GetCreatedAt returns RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment.CreatedAt, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetInstance returns RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment.Instance, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeployment) GetInstance() RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeploymentInstance {
+	return v.Instance
+}
+
+// RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeploymentInstance includes the requested fields of the GraphQL type Instance.
+// The GraphQL type's documentation follows.
+//
+// A deployed piece of infrastructure in an environment.
+//
+// An instance is the **runtime representation** of a component. When you add a
+// "database" component to your blueprint and deploy it to the `staging`
+// environment, Massdriver creates an instance that tracks the database's
+// configuration, deployment state, costs, and produced resources.
+//
+// **Lifecycle:** Instances progress through a well-defined set of states:
+//
+// ```mermaid
+// stateDiagram-v2
+// [*] --> INITIALIZED: "Component added to environment"
+// INITIALIZED --> PROVISIONED: "Deployment succeeds"
+// INITIALIZED --> FAILED: "Deployment fails"
+// PROVISIONED --> PROVISIONED: "Redeploy / update"
+// PROVISIONED --> DECOMMISSIONED: "Decommission succeeds"
+// PROVISIONED --> FAILED: "Deployment fails"
+// FAILED --> PROVISIONED: "Retry succeeds"
+// FAILED --> DECOMMISSIONED: "Decommission"
+// ```
+//
+// **Version resolution:** Each instance has a `version` constraint (e.g., `~1.0`)
+// and a `releaseStrategy` (stable or development). Together these determine
+// the `resolvedVersion` that will be used on the next deployment. Compare
+// `resolvedVersion` with `deployedVersion` to see if a redeployment is needed,
+// or check `availableUpgrade` for newer matching releases.
+type RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeploymentInstance struct {
+	Id string `json:"id"`
+	// Name of the instance.
+	Name string `json:"name"`
+}
+
+// GetId returns RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeploymentInstance.Id, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeploymentInstance) GetId() string {
+	return v.Id
+}
+
+// GetName returns RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeploymentInstance.Name, and is useful for accessing the field via an interface.
+func (v *RollbackDeploymentRollbackDeploymentDeploymentPayloadResultDeploymentInstance) GetName() string {
+	return v.Name
 }
 
 // The deployment mode of this Massdriver server.
@@ -21926,6 +24269,260 @@ func (v *SetInstanceSecretSetInstanceSecretInstanceSecretPayloadResultInstanceSe
 // GetUpdatedAt returns SetInstanceSecretSetInstanceSecretInstanceSecretPayloadResultInstanceSecret.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *SetInstanceSecretSetInstanceSecretInstanceSecretPayloadResultInstanceSecret) GetUpdatedAt() time.Time {
 	return v.UpdatedAt
+}
+
+// Link an instance's resource field to a resource from another project or an imported resource. The instance must not be in a provisioned or failed state.
+type SetRemoteReferenceInput struct {
+	// The resource field to assign the reference to
+	Field string `json:"field"`
+}
+
+// GetField returns SetRemoteReferenceInput.Field, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceInput) GetField() string { return v.Field }
+
+// SetRemoteReferenceResponse is returned by SetRemoteReference on success.
+type SetRemoteReferenceResponse struct {
+	// Override one of an instance's connection slots with a resource from another
+	// project (or an imported resource).
+	//
+	// The instance must **not** be in `PROVISIONED` or `FAILED` status — like
+	// other configuration changes, overrides cannot be set on a deployed instance.
+	//
+	// The override takes priority over any blueprint-level Link wired into the
+	// same slot. Removing the override reverts to the Link (or environment default).
+	//
+	// ```graphql
+	// mutation {
+	// setRemoteReference(
+	// organizationId: "my-org"
+	// instanceId: "my-app"
+	// resourceId: "shared-creds-abc123"
+	// input: { field: "aws_authentication" }
+	// ) {
+	// result { id field resource { id name } }
+	// successful
+	// messages { field message }
+	// }
+	// }
+	// ```
+	SetRemoteReference SetRemoteReferenceSetRemoteReferenceRemoteReferencePayload `json:"setRemoteReference"`
+}
+
+// GetSetRemoteReference returns SetRemoteReferenceResponse.SetRemoteReference, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceResponse) GetSetRemoteReference() SetRemoteReferenceSetRemoteReferenceRemoteReferencePayload {
+	return v.SetRemoteReference
+}
+
+// SetRemoteReferenceSetRemoteReferenceRemoteReferencePayload includes the requested fields of the GraphQL type RemoteReferencePayload.
+type SetRemoteReferenceSetRemoteReferenceRemoteReferencePayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayload.Result, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayload) GetResult() SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference {
+	return v.Result
+}
+
+// GetSuccessful returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayload.Successful, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayload.Messages, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayload) GetMessages() []SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference includes the requested fields of the GraphQL type RemoteReference.
+// The GraphQL type's documentation follows.
+//
+// A per-instance override of a single connection slot. The blueprint Link wires
+// a slot from a sibling package's output; a remote reference overrides that
+// wiring on one instance, pointing the slot at a resource from another project
+// (or an imported resource) instead.
+//
+// Remote references enable cross-project infrastructure sharing. For example, a
+// networking team provisions a VPC in one project, and application teams override
+// the `vpc` connection slot on their database/cache/etc. instances to point at
+// that shared VPC.
+//
+// Each remote reference binds a specific `field` on the instance — a key in the
+// instance's bundle's `connectionsSchema` — to the target resource. The override
+// takes priority over any blueprint-level Link on the same slot, and reverts to
+// the Link (or environment default) when removed.
+type SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference struct {
+	// Unique identifier for this remote reference.
+	Id string `json:"id"`
+	// The name of the resource field on the instance that this reference satisfies (e.g., `aws_authentication` or `vpc`).
+	Field string `json:"field"`
+	// When this remote reference was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this remote reference was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The resource from another project (or an imported resource) that this reference points to.
+	Resource SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource `json:"resource"`
+}
+
+// GetId returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference.Id, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference) GetId() string {
+	return v.Id
+}
+
+// GetField returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference.Field, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference) GetField() string {
+	return v.Field
+}
+
+// GetCreatedAt returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference.CreatedAt, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetResource returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference.Resource, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReference) GetResource() SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource {
+	return v.Resource
+}
+
+// SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource includes the requested fields of the GraphQL type Resource.
+// The GraphQL type's documentation follows.
+//
+// A cloud credential, database connection string, network configuration, or other
+// infrastructure output produced by (or imported into) Massdriver.
+//
+// Resources are the connective tissue between instances. When an instance is deployed, it
+// produces resources as outputs. Other instances can consume those resources as inputs,
+// creating a dependency graph of your infrastructure.
+//
+// Resources have two origins:
+// - **Imported** — created directly through the API (e.g., uploading existing AWS credentials).
+// You have full CRUD control over these resources.
+// - **Provisioned** — created automatically when an instance is deployed. These are read-only
+// and managed entirely by the owning instance's lifecycle.
+type SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource struct {
+	// Unique identifier for this resource.
+	Id string `json:"id"`
+	// Human-readable display name for this resource.
+	Name string `json:"name"`
+	// The resource type that this resource conforms to, defining its schema and validation rules.
+	ResourceType SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType `json:"resourceType"`
+}
+
+// GetId returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource.Id, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource) GetId() string {
+	return v.Id
+}
+
+// GetName returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource.Name, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource) GetName() string {
+	return v.Name
+}
+
+// GetResourceType returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource.ResourceType, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResource) GetResourceType() SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType {
+	return v.ResourceType
+}
+
+// SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType includes the requested fields of the GraphQL type ResourceType.
+// The GraphQL type's documentation follows.
+//
+// A resource type that defines what kind of infrastructure a resource represents.
+//
+// Resource types are the schema layer for Massdriver's connection system. Every
+// dependency a bundle declares and every resource a bundle produces references a
+// resource type. This is what makes bundles composable -- a database bundle that
+// produces an `aws-rds-instance` resource can be connected to any application
+// bundle that declares an `aws-rds-instance` dependency.
+//
+// Resource types include both public types provided by Massdriver (e.g.,
+// `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
+// organization for custom infrastructure.
+type SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType struct {
+	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	Id string `json:"id"`
+	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
+	Name string `json:"name"`
+	// URL to the icon representing this resource type, if available.
+	Icon string `json:"icon"`
+}
+
+// GetId returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType.Id, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType) GetId() string {
+	return v.Id
+}
+
+// GetName returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType.Name, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType) GetName() string {
+	return v.Name
+}
+
+// GetIcon returns SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType.Icon, and is useful for accessing the field via an interface.
+func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType) GetIcon() string {
+	return v.Icon
 }
 
 // Sort direction for ordering paginated results.
@@ -25520,6 +28117,54 @@ func (v *__ApproveDeploymentInput) GetOrganizationId() string { return v.Organiz
 // GetId returns __ApproveDeploymentInput.Id, and is useful for accessing the field via an interface.
 func (v *__ApproveDeploymentInput) GetId() string { return v.Id }
 
+// __CloneProjectInput is used internally by genqlient
+type __CloneProjectInput struct {
+	OrganizationId  string            `json:"organizationId"`
+	SourceProjectId string            `json:"sourceProjectId"`
+	Input           CloneProjectInput `json:"input"`
+}
+
+// GetOrganizationId returns __CloneProjectInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__CloneProjectInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetSourceProjectId returns __CloneProjectInput.SourceProjectId, and is useful for accessing the field via an interface.
+func (v *__CloneProjectInput) GetSourceProjectId() string { return v.SourceProjectId }
+
+// GetInput returns __CloneProjectInput.Input, and is useful for accessing the field via an interface.
+func (v *__CloneProjectInput) GetInput() CloneProjectInput { return v.Input }
+
+// __CompareDeploymentsInput is used internally by genqlient
+type __CompareDeploymentsInput struct {
+	OrganizationId string `json:"organizationId"`
+	SourceId       string `json:"sourceId"`
+	TargetId       string `json:"targetId"`
+}
+
+// GetOrganizationId returns __CompareDeploymentsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__CompareDeploymentsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetSourceId returns __CompareDeploymentsInput.SourceId, and is useful for accessing the field via an interface.
+func (v *__CompareDeploymentsInput) GetSourceId() string { return v.SourceId }
+
+// GetTargetId returns __CompareDeploymentsInput.TargetId, and is useful for accessing the field via an interface.
+func (v *__CompareDeploymentsInput) GetTargetId() string { return v.TargetId }
+
+// __CompareEnvironmentsInput is used internally by genqlient
+type __CompareEnvironmentsInput struct {
+	OrganizationId string `json:"organizationId"`
+	SourceId       string `json:"sourceId"`
+	TargetId       string `json:"targetId"`
+}
+
+// GetOrganizationId returns __CompareEnvironmentsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__CompareEnvironmentsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetSourceId returns __CompareEnvironmentsInput.SourceId, and is useful for accessing the field via an interface.
+func (v *__CompareEnvironmentsInput) GetSourceId() string { return v.SourceId }
+
+// GetTargetId returns __CompareEnvironmentsInput.TargetId, and is useful for accessing the field via an interface.
+func (v *__CompareEnvironmentsInput) GetTargetId() string { return v.TargetId }
+
 // __CopyInstanceInput is used internally by genqlient
 type __CopyInstanceInput struct {
 	OrganizationId string            `json:"organizationId"`
@@ -26508,6 +29153,18 @@ func (v *__OrphanInstanceInput) GetId() string { return v.Id }
 // GetInput returns __OrphanInstanceInput.Input, and is useful for accessing the field via an interface.
 func (v *__OrphanInstanceInput) GetInput() OrphanInstanceInput { return v.Input }
 
+// __PlanDeploymentInput is used internally by genqlient
+type __PlanDeploymentInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __PlanDeploymentInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__PlanDeploymentInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __PlanDeploymentInput.Id, and is useful for accessing the field via an interface.
+func (v *__PlanDeploymentInput) GetId() string { return v.Id }
+
 // __ProposeDeploymentInput is used internally by genqlient
 type __ProposeDeploymentInput struct {
 	OrganizationId string                 `json:"organizationId"`
@@ -26576,6 +29233,22 @@ func (v *__RemoveInstanceSecretInput) GetId() string { return v.Id }
 // GetName returns __RemoveInstanceSecretInput.Name, and is useful for accessing the field via an interface.
 func (v *__RemoveInstanceSecretInput) GetName() string { return v.Name }
 
+// __RemoveRemoteReferenceInput is used internally by genqlient
+type __RemoveRemoteReferenceInput struct {
+	OrganizationId string                     `json:"organizationId"`
+	InstanceId     string                     `json:"instanceId"`
+	Input          RemoveRemoteReferenceInput `json:"input"`
+}
+
+// GetOrganizationId returns __RemoveRemoteReferenceInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__RemoveRemoteReferenceInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetInstanceId returns __RemoveRemoteReferenceInput.InstanceId, and is useful for accessing the field via an interface.
+func (v *__RemoveRemoteReferenceInput) GetInstanceId() string { return v.InstanceId }
+
+// GetInput returns __RemoveRemoteReferenceInput.Input, and is useful for accessing the field via an interface.
+func (v *__RemoveRemoteReferenceInput) GetInput() RemoveRemoteReferenceInput { return v.Input }
+
 // __RemoveServiceAccountFromGroupInput is used internally by genqlient
 type __RemoveServiceAccountFromGroupInput struct {
 	OrganizationId   string `json:"organizationId"`
@@ -26605,6 +29278,18 @@ func (v *__RevokeAccessTokenInput) GetOrganizationId() string { return v.Organiz
 
 // GetId returns __RevokeAccessTokenInput.Id, and is useful for accessing the field via an interface.
 func (v *__RevokeAccessTokenInput) GetId() string { return v.Id }
+
+// __RollbackDeploymentInput is used internally by genqlient
+type __RollbackDeploymentInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __RollbackDeploymentInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__RollbackDeploymentInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __RollbackDeploymentInput.Id, and is useful for accessing the field via an interface.
+func (v *__RollbackDeploymentInput) GetId() string { return v.Id }
 
 // __SetEnvironmentDefaultInput is used internally by genqlient
 type __SetEnvironmentDefaultInput struct {
@@ -26637,6 +29322,26 @@ func (v *__SetInstanceSecretInput) GetId() string { return v.Id }
 
 // GetInput returns __SetInstanceSecretInput.Input, and is useful for accessing the field via an interface.
 func (v *__SetInstanceSecretInput) GetInput() SetInstanceSecretInput { return v.Input }
+
+// __SetRemoteReferenceInput is used internally by genqlient
+type __SetRemoteReferenceInput struct {
+	OrganizationId string                  `json:"organizationId"`
+	InstanceId     string                  `json:"instanceId"`
+	ResourceId     string                  `json:"resourceId"`
+	Input          SetRemoteReferenceInput `json:"input"`
+}
+
+// GetOrganizationId returns __SetRemoteReferenceInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__SetRemoteReferenceInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetInstanceId returns __SetRemoteReferenceInput.InstanceId, and is useful for accessing the field via an interface.
+func (v *__SetRemoteReferenceInput) GetInstanceId() string { return v.InstanceId }
+
+// GetResourceId returns __SetRemoteReferenceInput.ResourceId, and is useful for accessing the field via an interface.
+func (v *__SetRemoteReferenceInput) GetResourceId() string { return v.ResourceId }
+
+// GetInput returns __SetRemoteReferenceInput.Input, and is useful for accessing the field via an interface.
+func (v *__SetRemoteReferenceInput) GetInput() SetRemoteReferenceInput { return v.Input }
 
 // __UnlinkComponentsInput is used internally by genqlient
 type __UnlinkComponentsInput struct {
@@ -27081,6 +29786,256 @@ func ApproveDeployment(
 	}
 
 	data_ = &ApproveDeploymentResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by CloneProject.
+const CloneProject_Operation = `
+mutation CloneProject ($organizationId: ID!, $sourceProjectId: ID!, $input: CloneProjectInput!) {
+	cloneProject(organizationId: $organizationId, sourceProjectId: $sourceProjectId, input: $input) {
+		result {
+			id
+			name
+			description
+			attributes
+			createdAt
+			updatedAt
+			components {
+				id
+				name
+				description
+				attributes
+				createdAt
+				updatedAt
+				ociRepo {
+					id
+					name
+					reference
+				}
+			}
+			links {
+				id
+				fromField
+				toField
+				createdAt
+				updatedAt
+				fromComponent {
+					id
+					name
+				}
+				toComponent {
+					id
+					name
+				}
+			}
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func CloneProject(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	sourceProjectId string,
+	input CloneProjectInput,
+) (data_ *CloneProjectResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "CloneProject",
+		Query:  CloneProject_Operation,
+		Variables: &__CloneProjectInput{
+			OrganizationId:  organizationId,
+			SourceProjectId: sourceProjectId,
+			Input:           input,
+		},
+	}
+
+	data_ = &CloneProjectResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by CompareDeployments.
+const CompareDeployments_Operation = `
+query CompareDeployments ($organizationId: ID!, $sourceId: UUID!, $targetId: UUID!) {
+	compareDeployments(organizationId: $organizationId, sourceId: $sourceId, targetId: $targetId) {
+		source {
+			id
+			status
+			action
+			version
+			message
+			deployedBy
+			createdAt
+			updatedAt
+			instance {
+				id
+				name
+			}
+		}
+		target {
+			id
+			status
+			action
+			version
+			message
+			deployedBy
+			createdAt
+			updatedAt
+			instance {
+				id
+				name
+			}
+		}
+		version {
+			source
+			target
+			equal
+		}
+		params {
+			path
+			equal
+			source {
+				present
+				value
+			}
+			target {
+				present
+				value
+			}
+		}
+	}
+}
+`
+
+func CompareDeployments(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	sourceId string,
+	targetId string,
+) (data_ *CompareDeploymentsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "CompareDeployments",
+		Query:  CompareDeployments_Operation,
+		Variables: &__CompareDeploymentsInput{
+			OrganizationId: organizationId,
+			SourceId:       sourceId,
+			TargetId:       targetId,
+		},
+	}
+
+	data_ = &CompareDeploymentsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by CompareEnvironments.
+const CompareEnvironments_Operation = `
+query CompareEnvironments ($organizationId: ID!, $sourceId: ID!, $targetId: ID!) {
+	compareEnvironments(organizationId: $organizationId, sourceId: $sourceId, targetId: $targetId) {
+		source {
+			id
+			name
+			description
+			createdAt
+			updatedAt
+		}
+		target {
+			id
+			name
+			description
+			createdAt
+			updatedAt
+		}
+		instances {
+			component {
+				id
+				name
+			}
+			source {
+				id
+				name
+				status
+				version
+				resolvedVersion
+			}
+			target {
+				id
+				name
+				status
+				version
+				resolvedVersion
+			}
+			version {
+				source
+				target
+				equal
+			}
+			params {
+				path
+				equal
+				source {
+					present
+					value
+				}
+				target {
+					present
+					value
+				}
+			}
+			equal
+		}
+	}
+}
+`
+
+func CompareEnvironments(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	sourceId string,
+	targetId string,
+) (data_ *CompareEnvironmentsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "CompareEnvironments",
+		Query:  CompareEnvironments_Operation,
+		Variables: &__CompareEnvironmentsInput{
+			OrganizationId: organizationId,
+			SourceId:       sourceId,
+			TargetId:       targetId,
+		},
+	}
+
+	data_ = &CompareEnvironmentsResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -30971,6 +33926,59 @@ func OrphanInstance(
 	return data_, err_
 }
 
+// The mutation executed by PlanDeployment.
+const PlanDeployment_Operation = `
+mutation PlanDeployment ($organizationId: ID!, $id: UUID!) {
+	planDeployment(organizationId: $organizationId, id: $id) {
+		result {
+			id
+			status
+			action
+			version
+			message
+			createdAt
+			instance {
+				id
+				name
+			}
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func PlanDeployment(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *PlanDeploymentResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "PlanDeployment",
+		Query:  PlanDeployment_Operation,
+		Variables: &__PlanDeploymentInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &PlanDeploymentResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The mutation executed by ProposeDeployment.
 const ProposeDeployment_Operation = `
 mutation ProposeDeployment ($organizationId: ID!, $id: ID!, $input: ProposeDeploymentInput!) {
@@ -31214,6 +34222,64 @@ func RemoveInstanceSecret(
 	return data_, err_
 }
 
+// The mutation executed by RemoveRemoteReference.
+const RemoveRemoteReference_Operation = `
+mutation RemoveRemoteReference ($organizationId: ID!, $instanceId: ID!, $input: RemoveRemoteReferenceInput!) {
+	removeRemoteReference(organizationId: $organizationId, instanceId: $instanceId, input: $input) {
+		result {
+			id
+			field
+			createdAt
+			updatedAt
+			resource {
+				id
+				name
+				resourceType {
+					id
+					name
+					icon
+				}
+			}
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func RemoveRemoteReference(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	instanceId string,
+	input RemoveRemoteReferenceInput,
+) (data_ *RemoveRemoteReferenceResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "RemoveRemoteReference",
+		Query:  RemoveRemoteReference_Operation,
+		Variables: &__RemoveRemoteReferenceInput{
+			OrganizationId: organizationId,
+			InstanceId:     instanceId,
+			Input:          input,
+		},
+	}
+
+	data_ = &RemoveRemoteReferenceResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The mutation executed by RemoveServiceAccountFromGroup.
 const RemoveServiceAccountFromGroup_Operation = `
 mutation RemoveServiceAccountFromGroup ($organizationId: ID!, $serviceAccountId: UUID!, $groupId: UUID!) {
@@ -31297,6 +34363,59 @@ func RevokeAccessToken(
 	}
 
 	data_ = &RevokeAccessTokenResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by RollbackDeployment.
+const RollbackDeployment_Operation = `
+mutation RollbackDeployment ($organizationId: ID!, $id: UUID!) {
+	rollbackDeployment(organizationId: $organizationId, id: $id) {
+		result {
+			id
+			status
+			action
+			version
+			message
+			createdAt
+			instance {
+				id
+				name
+			}
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func RollbackDeployment(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *RollbackDeploymentResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "RollbackDeployment",
+		Query:  RollbackDeployment_Operation,
+		Variables: &__RollbackDeploymentInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &RollbackDeploymentResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -31403,6 +34522,66 @@ func SetInstanceSecret(
 	}
 
 	data_ = &SetInstanceSecretResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by SetRemoteReference.
+const SetRemoteReference_Operation = `
+mutation SetRemoteReference ($organizationId: ID!, $instanceId: ID!, $resourceId: ID!, $input: SetRemoteReferenceInput!) {
+	setRemoteReference(organizationId: $organizationId, instanceId: $instanceId, resourceId: $resourceId, input: $input) {
+		result {
+			id
+			field
+			createdAt
+			updatedAt
+			resource {
+				id
+				name
+				resourceType {
+					id
+					name
+					icon
+				}
+			}
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func SetRemoteReference(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	instanceId string,
+	resourceId string,
+	input SetRemoteReferenceInput,
+) (data_ *SetRemoteReferenceResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "SetRemoteReference",
+		Query:  SetRemoteReference_Operation,
+		Variables: &__SetRemoteReferenceInput{
+			OrganizationId: organizationId,
+			InstanceId:     instanceId,
+			ResourceId:     resourceId,
+			Input:          input,
+		},
+	}
+
+	data_ = &SetRemoteReferenceResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

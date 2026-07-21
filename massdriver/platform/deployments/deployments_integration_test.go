@@ -2,9 +2,10 @@
 
 package deployments_test
 
-// Mutation tests (Create/Propose/Approve/Reject/Abort) require a live
-// instance and are exercised by the cross-package scenario test
-// in massdriver/scenario_integration_test.go.
+// Mutation tests (Create/Propose/Approve/Reject/Abort, and the
+// Plan/Rollback pair, which additionally need an existing deployment
+// history) require a live instance and are exercised by the
+// cross-package scenario test in massdriver/test/scenario_integration_test.go.
 
 import (
 	"context"
@@ -80,5 +81,21 @@ func TestIntegration_Deployments_GetLogs_NotFound(t *testing.T) {
 	_, err := c.Deployments.GetLogs(ctx, "00000000-0000-0000-0000-000000000000")
 	if !errors.Is(err, gql.ErrNotFound) {
 		t.Errorf("GetLogs nonexistent: got %v, want errors.Is(err, gql.ErrNotFound)", err)
+	}
+}
+
+// TestIntegration_Deployments_Compare_NotFound confirms Compare with
+// unknown deployment IDs surfaces ErrNotFound. Comparing real deployments
+// requires a live deployment history and is covered by the unit test.
+func TestIntegration_Deployments_Compare_NotFound(t *testing.T) {
+	c := inttest.Client(t)
+	ctx := context.Background()
+
+	_, err := c.Deployments.Compare(ctx,
+		"00000000-0000-0000-0000-000000000000",
+		"00000000-0000-0000-0000-000000000001",
+	)
+	if !errors.Is(err, gql.ErrNotFound) {
+		t.Errorf("Compare nonexistent: got %v, want errors.Is(err, gql.ErrNotFound)", err)
 	}
 }

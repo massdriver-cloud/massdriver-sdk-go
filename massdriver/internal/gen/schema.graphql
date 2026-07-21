@@ -38,7 +38,7 @@ type RootQueryType {
     "Optional filters to narrow results."
     filter: ProjectsFilter
 
-    "How to sort results. Defaults to name ascending."
+    "How to sort results. Defaults to name ascending. When a `search` filter is active and no sort is provided, results are ranked by relevance."
     sort: ProjectsSort
 
     "Cursor from a previous page to fetch the next set of results."
@@ -323,47 +323,6 @@ type RootQueryType {
     "The target deployment's unique identifier."
     targetId: UUID!
   ): DeploymentComparison
-
-  """
-  List published bundle versions in your organization's catalog.
-
-  Returns a paginated list of all bundle releases across all OCI repositories.
-  Each item is a specific version (e.g., `aws-aurora-postgres@1.2.3`), not just
-  the repository.
-
-  Use `filter` to narrow results by repository name, resource type produced,
-  dependency type consumed, or full-text search. When `search` is active, results
-  are ranked by relevance unless an explicit `sort` is provided.
-
-  ```graphql
-  query {
-    bundles(organizationId: "your-org-id", filter: { resourceType: { eq: "aws-iam-role" } }) {
-      items {
-        id
-        name
-        version
-        description
-        dependencies { name resourceType { id } }
-        resources { name resourceType { id } }
-      }
-      cursor { next }
-    }
-  }
-  ```
-  """
-  bundles(
-    "Your organization's unique identifier."
-    organizationId: ID!
-
-    "Narrow results by repository, type, or search term."
-    filter: BundlesFilter
-
-    "Explicit sort order. Defaults to `name` ascending. When a `search` filter is active and no sort is provided, results are ranked by relevance."
-    sort: BundlesSort
-
-    "Cursor from a previous page's `cursor.next` or `cursor.previous`."
-    cursor: Cursor
-  ): BundlesPage
 
   """
   Fetch a single bundle by its composite identifier.
@@ -8026,6 +7985,12 @@ input ProjectsSort {
 
 "Filters for narrowing the projects list. All filters are optional and combine with AND logic."
 input ProjectsFilter {
+  "Match by the project's exact display name (`eq`) or a set of names (`in`). For partial or approximate matching, use `search` instead."
+  name: StringFilter
+
+  "Free-text search across the project's name and description. Matches whole words anywhere in the text, so it is forgiving of partial or out-of-order terms. When `search` is active and no explicit `sort` is provided, results are ranked by relevance."
+  search: String
+
   "Match by the project's effective attributes. Each entry targets one attribute key; multiple entries are combined with AND."
   attributes: [AttributeFilter!]
 }
@@ -8257,55 +8222,6 @@ versions are valid, or `ReleaseChannel` when only channels are valid.
 scalar VersionConstraint
 
 """
-Fields available for ordering the bundles list.
-
-When a `search` filter is active and no explicit sort is provided, results are
-ranked by relevance instead of these fields.
-"""
-enum BundlesSortField {
-  "Alphabetical order by the bundle's OCI repository name (e.g., `aws-aurora-postgres`)."
-  NAME
-
-  "Chronological order by the date this bundle version was published."
-  CREATED_AT
-}
-
-"""
-Controls the sort order of the bundles list.
-
-When a `search` filter is active and no sort is provided, results are ranked by
-relevance. Providing an explicit sort overrides relevance ranking.
-"""
-input BundlesSort {
-  "The field to order results by."
-  field: BundlesSortField!
-
-  "Ascending (`ASC`) or descending (`DESC`)."
-  order: SortOrder!
-}
-
-"""
-Filters for narrowing the bundles list.
-
-All filters are combined with AND logic. For example, setting both `ociRepo`
-and `resourceType` returns only bundles in the specified repository that also
-produce the given resource type.
-"""
-input BundlesFilter {
-  "Restrict results to bundles published under a specific OCI repository name."
-  ociRepo: OciRepoNameFilter
-
-  "Return only bundles that **produce** a resource of the given type (e.g., `dynamodb-table`, `aws-iam-role`)."
-  resourceType: StringFilter
-
-  "Return only bundles that **require** a dependency of the given type (e.g., `aws-iam-role`, `kubernetes-cluster`)."
-  dependencyType: StringFilter
-
-  "Full-text search across the bundle's name, description, operator guide, and readme. Results are ranked by relevance unless you provide an explicit `sort`. For terms longer than 3 characters, name-prefix matches are also included. **Note:** pagination cursors returned by search results use offset-based pagination and are not interchangeable with cursors from non-search queries."
-  search: String
-}
-
-"""
 An input that a bundle requires from another bundle's output.
 
 Each dependency declares a named slot that must (or may) be satisfied by
@@ -8344,14 +8260,6 @@ type BundleResource {
 
   "The resource type this output produces. `null` if the resource type has been removed from the catalog."
   resourceType: ResourceType
-}
-
-type BundlesPage {
-  "Pagination cursors for navigating between pages."
-  cursor: PaginationCursor!
-
-  "A list of type bundle."
-  items: [Bundle]
 }
 
 """

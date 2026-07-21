@@ -82,9 +82,36 @@ type UpdateInput struct {
 	Attributes  map[string]any
 }
 
+// CloneInput is the input for [Service.Clone] — the identity of the new
+// project the source's blueprint is copied into. Same field semantics as
+// [CreateInput].
+type CloneInput struct {
+	// ID is the new project's short, memorable identifier (max 20 chars,
+	// lowercase alphanumeric). Immutable after creation.
+	ID string
+	// Name is the new project's human-readable display name.
+	Name string
+	// Description is optional free-text describing what the project is for.
+	Description string
+	// Attributes are optional key/value tags applied at the project scope.
+	Attributes map[string]any
+}
+
 // ListInput controls a [Service.Iter]/[Service.ListPage] call. The zero value
 // lists every project, sorted by name ascending.
 type ListInput struct {
+	// Name filters to projects whose display name exactly equals the given
+	// value. For partial or approximate matching use Search instead.
+	Name string
+	// NameIn filters to projects whose display name is any of the given
+	// values. Mutually exclusive with Name.
+	NameIn []string
+	// Search is a free-text search across the project's name and description.
+	// It matches whole words anywhere in the text, so it is forgiving of
+	// partial or out-of-order terms. When Search is set and no explicit
+	// SortBy/SortOrder is given, results are ranked by relevance instead of
+	// name ascending.
+	Search string
 	// Attributes filters by the project's effective attributes. Each entry
 	// targets one attribute key; multiple entries are AND'd together.
 	Attributes []types.AttributeFilter
@@ -169,10 +196,17 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Project] {
 // buildListFilter compiles a ListInput's filter fields into the generated
 // input. Returns nil when no filter fields are set.
 func buildListFilter(input ListInput) *gen.ProjectsFilter {
-	if len(input.Attributes) == 0 {
+	if input.Name == "" && len(input.NameIn) == 0 && input.Search == "" && len(input.Attributes) == 0 {
 		return nil
 	}
-	return &gen.ProjectsFilter{Attributes: toGenAttributeFilters(input.Attributes)}
+	filter := &gen.ProjectsFilter{
+		Search:     input.Search,
+		Attributes: toGenAttributeFilters(input.Attributes),
+	}
+	if input.Name != "" || len(input.NameIn) > 0 {
+		filter.Name = &gen.StringFilter{Eq: input.Name, In: input.NameIn}
+	}
+	return filter
 }
 
 // toGenAttributeFilters maps the SDK's attribute filters onto the generated
@@ -221,6 +255,30 @@ func (s *Service) Create(ctx context.Context, input CreateInput) (*Project, erro
 		return nil, err
 	}
 	return toProject(resp.CreateProject.Result)
+}
+
+// Clone creates a new project by copying another project's blueprint. All
+// components and links from the source are copied into the new project, which
+// gets its own independent blueprint — subsequent changes do not affect the
+// source. Environments are not cloned; create them separately.
+//
+// The returned [Project] has its Components and Links slices populated with
+// the copied blueprint. Returns a [*gql.MutationFailedError] (wrapped) if the
+// server reports `successful: false`.
+func (s *Service) Clone(ctx context.Context, sourceProjectID string, input CloneInput) (*Project, error) {
+	resp, err := gen.CloneProject(ctx, s.client.GQLv2, s.client.Config.OrganizationID, sourceProjectID, gen.CloneProjectInput{
+		Id:          input.ID,
+		Name:        input.Name,
+		Description: input.Description,
+		Attributes:  input.Attributes,
+	})
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("clone project %s: %w", sourceProjectID, err))
+	}
+	if err := gql.CheckMutation("clone project", resp.CloneProject.Successful, resp.CloneProject.Messages); err != nil {
+		return nil, err
+	}
+	return toProject(resp.CloneProject.Result)
 }
 
 // Update updates a project's mutable fields. Returns a [*gql.MutationFailedError]
