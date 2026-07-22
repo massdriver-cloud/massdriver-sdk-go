@@ -1,6 +1,6 @@
 // Package ocirepos provides operations for Massdriver OCI repositories — the
 // named containers in your organization's catalog that hold versioned OCI
-// artifacts (today: bundles, with more types coming).
+// artifacts (bundles and resource types, with more types coming).
 //
 // The package surfaces two distinct ways to address a repository:
 //
@@ -79,6 +79,9 @@ type ArtifactType = types.ArtifactType
 // ArtifactTypeBundle is a Massdriver bundle.
 const ArtifactTypeBundle = types.ArtifactTypeBundle
 
+// ArtifactTypeResourceType is a Massdriver resource type.
+const ArtifactTypeResourceType = types.ArtifactTypeResourceType
+
 // ListInput controls a [Service.Iter] call. Zero value lists every repository in the
 // configured organization, sorted alphabetically by name.
 //
@@ -122,8 +125,8 @@ type CreateInput struct {
 	// Lowercase letters, numbers, dashes, underscores. Max 53 characters.
 	// Immutable after creation.
 	ID string
-	// ArtifactType is the OCI artifact type stored here. Today only
-	// [ArtifactTypeBundle] is accepted.
+	// ArtifactType is the OCI artifact type stored here
+	// ([ArtifactTypeBundle] or [ArtifactTypeResourceType]).
 	ArtifactType ArtifactType
 	// Attributes are optional ABAC tags. Reserved keys starting with `md-`
 	// are rejected by the server.
@@ -320,6 +323,8 @@ func normalizeArtifactType(s string) types.ArtifactType {
 		return ""
 	case string(types.ArtifactTypeBundle), "application/vnd.massdriver.bundle.v1+json":
 		return types.ArtifactTypeBundle
+	case string(types.ArtifactTypeResourceType), "application/vnd.massdriver.resource-type.v1+json":
+		return types.ArtifactTypeResourceType
 	default:
 		return types.ArtifactType(s)
 	}
@@ -359,6 +364,8 @@ func wireArtifactType(t ArtifactType) string {
 		return ""
 	case ArtifactTypeBundle:
 		return "application/vnd.massdriver.bundle.v1+json"
+	case ArtifactTypeResourceType:
+		return "application/vnd.massdriver.resource-type.v1+json"
 	default:
 		return string(t)
 	}

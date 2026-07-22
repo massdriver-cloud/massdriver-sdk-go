@@ -3,7 +3,8 @@ package types
 import "time"
 
 // OciRepo is a Massdriver OCI repository — a named container in the
-// organization's catalog that holds versioned OCI artifacts (today: bundles).
+// organization's catalog that holds versioned OCI artifacts (bundles and
+// resource types).
 //
 // The repository can be addressed two ways:
 //   - As a GraphQL record: query/mutate via massdriver/platform/ocirepos
@@ -43,6 +44,8 @@ type ArtifactType string
 const (
 	// ArtifactTypeBundle is a Massdriver bundle.
 	ArtifactTypeBundle ArtifactType = "BUNDLE"
+	// ArtifactTypeResourceType is a Massdriver resource type.
+	ArtifactTypeResourceType ArtifactType = "RESOURCE_TYPE"
 )
 
 // OciRepoTag is one published version in an [OciRepo].
