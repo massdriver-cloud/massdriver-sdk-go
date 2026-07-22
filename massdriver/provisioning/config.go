@@ -20,7 +20,7 @@ type Config struct {
 	BundleVersion    string `envconfig:"BUNDLE_VERSION" required:"true"`
 	DeploymentAction string `envconfig:"DEPLOYMENT_ACTION" required:"true"`
 	InstanceID       string `envconfig:"INSTANCE_ID" required:"true"`
-	StepPath         string `envconfig:"STEP_PATH" required:"true"`
+	StepPath         string `envconfig:"STEP_PATH"`
 }
 
 func loadDeploymentEnvs(c *Config) error {
