@@ -138,6 +138,46 @@ func TestList_WithNameFilter(t *testing.T) {
 	}
 }
 
+func TestList_WithArtifactTypeFilter(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"ociRepos": map[string]any{
+				"cursor": map[string]any{},
+				"items": []map[string]any{
+					{"id": "aws-vpc", "name": "aws-vpc", "artifactType": "application/vnd.massdriver.resource-type.v1+json"},
+				},
+			},
+		}),
+	)
+
+	got, err := types.Collect(newService(gqlClient).Iter(t.Context(), ocirepos.ListInput{
+		ArtifactType: ocirepos.ArtifactTypeResourceType,
+	}))
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+
+	// The filter input demands the OCI media-type string, not the enum name —
+	// the wrapper must translate the typed constant at the wire.
+	vars := gqlClient.Requests()[0].Variables
+	filter, ok := vars["filter"].(map[string]any)
+	if !ok {
+		t.Fatalf("filter = %v, want map", vars["filter"])
+	}
+	if filter["artifactType"] != "application/vnd.massdriver.resource-type.v1+json" {
+		t.Errorf("filter.artifactType = %v, want application/vnd.massdriver.resource-type.v1+json", filter["artifactType"])
+	}
+
+	// Reads return the media type; the wrapper normalizes it back to the
+	// typed constant.
+	if len(got) != 1 {
+		t.Fatalf("got %d repos, want 1", len(got))
+	}
+	if got[0].ArtifactType != ocirepos.ArtifactTypeResourceType {
+		t.Errorf("ArtifactType = %q, want %q", got[0].ArtifactType, ocirepos.ArtifactTypeResourceType)
+	}
+}
+
 func TestList_AutoPaginates(t *testing.T) {
 	// Page 1: 2 items + next cursor.
 	page1 := gqltest.RespondWithData(map[string]any{
@@ -223,6 +263,41 @@ func TestCreate(t *testing.T) {
 	}
 	if input["artifactType"] != "BUNDLE" {
 		t.Errorf("input.artifactType = %v, want BUNDLE", input["artifactType"])
+	}
+}
+
+func TestCreate_ResourceType(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"createOciRepo": map[string]any{
+				"result": map[string]any{
+					"id":           "aws-vpc",
+					"name":         "aws-vpc",
+					"artifactType": "application/vnd.massdriver.resource-type.v1+json",
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).Create(t.Context(), ocirepos.CreateInput{
+		ID:           "aws-vpc",
+		ArtifactType: ocirepos.ArtifactTypeResourceType,
+	})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if got.ArtifactType != ocirepos.ArtifactTypeResourceType {
+		t.Errorf("ArtifactType = %q, want %q", got.ArtifactType, ocirepos.ArtifactTypeResourceType)
+	}
+
+	// Unlike the list filter, the create input takes the enum name directly.
+	input, ok := gqlClient.Requests()[0].Variables["input"].(map[string]any)
+	if !ok {
+		t.Fatalf("input = %v, want map", gqlClient.Requests()[0].Variables["input"])
+	}
+	if input["artifactType"] != "RESOURCE_TYPE" {
+		t.Errorf("input.artifactType = %v, want RESOURCE_TYPE", input["artifactType"])
 	}
 }
 

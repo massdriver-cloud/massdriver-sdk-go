@@ -5586,8 +5586,8 @@ type CreateOciRepoCreateOciRepoOciRepoPayloadResultOciRepo struct {
 	// ```
 	Reference string `json:"reference"`
 	// The [OCI artifact type](https://github.com/opencontainers/image-spec/blob/main/manifest.md#guidelines-for-artifact-usage)
-	// stored in this repository. Currently always
-	// `application/vnd.massdriver.bundle.v1+json`.
+	// stored in this repository — `application/vnd.massdriver.bundle.v1+json` or
+	// `application/vnd.massdriver.resource-type.v1+json`.
 	ArtifactType string `json:"artifactType"`
 	// Key-value attributes assigned directly to this repository, used by ABAC
 	// policies. Reserved keys starting with `md-` are auto-injected by the system
@@ -5713,7 +5713,7 @@ func (v *CreateOciRepoCreateOciRepoOciRepoPayloadResultOciRepo) __premarshalJSON
 
 // Create a new OCI repository in your organization's catalog. Repositories must exist before any version can be published to them.
 type CreateOciRepoInput struct {
-	// OCI artifact type stored in this repository. Today only `BUNDLE` is accepted; additional types will be added as Massdriver expands the catalog.
+	// OCI artifact type stored in this repository. `BUNDLE` holds Massdriver bundles; `RESOURCE_TYPE` holds Massdriver resource types.
 	ArtifactType OciArtifactType `json:"artifactType"`
 	// Key-value attributes for this repository. Used by ABAC policies for fine-grained access control. Reserved `md-*` keys are rejected. Must conform to the organization's custom attributes for the repo scope.
 	Attributes map[string]any `json:"-"`
@@ -8850,8 +8850,8 @@ type DeleteOciRepoDeleteOciRepoOciRepoPayloadResultOciRepo struct {
 	// Repository name, unique within your organization (e.g., `aws-aurora-postgres`).
 	Name string `json:"name"`
 	// The [OCI artifact type](https://github.com/opencontainers/image-spec/blob/main/manifest.md#guidelines-for-artifact-usage)
-	// stored in this repository. Currently always
-	// `application/vnd.massdriver.bundle.v1+json`.
+	// stored in this repository — `application/vnd.massdriver.bundle.v1+json` or
+	// `application/vnd.massdriver.resource-type.v1+json`.
 	ArtifactType string `json:"artifactType"`
 }
 
@@ -11710,8 +11710,8 @@ type GetComponentComponentOciRepo struct {
 	// ```
 	Reference string `json:"reference"`
 	// The [OCI artifact type](https://github.com/opencontainers/image-spec/blob/main/manifest.md#guidelines-for-artifact-usage)
-	// stored in this repository. Currently always
-	// `application/vnd.massdriver.bundle.v1+json`.
+	// stored in this repository — `application/vnd.massdriver.bundle.v1+json` or
+	// `application/vnd.massdriver.resource-type.v1+json`.
 	ArtifactType string `json:"artifactType"`
 	// Key-value attributes assigned directly to this repository, used by ABAC
 	// policies. Reserved keys starting with `md-` are auto-injected by the system
@@ -14587,8 +14587,8 @@ type GetOciRepoOciRepo struct {
 	// ```
 	Reference string `json:"reference"`
 	// The [OCI artifact type](https://github.com/opencontainers/image-spec/blob/main/manifest.md#guidelines-for-artifact-usage)
-	// stored in this repository. Currently always
-	// `application/vnd.massdriver.bundle.v1+json`.
+	// stored in this repository — `application/vnd.massdriver.bundle.v1+json` or
+	// `application/vnd.massdriver.resource-type.v1+json`.
 	ArtifactType string `json:"artifactType"`
 	// Key-value attributes assigned directly to this repository, used by ABAC
 	// policies. Reserved keys starting with `md-` are auto-injected by the system
@@ -19630,8 +19630,8 @@ type ListOciReposOciReposOciReposPageItemsOciRepo struct {
 	// ```
 	Reference string `json:"reference"`
 	// The [OCI artifact type](https://github.com/opencontainers/image-spec/blob/main/manifest.md#guidelines-for-artifact-usage)
-	// stored in this repository. Currently always
-	// `application/vnd.massdriver.bundle.v1+json`.
+	// stored in this repository — `application/vnd.massdriver.bundle.v1+json` or
+	// `application/vnd.massdriver.resource-type.v1+json`.
 	ArtifactType string `json:"artifactType"`
 	// Key-value attributes assigned directly to this repository, used by ABAC
 	// policies. Reserved keys starting with `md-` are auto-injected by the system
@@ -21486,16 +21486,19 @@ func (v *ListServiceAccountsServiceAccountsServiceAccountsPageItemsServiceAccoun
 // The kind of artifact stored in an OCI repository.
 //
 // Each value maps to a concrete [OCI artifact type](https://github.com/opencontainers/image-spec/blob/main/manifest.md#guidelines-for-artifact-usage)
-// media string written to the manifest. Today only `BUNDLE` is supported; additional types will be added as the catalog expands.
+// media string written to the manifest. Additional types will be added as the catalog expands.
 type OciArtifactType string
 
 const (
 	// Massdriver bundle (`application/vnd.massdriver.bundle.v1+json`).
 	OciArtifactTypeBundle OciArtifactType = "BUNDLE"
+	// Massdriver resource type (`application/vnd.massdriver.resource-type.v1+json`).
+	OciArtifactTypeResourceType OciArtifactType = "RESOURCE_TYPE"
 )
 
 var AllOciArtifactType = []OciArtifactType{
 	OciArtifactTypeBundle,
+	OciArtifactTypeResourceType,
 }
 
 // Filter by OCI repository name (the bundle's package identifier).
@@ -21532,7 +21535,7 @@ func (v *OciRepoNameFilter) GetStartsWith() string { return v.StartsWith }
 //
 // All filters are combined with AND logic.
 type OciReposFilter struct {
-	// Filter by OCI artifact media type. Currently the only supported type is `application/vnd.massdriver.bundle.v1+json`. Passing an unsupported type returns an empty list.
+	// Filter by OCI artifact media type. Supported types are `application/vnd.massdriver.bundle.v1+json` and `application/vnd.massdriver.resource-type.v1+json`. Passing an unsupported type returns an empty list.
 	ArtifactType string `json:"artifactType,omitempty"`
 	// Filter repositories by name using exact match, prefix, or set membership.
 	Name *OciRepoNameFilter `json:"name,omitempty"`
@@ -26548,8 +26551,8 @@ type UpdateOciRepoUpdateOciRepoOciRepoPayloadResultOciRepo struct {
 	// ```
 	Reference string `json:"reference"`
 	// The [OCI artifact type](https://github.com/opencontainers/image-spec/blob/main/manifest.md#guidelines-for-artifact-usage)
-	// stored in this repository. Currently always
-	// `application/vnd.massdriver.bundle.v1+json`.
+	// stored in this repository — `application/vnd.massdriver.bundle.v1+json` or
+	// `application/vnd.massdriver.resource-type.v1+json`.
 	ArtifactType string `json:"artifactType"`
 	// Key-value attributes assigned directly to this repository, used by ABAC
 	// policies. Reserved keys starting with `md-` are auto-injected by the system
