@@ -184,6 +184,37 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
+func TestSetPosition(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"setComponentPosition": map[string]any{
+				"result": map[string]any{
+					"id":       "ecomm-database",
+					"name":     "Primary Database",
+					"position": map[string]any{"x": 120, "y": -40},
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).SetPosition(t.Context(), "ecomm-database", components.Position{X: 120, Y: -40})
+	if err != nil {
+		t.Fatalf("SetPosition: %v", err)
+	}
+	if got.Position == nil || got.Position.X != 120 || got.Position.Y != -40 {
+		t.Errorf("Position = %+v, want &{X:120 Y:-40}", got.Position)
+	}
+
+	input, ok := gqlClient.Requests()[0].Variables["input"].(map[string]any)
+	if !ok {
+		t.Fatalf("input = %v, want map", gqlClient.Requests()[0].Variables["input"])
+	}
+	if input["x"] != float64(120) || input["y"] != float64(-40) {
+		t.Errorf("input = %v, want x=120 y=-40", input)
+	}
+}
+
 func TestRemove(t *testing.T) {
 	gqlClient := gqltest.NewClient(
 		gqltest.RespondWithData(map[string]any{

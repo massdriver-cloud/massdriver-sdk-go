@@ -11559,6 +11559,8 @@ type GetComponentComponent struct {
 	Description string `json:"description"`
 	// Key-value attributes assigned directly to this component.
 	Attributes map[string]any `json:"-"`
+	// Position on the visual canvas. Null if never placed.
+	Position GetComponentComponentPosition `json:"position"`
 	// When this component was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this component was last modified (UTC).
@@ -11580,6 +11582,9 @@ func (v *GetComponentComponent) GetDescription() string { return v.Description }
 
 // GetAttributes returns GetComponentComponent.Attributes, and is useful for accessing the field via an interface.
 func (v *GetComponentComponent) GetAttributes() map[string]any { return v.Attributes }
+
+// GetPosition returns GetComponentComponent.Position, and is useful for accessing the field via an interface.
+func (v *GetComponentComponent) GetPosition() GetComponentComponentPosition { return v.Position }
 
 // GetCreatedAt returns GetComponentComponent.CreatedAt, and is useful for accessing the field via an interface.
 func (v *GetComponentComponent) GetCreatedAt() time.Time { return v.CreatedAt }
@@ -11635,6 +11640,8 @@ type __premarshalGetComponentComponent struct {
 
 	Attributes json.RawMessage `json:"attributes"`
 
+	Position GetComponentComponentPosition `json:"position"`
+
 	CreatedAt time.Time `json:"createdAt"`
 
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -11670,6 +11677,7 @@ func (v *GetComponentComponent) __premarshalJSON() (*__premarshalGetComponentCom
 				"unable to marshal GetComponentComponent.Attributes: %w", err)
 		}
 	}
+	retval.Position = v.Position
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
 	retval.OciRepo = v.OciRepo
@@ -11824,6 +11832,23 @@ func (v *GetComponentComponentOciRepo) __premarshalJSON() (*__premarshalGetCompo
 	retval.UpdatedAt = v.UpdatedAt
 	return &retval, nil
 }
+
+// GetComponentComponentPosition includes the requested fields of the GraphQL type ComponentPosition.
+// The GraphQL type's documentation follows.
+//
+// A component's position on the visual canvas, in pixel coordinates.
+type GetComponentComponentPosition struct {
+	// Horizontal offset in pixels from the canvas origin.
+	X int `json:"x"`
+	// Vertical offset in pixels from the canvas origin.
+	Y int `json:"y"`
+}
+
+// GetX returns GetComponentComponentPosition.X, and is useful for accessing the field via an interface.
+func (v *GetComponentComponentPosition) GetX() int { return v.X }
+
+// GetY returns GetComponentComponentPosition.Y, and is useful for accessing the field via an interface.
+func (v *GetComponentComponentPosition) GetY() int { return v.Y }
 
 // GetComponentComponentProject includes the requested fields of the GraphQL type Project.
 // The GraphQL type's documentation follows.
@@ -17527,6 +17552,8 @@ type ListComponentsProjectComponentsComponent struct {
 	Description string `json:"description"`
 	// Key-value attributes assigned directly to this component.
 	Attributes map[string]any `json:"-"`
+	// Position on the visual canvas. Null if never placed.
+	Position ListComponentsProjectComponentsComponentPosition `json:"position"`
 	// When this component was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this component was last modified (UTC).
@@ -17547,6 +17574,11 @@ func (v *ListComponentsProjectComponentsComponent) GetDescription() string { ret
 // GetAttributes returns ListComponentsProjectComponentsComponent.Attributes, and is useful for accessing the field via an interface.
 func (v *ListComponentsProjectComponentsComponent) GetAttributes() map[string]any {
 	return v.Attributes
+}
+
+// GetPosition returns ListComponentsProjectComponentsComponent.Position, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponent) GetPosition() ListComponentsProjectComponentsComponentPosition {
+	return v.Position
 }
 
 // GetCreatedAt returns ListComponentsProjectComponentsComponent.CreatedAt, and is useful for accessing the field via an interface.
@@ -17602,6 +17634,8 @@ type __premarshalListComponentsProjectComponentsComponent struct {
 
 	Attributes json.RawMessage `json:"attributes"`
 
+	Position ListComponentsProjectComponentsComponentPosition `json:"position"`
+
 	CreatedAt time.Time `json:"createdAt"`
 
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -17635,6 +17669,7 @@ func (v *ListComponentsProjectComponentsComponent) __premarshalJSON() (*__premar
 				"unable to marshal ListComponentsProjectComponentsComponent.Attributes: %w", err)
 		}
 	}
+	retval.Position = v.Position
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
 	retval.OciRepo = v.OciRepo
@@ -17683,6 +17718,23 @@ func (v *ListComponentsProjectComponentsComponentOciRepo) GetName() string { ret
 
 // GetReference returns ListComponentsProjectComponentsComponentOciRepo.Reference, and is useful for accessing the field via an interface.
 func (v *ListComponentsProjectComponentsComponentOciRepo) GetReference() string { return v.Reference }
+
+// ListComponentsProjectComponentsComponentPosition includes the requested fields of the GraphQL type ComponentPosition.
+// The GraphQL type's documentation follows.
+//
+// A component's position on the visual canvas, in pixel coordinates.
+type ListComponentsProjectComponentsComponentPosition struct {
+	// Horizontal offset in pixels from the canvas origin.
+	X int `json:"x"`
+	// Vertical offset in pixels from the canvas origin.
+	Y int `json:"y"`
+}
+
+// GetX returns ListComponentsProjectComponentsComponentPosition.X, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponentPosition) GetX() int { return v.X }
+
+// GetY returns ListComponentsProjectComponentsComponentPosition.Y, and is useful for accessing the field via an interface.
+func (v *ListComponentsProjectComponentsComponentPosition) GetY() int { return v.Y }
 
 // ListComponentsResponse is returned by ListComponents on success.
 type ListComponentsResponse struct {
@@ -23923,6 +23975,168 @@ var AllServiceAccountsSortField = []ServiceAccountsSortField{
 	ServiceAccountsSortFieldCreatedAt,
 }
 
+// Set the position of a component on the canvas.
+type SetComponentPositionInput struct {
+	// Horizontal position in pixels
+	X int `json:"x"`
+	// Vertical position in pixels
+	Y int `json:"y"`
+}
+
+// GetX returns SetComponentPositionInput.X, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionInput) GetX() int { return v.X }
+
+// GetY returns SetComponentPositionInput.Y, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionInput) GetY() int { return v.Y }
+
+// SetComponentPositionResponse is returned by SetComponentPosition on success.
+type SetComponentPositionResponse struct {
+	// Set the pixel position of a component on the visual canvas.
+	SetComponentPosition SetComponentPositionSetComponentPositionComponentPayload `json:"setComponentPosition"`
+}
+
+// GetSetComponentPosition returns SetComponentPositionResponse.SetComponentPosition, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionResponse) GetSetComponentPosition() SetComponentPositionSetComponentPositionComponentPayload {
+	return v.SetComponentPosition
+}
+
+// SetComponentPositionSetComponentPositionComponentPayload includes the requested fields of the GraphQL type ComponentPayload.
+type SetComponentPositionSetComponentPositionComponentPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result SetComponentPositionSetComponentPositionComponentPayloadResultComponent `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []SetComponentPositionSetComponentPositionComponentPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns SetComponentPositionSetComponentPositionComponentPayload.Result, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionSetComponentPositionComponentPayload) GetResult() SetComponentPositionSetComponentPositionComponentPayloadResultComponent {
+	return v.Result
+}
+
+// GetSuccessful returns SetComponentPositionSetComponentPositionComponentPayload.Successful, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionSetComponentPositionComponentPayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns SetComponentPositionSetComponentPositionComponentPayload.Messages, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionSetComponentPositionComponentPayload) GetMessages() []SetComponentPositionSetComponentPositionComponentPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// SetComponentPositionSetComponentPositionComponentPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type SetComponentPositionSetComponentPositionComponentPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns SetComponentPositionSetComponentPositionComponentPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionSetComponentPositionComponentPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns SetComponentPositionSetComponentPositionComponentPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionSetComponentPositionComponentPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns SetComponentPositionSetComponentPositionComponentPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionSetComponentPositionComponentPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// SetComponentPositionSetComponentPositionComponentPayloadResultComponent includes the requested fields of the GraphQL type Component.
+// The GraphQL type's documentation follows.
+//
+// A bundle placed in a project's blueprint, representing a slot for deployable infrastructure.
+//
+// A component is the **design-time** building block of your architecture. It says
+// "I want a database here" or "I need a Kubernetes cluster there." The component
+// defines *what* to deploy; the actual running infrastructure lives in **instances**
+// -- one per environment the component is deployed to.
+//
+// Components are connected to each other via **links**, which declare that one
+// component's output (e.g., a connection string) should be wired into another
+// component's input.
+type SetComponentPositionSetComponentPositionComponentPayloadResultComponent struct {
+	Id string `json:"id"`
+	// Human-readable display name shown in the UI.
+	Name string `json:"name"`
+	// Position on the visual canvas. Null if never placed.
+	Position SetComponentPositionSetComponentPositionComponentPayloadResultComponentPosition `json:"position"`
+}
+
+// GetId returns SetComponentPositionSetComponentPositionComponentPayloadResultComponent.Id, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionSetComponentPositionComponentPayloadResultComponent) GetId() string {
+	return v.Id
+}
+
+// GetName returns SetComponentPositionSetComponentPositionComponentPayloadResultComponent.Name, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionSetComponentPositionComponentPayloadResultComponent) GetName() string {
+	return v.Name
+}
+
+// GetPosition returns SetComponentPositionSetComponentPositionComponentPayloadResultComponent.Position, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionSetComponentPositionComponentPayloadResultComponent) GetPosition() SetComponentPositionSetComponentPositionComponentPayloadResultComponentPosition {
+	return v.Position
+}
+
+// SetComponentPositionSetComponentPositionComponentPayloadResultComponentPosition includes the requested fields of the GraphQL type ComponentPosition.
+// The GraphQL type's documentation follows.
+//
+// A component's position on the visual canvas, in pixel coordinates.
+type SetComponentPositionSetComponentPositionComponentPayloadResultComponentPosition struct {
+	// Horizontal offset in pixels from the canvas origin.
+	X int `json:"x"`
+	// Vertical offset in pixels from the canvas origin.
+	Y int `json:"y"`
+}
+
+// GetX returns SetComponentPositionSetComponentPositionComponentPayloadResultComponentPosition.X, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionSetComponentPositionComponentPayloadResultComponentPosition) GetX() int {
+	return v.X
+}
+
+// GetY returns SetComponentPositionSetComponentPositionComponentPayloadResultComponentPosition.Y, and is useful for accessing the field via an interface.
+func (v *SetComponentPositionSetComponentPositionComponentPayloadResultComponentPosition) GetY() int {
+	return v.Y
+}
+
 // SetEnvironmentDefaultResponse is returned by SetEnvironmentDefault on success.
 type SetEnvironmentDefaultResponse struct {
 	// Set a resource as the default of its type for an environment.
@@ -29294,6 +29508,22 @@ func (v *__RollbackDeploymentInput) GetOrganizationId() string { return v.Organi
 // GetId returns __RollbackDeploymentInput.Id, and is useful for accessing the field via an interface.
 func (v *__RollbackDeploymentInput) GetId() string { return v.Id }
 
+// __SetComponentPositionInput is used internally by genqlient
+type __SetComponentPositionInput struct {
+	OrganizationId string                    `json:"organizationId"`
+	Id             string                    `json:"id"`
+	Input          SetComponentPositionInput `json:"input"`
+}
+
+// GetOrganizationId returns __SetComponentPositionInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__SetComponentPositionInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __SetComponentPositionInput.Id, and is useful for accessing the field via an interface.
+func (v *__SetComponentPositionInput) GetId() string { return v.Id }
+
+// GetInput returns __SetComponentPositionInput.Input, and is useful for accessing the field via an interface.
+func (v *__SetComponentPositionInput) GetInput() SetComponentPositionInput { return v.Input }
+
 // __SetEnvironmentDefaultInput is used internally by genqlient
 type __SetEnvironmentDefaultInput struct {
 	OrganizationId string `json:"organizationId"`
@@ -31963,6 +32193,10 @@ query GetComponent ($organizationId: ID!, $id: ID!) {
 		name
 		description
 		attributes
+		position {
+			x
+			y
+		}
 		createdAt
 		updatedAt
 		ociRepo {
@@ -33052,6 +33286,10 @@ query ListComponents ($organizationId: ID!, $projectId: ID!) {
 			name
 			description
 			attributes
+			position {
+				x
+				y
+			}
 			createdAt
 			updatedAt
 			ociRepo {
@@ -34419,6 +34657,57 @@ func RollbackDeployment(
 	}
 
 	data_ = &RollbackDeploymentResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by SetComponentPosition.
+const SetComponentPosition_Operation = `
+mutation SetComponentPosition ($organizationId: ID!, $id: ID!, $input: SetComponentPositionInput!) {
+	setComponentPosition(organizationId: $organizationId, id: $id, input: $input) {
+		result {
+			id
+			name
+			position {
+				x
+				y
+			}
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func SetComponentPosition(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+	input SetComponentPositionInput,
+) (data_ *SetComponentPositionResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "SetComponentPosition",
+		Query:  SetComponentPosition_Operation,
+		Variables: &__SetComponentPositionInput{
+			OrganizationId: organizationId,
+			Id:             id,
+			Input:          input,
+		},
+	}
+
+	data_ = &SetComponentPositionResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

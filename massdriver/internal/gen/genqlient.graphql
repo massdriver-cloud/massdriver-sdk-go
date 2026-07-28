@@ -183,6 +183,10 @@ query GetComponent($organizationId: ID!, $id: ID!) {
     name
     description
     attributes
+    position {
+      x
+      y
+    }
     createdAt
     updatedAt
     ociRepo {
@@ -213,6 +217,10 @@ query ListComponents($organizationId: ID!, $projectId: ID!) {
       name
       description
       attributes
+      position {
+        x
+        y
+      }
       createdAt
       updatedAt
       ociRepo {
@@ -271,6 +279,25 @@ mutation UpdateComponent($organizationId: ID!, $id: ID!, $input: UpdateComponent
         id
         name
         reference
+      }
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+mutation SetComponentPosition($organizationId: ID!, $id: ID!, $input: SetComponentPositionInput!) {
+  setComponentPosition(organizationId: $organizationId, id: $id, input: $input) {
+    result {
+      id
+      name
+      position {
+        x
+        y
       }
     }
     successful
