@@ -52,6 +52,10 @@ type Component = types.Component
 // Link is a design-time wire between two components — alias of [types.Link].
 type Link = types.Link
 
+// Position is a component's position on the visual canvas — alias of
+// [types.ComponentPosition].
+type Position = types.ComponentPosition
+
 // AddInput is the input for [Service.Add].
 type AddInput struct {
 	// OciRepoName is the catalog repository whose latest published
@@ -169,6 +173,21 @@ func (s *Service) Update(ctx context.Context, id string, input UpdateInput) (*Co
 		return nil, err
 	}
 	return toComponent(resp.UpdateComponent.Result)
+}
+
+// SetPosition sets a component's pixel position on the visual canvas.
+func (s *Service) SetPosition(ctx context.Context, id string, position Position) (*Component, error) {
+	resp, err := gen.SetComponentPosition(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id, gen.SetComponentPositionInput{
+		X: position.X,
+		Y: position.Y,
+	})
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("set component position %s: %w", id, err))
+	}
+	if err := gql.CheckMutation("set component position", resp.SetComponentPosition.Successful, resp.SetComponentPosition.Messages); err != nil {
+		return nil, err
+	}
+	return toComponent(resp.SetComponentPosition.Result)
 }
 
 // Remove removes a component from its project's blueprint, along with all of

@@ -13,13 +13,22 @@ import "time"
 // /reference) and leave Project nil to avoid recursing into the parent we
 // already have.
 type Component struct {
-	ID          string         `json:"id" mapstructure:"id"`
-	Name        string         `json:"name" mapstructure:"name"`
-	Description string         `json:"description,omitempty" mapstructure:"description"`
-	Attributes  map[string]any `json:"attributes,omitempty" mapstructure:"attributes,omitempty"`
-	CreatedAt   time.Time      `json:"createdAt,omitzero" mapstructure:"createdAt"`
-	UpdatedAt   time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
-	OciRepo     *OciRepo       `json:"ociRepo,omitempty" mapstructure:"ociRepo,omitempty"`
-	Project     *Project       `json:"project,omitempty" mapstructure:"project,omitempty"`
-	Instances   []Instance     `json:"instances,omitempty" mapstructure:"instances,omitempty"`
+	ID          string             `json:"id" mapstructure:"id"`
+	Name        string             `json:"name" mapstructure:"name"`
+	Description string             `json:"description,omitempty" mapstructure:"description"`
+	Attributes  map[string]any     `json:"attributes,omitempty" mapstructure:"attributes,omitempty"`
+	Position    *ComponentPosition `json:"position,omitempty" mapstructure:"position,omitempty"`
+	CreatedAt   time.Time          `json:"createdAt,omitzero" mapstructure:"createdAt"`
+	UpdatedAt   time.Time          `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
+	OciRepo     *OciRepo           `json:"ociRepo,omitempty" mapstructure:"ociRepo,omitempty"`
+	Project     *Project           `json:"project,omitempty" mapstructure:"project,omitempty"`
+	Instances   []Instance         `json:"instances,omitempty" mapstructure:"instances,omitempty"`
+}
+
+// ComponentPosition is a [Component]'s position on the visual canvas, in
+// pixel coordinates from the canvas origin. Nil on a component that has
+// never been placed.
+type ComponentPosition struct {
+	X int `json:"x" mapstructure:"x"`
+	Y int `json:"y" mapstructure:"y"`
 }

@@ -68,6 +68,31 @@ func TestGet(t *testing.T) {
 	var _ *types.Project = got.Project
 }
 
+// TestGet_NeverPlacedPositionIsNil confirms an explicit `position: null` on
+// the wire (a component never placed on the canvas) surfaces as a nil
+// Position, not a zero-valued &{0,0}. Requires the generated field to be a
+// pointer (`@genqlient(pointer: true)`) — a value struct would swallow the
+// null at the JSON-unmarshal step and decode as a placed (0,0).
+func TestGet_NeverPlacedPositionIsNil(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"component": map[string]any{
+				"id":       "ecomm-database",
+				"name":     "Primary Database",
+				"position": nil,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).Get(t.Context(), "ecomm-database")
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+	if got.Position != nil {
+		t.Errorf("Position = %+v, want nil for a never-placed component", got.Position)
+	}
+}
+
 // TestGet_NotFound confirms the wrapper surfaces gql.ErrNotFound when the
 // API returns null for a missing component (the schema's `component` field
 // is nullable, so a 404 manifests as a zero-valued struct on the wire).
@@ -181,6 +206,37 @@ func TestUpdate(t *testing.T) {
 	}
 	if got.Name != "Primary Database (renamed)" {
 		t.Errorf("Name = %q, want Primary Database (renamed)", got.Name)
+	}
+}
+
+func TestSetPosition(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"setComponentPosition": map[string]any{
+				"result": map[string]any{
+					"id":       "ecomm-database",
+					"name":     "Primary Database",
+					"position": map[string]any{"x": 120, "y": -40},
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).SetPosition(t.Context(), "ecomm-database", components.Position{X: 120, Y: -40})
+	if err != nil {
+		t.Fatalf("SetPosition: %v", err)
+	}
+	if got.Position == nil || got.Position.X != 120 || got.Position.Y != -40 {
+		t.Errorf("Position = %+v, want &{X:120 Y:-40}", got.Position)
+	}
+
+	input, ok := gqlClient.Requests()[0].Variables["input"].(map[string]any)
+	if !ok {
+		t.Fatalf("input = %v, want map", gqlClient.Requests()[0].Variables["input"])
+	}
+	if input["x"] != float64(120) || input["y"] != float64(-40) {
+		t.Errorf("input = %v, want x=120 y=-40", input)
 	}
 }
 
