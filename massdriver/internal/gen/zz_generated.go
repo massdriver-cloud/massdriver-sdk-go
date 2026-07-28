@@ -11560,7 +11560,7 @@ type GetComponentComponent struct {
 	// Key-value attributes assigned directly to this component.
 	Attributes map[string]any `json:"-"`
 	// Position on the visual canvas. Null if never placed.
-	Position GetComponentComponentPosition `json:"position"`
+	Position *GetComponentComponentPosition `json:"position"`
 	// When this component was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this component was last modified (UTC).
@@ -11584,7 +11584,7 @@ func (v *GetComponentComponent) GetDescription() string { return v.Description }
 func (v *GetComponentComponent) GetAttributes() map[string]any { return v.Attributes }
 
 // GetPosition returns GetComponentComponent.Position, and is useful for accessing the field via an interface.
-func (v *GetComponentComponent) GetPosition() GetComponentComponentPosition { return v.Position }
+func (v *GetComponentComponent) GetPosition() *GetComponentComponentPosition { return v.Position }
 
 // GetCreatedAt returns GetComponentComponent.CreatedAt, and is useful for accessing the field via an interface.
 func (v *GetComponentComponent) GetCreatedAt() time.Time { return v.CreatedAt }
@@ -11640,7 +11640,7 @@ type __premarshalGetComponentComponent struct {
 
 	Attributes json.RawMessage `json:"attributes"`
 
-	Position GetComponentComponentPosition `json:"position"`
+	Position *GetComponentComponentPosition `json:"position"`
 
 	CreatedAt time.Time `json:"createdAt"`
 
@@ -17553,7 +17553,7 @@ type ListComponentsProjectComponentsComponent struct {
 	// Key-value attributes assigned directly to this component.
 	Attributes map[string]any `json:"-"`
 	// Position on the visual canvas. Null if never placed.
-	Position ListComponentsProjectComponentsComponentPosition `json:"position"`
+	Position *ListComponentsProjectComponentsComponentPosition `json:"position"`
 	// When this component was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this component was last modified (UTC).
@@ -17577,7 +17577,7 @@ func (v *ListComponentsProjectComponentsComponent) GetAttributes() map[string]an
 }
 
 // GetPosition returns ListComponentsProjectComponentsComponent.Position, and is useful for accessing the field via an interface.
-func (v *ListComponentsProjectComponentsComponent) GetPosition() ListComponentsProjectComponentsComponentPosition {
+func (v *ListComponentsProjectComponentsComponent) GetPosition() *ListComponentsProjectComponentsComponentPosition {
 	return v.Position
 }
 
@@ -17634,7 +17634,7 @@ type __premarshalListComponentsProjectComponentsComponent struct {
 
 	Attributes json.RawMessage `json:"attributes"`
 
-	Position ListComponentsProjectComponentsComponentPosition `json:"position"`
+	Position *ListComponentsProjectComponentsComponentPosition `json:"position"`
 
 	CreatedAt time.Time `json:"createdAt"`
 
@@ -24098,7 +24098,7 @@ type SetComponentPositionSetComponentPositionComponentPayloadResultComponent str
 	// Human-readable display name shown in the UI.
 	Name string `json:"name"`
 	// Position on the visual canvas. Null if never placed.
-	Position SetComponentPositionSetComponentPositionComponentPayloadResultComponentPosition `json:"position"`
+	Position *SetComponentPositionSetComponentPositionComponentPayloadResultComponentPosition `json:"position"`
 }
 
 // GetId returns SetComponentPositionSetComponentPositionComponentPayloadResultComponent.Id, and is useful for accessing the field via an interface.
@@ -24112,7 +24112,7 @@ func (v *SetComponentPositionSetComponentPositionComponentPayloadResultComponent
 }
 
 // GetPosition returns SetComponentPositionSetComponentPositionComponentPayloadResultComponent.Position, and is useful for accessing the field via an interface.
-func (v *SetComponentPositionSetComponentPositionComponentPayloadResultComponent) GetPosition() SetComponentPositionSetComponentPositionComponentPayloadResultComponentPosition {
+func (v *SetComponentPositionSetComponentPositionComponentPayloadResultComponent) GetPosition() *SetComponentPositionSetComponentPositionComponentPayloadResultComponentPosition {
 	return v.Position
 }
 

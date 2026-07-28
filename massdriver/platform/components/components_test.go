@@ -68,6 +68,31 @@ func TestGet(t *testing.T) {
 	var _ *types.Project = got.Project
 }
 
+// TestGet_NeverPlacedPositionIsNil confirms an explicit `position: null` on
+// the wire (a component never placed on the canvas) surfaces as a nil
+// Position, not a zero-valued &{0,0}. Requires the generated field to be a
+// pointer (`@genqlient(pointer: true)`) — a value struct would swallow the
+// null at the JSON-unmarshal step and decode as a placed (0,0).
+func TestGet_NeverPlacedPositionIsNil(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"component": map[string]any{
+				"id":       "ecomm-database",
+				"name":     "Primary Database",
+				"position": nil,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).Get(t.Context(), "ecomm-database")
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+	if got.Position != nil {
+		t.Errorf("Position = %+v, want nil for a never-placed component", got.Position)
+	}
+}
+
 // TestGet_NotFound confirms the wrapper surfaces gql.ErrNotFound when the
 // API returns null for a missing component (the schema's `component` field
 // is nullable, so a 404 manifests as a zero-valued struct on the wire).
