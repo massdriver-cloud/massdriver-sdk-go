@@ -75,13 +75,19 @@ type CreateInput struct {
 	Attributes map[string]any
 }
 
-// UpdateInput is the input for [Service.Update]. As with projects, an empty value
-// sends an empty string; refetch with [Service.Get] and re-send unchanged fields if
-// you need merge semantics.
+// UpdateInput is the input for [Service.Update]. Nil fields are omitted from
+// the request and left unchanged by the server — set only what you want to
+// change ([types.Ptr] builds the pointers inline).
 type UpdateInput struct {
-	Name        string
-	Description string
-	Attributes  map[string]any
+	Name        *string
+	Description *string
+	// DecommissionProtection, when non-nil, toggles the guard that blocks
+	// decommissionEnvironment and per-instance DECOMMISSION deployments.
+	// Nil leaves the current setting unchanged.
+	DecommissionProtection *bool
+	// Attributes, when non-nil, is sent as the environment's new attribute
+	// set. Nil leaves the current attributes unchanged.
+	Attributes map[string]any
 }
 
 // SortField is the field a [Service.Iter]/[Service.ListPage] result can be
@@ -289,9 +295,10 @@ func (s *Service) Create(ctx context.Context, projectID string, input CreateInpu
 // Update updates an environment's mutable fields.
 func (s *Service) Update(ctx context.Context, id string, input UpdateInput) (*Environment, error) {
 	resp, err := gen.UpdateEnvironment(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id, gen.UpdateEnvironmentInput{
-		Name:        input.Name,
-		Description: input.Description,
-		Attributes:  input.Attributes,
+		Name:                   input.Name,
+		Description:            input.Description,
+		DecommissionProtection: input.DecommissionProtection,
+		Attributes:             input.Attributes,
 	})
 	if err != nil {
 		return nil, gql.ClassifyError(fmt.Errorf("update environment %s: %w", id, err))

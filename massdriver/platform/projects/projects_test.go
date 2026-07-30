@@ -285,8 +285,8 @@ func TestUpdate(t *testing.T) {
 	)
 
 	got, err := newService(gqlClient).Update(t.Context(), "proj-1", projects.UpdateInput{
-		Name:        "Renamed",
-		Description: "updated",
+		Name:        types.Ptr("Renamed"),
+		Description: types.Ptr("updated"),
 	})
 	if err != nil {
 		t.Fatalf("Update: %v", err)
@@ -412,6 +412,44 @@ func TestList_NameInFilter(t *testing.T) {
 	in, _ := name["in"].([]any)
 	if len(in) != 2 || in[0] != "Staging" || in[1] != "Production" {
 		t.Errorf("filter.name.in = %v, want [Staging Production]", name["in"])
+	}
+	// An unset Name must not serialize: the server ANDs `eq` with `in`, so
+	// sending `eq: ""` alongside `in` matches nothing.
+	if _, present := name["eq"]; present {
+		t.Errorf("filter.name.eq = %v, want the key absent", name["eq"])
+	}
+}
+
+func TestUpdate_PartialOmitsUnsetFields(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"updateProject": map[string]any{
+				"result": map[string]any{
+					"id":          "proj-1",
+					"name":        "Original",
+					"description": "updated",
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	if _, err := newService(gqlClient).Update(t.Context(), "proj-1", projects.UpdateInput{
+		Description: types.Ptr("updated"),
+	}); err != nil {
+		t.Fatalf("Update: %v", err)
+	}
+
+	// Nil fields must be omitted from the wire entirely — the server treats
+	// an absent field as "leave unchanged" but rejects null and "" for name.
+	input, _ := gqlClient.Requests()[0].Variables["input"].(map[string]any)
+	if input["description"] != "updated" {
+		t.Errorf("input.description = %v, want updated", input["description"])
+	}
+	for _, key := range []string{"name", "attributes"} {
+		if _, present := input[key]; present {
+			t.Errorf("input.%s = %v, want the key absent", key, input[key])
+		}
 	}
 }
 

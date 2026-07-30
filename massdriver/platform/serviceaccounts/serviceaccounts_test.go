@@ -82,6 +82,34 @@ func TestList_Search(t *testing.T) {
 	}
 }
 
+func TestList_IDsFilterOmitsEq(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"serviceAccounts": map[string]any{
+				"cursor": map[string]any{},
+				"items":  []map[string]any{},
+			},
+		}),
+	)
+
+	if _, err := newService(gqlClient).ListPage(t.Context(), serviceaccounts.ListInput{
+		IDs: []string{"sa-1", "sa-2"},
+	}); err != nil {
+		t.Fatalf("ListPage: %v", err)
+	}
+
+	filter, _ := gqlClient.Requests()[0].Variables["filter"].(map[string]any)
+	id, _ := filter["id"].(map[string]any)
+	in, _ := id["in"].([]any)
+	if len(in) != 2 || in[0] != "sa-1" || in[1] != "sa-2" {
+		t.Errorf("filter.id.in = %v, want [sa-1 sa-2]", id["in"])
+	}
+	// The server ANDs `eq` with `in`, so an empty `eq` would match nothing.
+	if _, present := id["eq"]; present {
+		t.Errorf("filter.id.eq = %v, want the key absent", id["eq"])
+	}
+}
+
 func TestCreate(t *testing.T) {
 	gqlClient := gqltest.NewClient(
 		gqltest.RespondWithData(map[string]any{

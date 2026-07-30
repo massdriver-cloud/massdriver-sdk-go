@@ -2,6 +2,7 @@ package policies_test
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
@@ -184,6 +185,37 @@ func TestExplain(t *testing.T) {
 	}
 	if got[0] != "Can create environments with identifiers [dev, staging, prod]." {
 		t.Errorf("got[0] = %q, want first explanation sentence", got[0])
+	}
+}
+
+func TestExplain_EmptyActionsRejected(t *testing.T) {
+	// No responses queued: the call must fail before any request is made.
+	// The wire field is [String!]! — nil would produce a raw GraphQL type
+	// error, and [] is accepted by the server but means "no actions".
+	gqlClient := gqltest.NewClient()
+
+	_, err := newService(gqlClient).Explain(t.Context(), policies.ExplainInput{
+		Effect: policies.EffectAllow,
+	})
+	if err == nil || !strings.Contains(err.Error(), "at least one action") {
+		t.Fatalf("Explain err = %v, want an actions-required validation error", err)
+	}
+	if len(gqlClient.Requests()) != 0 {
+		t.Errorf("a request was sent despite empty Actions")
+	}
+}
+
+func TestCreate_EmptyActionsRejected(t *testing.T) {
+	gqlClient := gqltest.NewClient()
+
+	_, err := newService(gqlClient).Create(t.Context(), "group-1", policies.CreatePolicyInput{
+		Effect: policies.EffectAllow,
+	})
+	if err == nil || !strings.Contains(err.Error(), "at least one action") {
+		t.Fatalf("Create err = %v, want an actions-required validation error", err)
+	}
+	if len(gqlClient.Requests()) != 0 {
+		t.Errorf("a request was sent despite empty Actions")
 	}
 }
 

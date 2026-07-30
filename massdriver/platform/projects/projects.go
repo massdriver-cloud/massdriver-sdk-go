@@ -72,14 +72,17 @@ type CreateInput struct {
 	Attributes map[string]any
 }
 
-// UpdateInput is the input for [Service.Update]. All fields are optional in the
-// sense that an empty value sends an empty string; the server treats that as
-// "set to empty," not "leave unchanged." If you need merge semantics, fetch
-// the project first with [Service.Get] and re-send the unchanged fields.
+// UpdateInput is the input for [Service.Update]. Nil fields are omitted from
+// the request and left unchanged by the server — set only what you want to
+// change ([types.Ptr] builds the pointers inline). A pointer to "" asks the
+// server to clear the field; Name may not be blank, so the server rejects
+// that for Name.
 type UpdateInput struct {
-	Name        string
-	Description string
-	Attributes  map[string]any
+	Name        *string
+	Description *string
+	// Attributes, when non-nil, is sent as the project's new attribute set.
+	// Nil leaves the current attributes unchanged.
+	Attributes map[string]any
 }
 
 // CloneInput is the input for [Service.Clone] — the identity of the new

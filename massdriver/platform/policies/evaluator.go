@@ -86,7 +86,14 @@ func (s *Service) EvaluateBatch(ctx context.Context, checks []Check) ([]Decision
 // Conditions referencing undeclared custom-attribute keys are
 // silently dropped by the explainer — typos surface as a "wider than
 // expected" sentence rather than a hard error.
+//
+// Actions must contain at least one action id: the server requires the
+// field, and an empty list means "no actions" (it explains to nothing),
+// so the SDK rejects both up front.
 func (s *Service) Explain(ctx context.Context, input ExplainInput) ([]string, error) {
+	if len(input.Actions) == 0 {
+		return nil, fmt.Errorf("explain policy: input.Actions must contain at least one action id (e.g. \"project:view\")")
+	}
 	resp, err := gen.ExplainPolicy(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gen.CreateGroupPolicyInput{
 		Effect:     gen.PolicyEffect(input.Effect),
 		Actions:    input.Actions,

@@ -199,13 +199,22 @@ func TestUpdate(t *testing.T) {
 	)
 
 	got, err := newService(gqlClient).Update(t.Context(), "ecomm-database", components.UpdateInput{
-		Name: "Primary Database (renamed)",
+		Name: types.Ptr("Primary Database (renamed)"),
 	})
 	if err != nil {
 		t.Fatalf("Update: %v", err)
 	}
 	if got.Name != "Primary Database (renamed)" {
 		t.Errorf("Name = %q, want Primary Database (renamed)", got.Name)
+	}
+
+	// Nil fields must be omitted from the wire — the server treats an
+	// absent field as "leave unchanged" but rejects null and "" for name.
+	input, _ := gqlClient.Requests()[0].Variables["input"].(map[string]any)
+	for _, key := range []string{"description", "attributes"} {
+		if _, present := input[key]; present {
+			t.Errorf("input.%s = %v, want the key absent", key, input[key])
+		}
 	}
 }
 
