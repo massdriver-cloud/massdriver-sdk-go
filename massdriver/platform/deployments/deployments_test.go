@@ -251,7 +251,7 @@ func TestCreate_NilParamsSendsEmptyObject(t *testing.T) {
 
 	// The wire field is Map! (non-null): nil params would serialize as JSON
 	// null and fail GraphQL type validation with an opaque error. The SDK
-	// substitutes an empty object ("{}"" after the scalar's double encoding)
+	// substitutes an empty object ("{}" after the scalar's double encoding)
 	// so validation failures come back as real params-schema messages.
 	input, _ := gqlClient.Requests()[0].Variables["input"].(map[string]any)
 	if input["params"] != "{}" {
