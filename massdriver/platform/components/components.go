@@ -73,13 +73,15 @@ type AddInput struct {
 	Attributes map[string]any
 }
 
-// UpdateInput is the input for [Service.Update]. As with projects/environments, an
-// empty value sends an empty string; refetch with [Service.Get] and re-send unchanged
-// fields if you need merge semantics.
+// UpdateInput is the input for [Service.Update]. Nil fields are omitted from
+// the request and left unchanged by the server — set only what you want to
+// change ([types.Ptr] builds the pointers inline).
 type UpdateInput struct {
-	Name        string
-	Description string
-	Attributes  map[string]any
+	Name        *string
+	Description *string
+	// Attributes, when non-nil, is sent as the component's new attribute
+	// set. Nil leaves the current attributes unchanged.
+	Attributes map[string]any
 }
 
 // AddLinkInput is the input for [Service.AddLink].

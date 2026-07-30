@@ -66,15 +66,19 @@ func TestIntegration_Environments_CRUD(t *testing.T) {
 		t.Errorf("Get description = %q, want the create-time value", got.Description)
 	}
 
+	// Partial update: only Description is set, so Name must be left
+	// unchanged by the server (nil fields are omitted from the request).
 	updated, err := c.Environments.Update(ctx, envID, environments.UpdateInput{
-		Name:        "Integration test (renamed)",
-		Description: "Updated by SDK integration test.",
+		Description: types.Ptr("Updated by SDK integration test."),
 	})
 	if err != nil {
 		t.Fatalf("Update: %v", err)
 	}
 	if updated.Description != "Updated by SDK integration test." {
 		t.Errorf("Update description = %q, want the updated value", updated.Description)
+	}
+	if updated.Name != got.Name {
+		t.Errorf("Update name = %q, want unchanged %q", updated.Name, got.Name)
 	}
 
 	if _, err := c.Environments.Delete(ctx, envID); err != nil {

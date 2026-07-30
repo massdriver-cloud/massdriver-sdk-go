@@ -108,6 +108,10 @@ query GetAuditLog($organizationId: ID!, $id: ID!) {
 # @genqlient(for: "AuditLogActorTypeFilter.eq", omitempty: true)
 # @genqlient(for: "AuditLogActorTypeFilter.in", omitempty: true)
 # @genqlient(for: "ActorSearchFilter.search", omitempty: true)
+# @genqlient(for: "StringFilter.eq", omitempty: true)
+# @genqlient(for: "StringFilter.in", omitempty: true)
+# @genqlient(for: "IdFilter.eq", omitempty: true)
+# @genqlient(for: "IdFilter.in", omitempty: true)
 query ListAuditLogs(
   $organizationId: ID!,
   # @genqlient(omitempty: true, pointer: true)
@@ -268,7 +272,19 @@ mutation AddComponent(
   }
 }
 
-mutation UpdateComponent($organizationId: ID!, $id: ID!, $input: UpdateComponentInput!) {
+# The update inputs use pointer + omitempty so unset fields are omitted from
+# the wire entirely. The API treats an absent field as "leave unchanged" but
+# treats null and "" as real values (rejected for non-blank fields), so
+# partial updates only work when unset fields never serialize.
+
+# @genqlient(for: "UpdateComponentInput.name", omitempty: true, pointer: true)
+# @genqlient(for: "UpdateComponentInput.description", omitempty: true, pointer: true)
+# @genqlient(for: "UpdateComponentInput.attributes", omitempty: true)
+mutation UpdateComponent(
+  $organizationId: ID!,
+  $id: ID!,
+  $input: UpdateComponentInput!
+) {
   updateComponent(organizationId: $organizationId, id: $id, input: $input) {
     result {
       id
@@ -429,6 +445,13 @@ query GetDeploymentLogs($organizationId: ID!, $id: UUID!) {
 # @genqlient(for: "DeploymentStatusFilter.in", omitempty: true)
 # @genqlient(for: "DeploymentActionFilter.eq", omitempty: true)
 # @genqlient(for: "DeploymentActionFilter.in", omitempty: true)
+# @genqlient(for: "IdFilter.eq", omitempty: true)
+# @genqlient(for: "IdFilter.in", omitempty: true)
+# @genqlient(for: "BundleIdFilter.eq", omitempty: true)
+# @genqlient(for: "BundleIdFilter.in", omitempty: true)
+# @genqlient(for: "OciRepoNameFilter.eq", omitempty: true)
+# @genqlient(for: "OciRepoNameFilter.in", omitempty: true)
+# @genqlient(for: "OciRepoNameFilter.startsWith", omitempty: true)
 query ListDeployments(
   $organizationId: ID!,
   # @genqlient(omitempty: true, pointer: true)
@@ -775,7 +798,19 @@ mutation CreateEnvironment(
   }
 }
 
-mutation UpdateEnvironment($organizationId: ID!, $id: ID!, $input: UpdateEnvironmentInput!) {
+# Pointer + omitempty for partial-update semantics — see UpdateComponent.
+# decommissionProtection must also be a pointer: a plain bool would send
+# `false` on every update, silently disabling protection.
+
+# @genqlient(for: "UpdateEnvironmentInput.name", omitempty: true, pointer: true)
+# @genqlient(for: "UpdateEnvironmentInput.description", omitempty: true, pointer: true)
+# @genqlient(for: "UpdateEnvironmentInput.decommissionProtection", omitempty: true, pointer: true)
+# @genqlient(for: "UpdateEnvironmentInput.attributes", omitempty: true)
+mutation UpdateEnvironment(
+  $organizationId: ID!,
+  $id: ID!,
+  $input: UpdateEnvironmentInput!
+) {
   updateEnvironment(organizationId: $organizationId, id: $id, input: $input) {
     result {
       id
@@ -1237,6 +1272,14 @@ query GetInstance($organizationId: ID!, $id: ID!) {
 # @genqlient(for: "InstanceStatusFilter.in", omitempty: true)
 # @genqlient(for: "AttributeFilter.eq", omitempty: true)
 # @genqlient(for: "AttributeFilter.in", omitempty: true)
+# @genqlient(for: "BundleIdFilter.eq", omitempty: true)
+# @genqlient(for: "BundleIdFilter.in", omitempty: true)
+# @genqlient(for: "OciRepoNameFilter.eq", omitempty: true)
+# @genqlient(for: "OciRepoNameFilter.in", omitempty: true)
+# @genqlient(for: "OciRepoNameFilter.startsWith", omitempty: true)
+# @genqlient(for: "ParamDimensionFilter.eq", omitempty: true)
+# @genqlient(for: "ParamDimensionFilter.in", omitempty: true)
+# @genqlient(for: "ParamDimensionFilter.contains", omitempty: true)
 query ListInstances(
   $organizationId: ID!,
   # @genqlient(omitempty: true, pointer: true)
@@ -1402,6 +1445,13 @@ query GetInstanceAlarm($organizationId: ID!, $id: UUID!) {
 # @genqlient(for: "InstanceAlarmsFilter.instanceId", omitempty: true, pointer: true)
 # @genqlient(for: "InstanceAlarmsFilter.ociRepoName", omitempty: true, pointer: true)
 # @genqlient(for: "InstanceAlarmsFilter.bundleId", omitempty: true, pointer: true)
+# @genqlient(for: "IdFilter.eq", omitempty: true)
+# @genqlient(for: "IdFilter.in", omitempty: true)
+# @genqlient(for: "BundleIdFilter.eq", omitempty: true)
+# @genqlient(for: "BundleIdFilter.in", omitempty: true)
+# @genqlient(for: "OciRepoNameFilter.eq", omitempty: true)
+# @genqlient(for: "OciRepoNameFilter.in", omitempty: true)
+# @genqlient(for: "OciRepoNameFilter.startsWith", omitempty: true)
 query ListInstanceAlarms(
   $organizationId: ID!,
   # @genqlient(omitempty: true, pointer: true)
@@ -2244,7 +2294,16 @@ mutation CreateProject($organizationId: ID!, $input: CreateProjectInput!) {
   }
 }
 
-mutation UpdateProject($organizationId: ID!, $id: ID!, $input: UpdateProjectInput!) {
+# Pointer + omitempty for partial-update semantics — see UpdateComponent.
+
+# @genqlient(for: "UpdateProjectInput.name", omitempty: true, pointer: true)
+# @genqlient(for: "UpdateProjectInput.description", omitempty: true, pointer: true)
+# @genqlient(for: "UpdateProjectInput.attributes", omitempty: true)
+mutation UpdateProject(
+  $organizationId: ID!,
+  $id: ID!,
+  $input: UpdateProjectInput!
+) {
   updateProject(organizationId: $organizationId, id: $id, input: $input) {
     result {
       id
@@ -2359,6 +2418,10 @@ query GetResource($organizationId: ID!, $id: ID!) {
 # @genqlient(for: "ResourcesFilter.search", omitempty: true)
 # @genqlient(for: "ResourceOriginFilter.eq", omitempty: true)
 # @genqlient(for: "ResourceOriginFilter.in", omitempty: true)
+# @genqlient(for: "StringFilter.eq", omitempty: true)
+# @genqlient(for: "StringFilter.in", omitempty: true)
+# @genqlient(for: "IdFilter.eq", omitempty: true)
+# @genqlient(for: "IdFilter.in", omitempty: true)
 query ListResources(
   $organizationId: ID!,
   # @genqlient(omitempty: true, pointer: true)
@@ -2592,6 +2655,8 @@ query GetServiceAccount($organizationId: ID!, $id: UUID!) {
 
 # @genqlient(for: "ServiceAccountsFilter.search", omitempty: true)
 # @genqlient(for: "ServiceAccountsFilter.id", omitempty: true, pointer: true)
+# @genqlient(for: "IdFilter.eq", omitempty: true)
+# @genqlient(for: "IdFilter.in", omitempty: true)
 query ListServiceAccounts(
   $organizationId: ID!,
   # @genqlient(omitempty: true, pointer: true)

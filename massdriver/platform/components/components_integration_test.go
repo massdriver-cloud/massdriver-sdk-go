@@ -11,6 +11,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/components"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/projects"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
 // sandboxOCIRepoName is the OCI repo Add tests source their component
@@ -68,15 +69,19 @@ func TestIntegration_Components_CRUD(t *testing.T) {
 		t.Errorf("Get description = %q, want the create-time value", got.Description)
 	}
 
+	// Partial update: only Description is set, so Name must be left
+	// unchanged by the server (nil fields are omitted from the request).
 	updated, err := c.Components.Update(ctx, compID, components.UpdateInput{
-		Name:        "Integration test (renamed)",
-		Description: "Updated by SDK integration test.",
+		Description: types.Ptr("Updated by SDK integration test."),
 	})
 	if err != nil {
 		t.Fatalf("Update: %v", err)
 	}
 	if updated.Description != "Updated by SDK integration test." {
 		t.Errorf("Update description = %q, want the updated value", updated.Description)
+	}
+	if updated.Name != got.Name {
+		t.Errorf("Update name = %q, want unchanged %q", updated.Name, got.Name)
 	}
 
 	if _, err := c.Components.Remove(ctx, compID); err != nil {

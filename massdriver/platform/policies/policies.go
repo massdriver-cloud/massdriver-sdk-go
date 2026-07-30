@@ -158,6 +158,13 @@ func (s *Service) Get(ctx context.Context, policyID string) (*Policy, error) {
 // policy that matches every entity. Pass a populated [PolicyConditions]
 // map for attribute conditions.
 func (s *Service) Create(ctx context.Context, groupID string, input CreatePolicyInput) (*Policy, error) {
+	// The wire field is non-null ([String!]!): a nil slice would serialize
+	// as JSON null and surface a raw GraphQL type error, and an empty list
+	// is accepted by the server but means "no actions" — never what a
+	// caller wants from Create. Fail fast with a real message instead.
+	if len(input.Actions) == 0 {
+		return nil, fmt.Errorf("create policy for group %s: input.Actions must contain at least one action id (e.g. \"project:view\")", groupID)
+	}
 	resp, err := gen.CreateGroupPolicy(ctx, s.client.GQLv2, s.client.Config.OrganizationID, groupID, gen.CreateGroupPolicyInput{
 		Effect:     gen.PolicyEffect(input.Effect),
 		Actions:    input.Actions,

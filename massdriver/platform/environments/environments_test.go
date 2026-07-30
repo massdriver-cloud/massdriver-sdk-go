@@ -284,13 +284,73 @@ func TestUpdate(t *testing.T) {
 	)
 
 	got, err := newService(gqlClient).Update(t.Context(), "ecomm-prod", environments.UpdateInput{
-		Name: "Production (renamed)",
+		Name: types.Ptr("Production (renamed)"),
 	})
 	if err != nil {
 		t.Fatalf("Update: %v", err)
 	}
 	if got.Name != "Production (renamed)" {
 		t.Errorf("Name = %q, want Production (renamed)", got.Name)
+	}
+
+	// Nil fields must be omitted from the wire — in particular
+	// decommissionProtection: a non-pointer field would send `false` on
+	// every update and silently disable the guard.
+	input, _ := gqlClient.Requests()[0].Variables["input"].(map[string]any)
+	for _, key := range []string{"description", "decommissionProtection", "attributes"} {
+		if _, present := input[key]; present {
+			t.Errorf("input.%s = %v, want the key absent", key, input[key])
+		}
+	}
+}
+
+func TestUpdate_DecommissionProtection(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"updateEnvironment": map[string]any{
+				"result":     map[string]any{"id": "ecomm-prod", "name": "Production"},
+				"successful": true,
+			},
+		}),
+	)
+
+	if _, err := newService(gqlClient).Update(t.Context(), "ecomm-prod", environments.UpdateInput{
+		DecommissionProtection: types.Ptr(true),
+	}); err != nil {
+		t.Fatalf("Update: %v", err)
+	}
+
+	input, _ := gqlClient.Requests()[0].Variables["input"].(map[string]any)
+	if input["decommissionProtection"] != true {
+		t.Errorf("input.decommissionProtection = %v, want true", input["decommissionProtection"])
+	}
+	if _, present := input["name"]; present {
+		t.Errorf("input.name = %v, want the key absent", input["name"])
+	}
+}
+
+func TestList_IDsFilterOmitsEq(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"environments": map[string]any{"items": []map[string]any{}},
+		}),
+	)
+
+	if _, err := newService(gqlClient).ListPage(t.Context(), environments.ListInput{
+		IDs: []string{"ecomm-staging", "ecomm-prod"},
+	}); err != nil {
+		t.Fatalf("ListPage: %v", err)
+	}
+
+	filter, _ := gqlClient.Requests()[0].Variables["filter"].(map[string]any)
+	id, _ := filter["id"].(map[string]any)
+	in, _ := id["in"].([]any)
+	if len(in) != 2 || in[0] != "ecomm-staging" || in[1] != "ecomm-prod" {
+		t.Errorf("filter.id.in = %v, want [ecomm-staging ecomm-prod]", id["in"])
+	}
+	// The server ANDs `eq` with `in`, so an empty `eq` would match nothing.
+	if _, present := id["eq"]; present {
+		t.Errorf("filter.id.eq = %v, want the key absent", id["eq"])
 	}
 }
 

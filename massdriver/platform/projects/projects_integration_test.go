@@ -60,15 +60,35 @@ func TestIntegration_Projects_CRUD(t *testing.T) {
 		t.Errorf("Get description = %q, want the create-time value", got.Description)
 	}
 
+	// NameIn-only filter: the request must omit the empty `eq` (the server
+	// ANDs `eq` with `in`, so sending `eq: ""` would match nothing).
+	page, err := c.Projects.ListPage(ctx, projects.ListInput{NameIn: []string{got.Name}})
+	if err != nil {
+		t.Fatalf("ListPage(NameIn): %v", err)
+	}
+	foundByNameIn := false
+	for _, p := range page.Items {
+		if p.ID == projectFixtureID {
+			foundByNameIn = true
+		}
+	}
+	if !foundByNameIn {
+		t.Errorf("ListPage(NameIn: [%q]) did not return the fixture project", got.Name)
+	}
+
+	// Partial update: only Description is set, so Name must be left
+	// unchanged by the server (nil fields are omitted from the request).
 	updated, err := c.Projects.Update(ctx, projectFixtureID, projects.UpdateInput{
-		Name:        "Integration test (renamed)",
-		Description: "Updated by SDK integration test.",
+		Description: types.Ptr("Updated by SDK integration test."),
 	})
 	if err != nil {
 		t.Fatalf("Update: %v", err)
 	}
 	if updated.Description != "Updated by SDK integration test." {
 		t.Errorf("Update description = %q, want the updated value", updated.Description)
+	}
+	if updated.Name != got.Name {
+		t.Errorf("Update name = %q, want unchanged %q", updated.Name, got.Name)
 	}
 
 	if _, err := c.Projects.Delete(ctx, projectFixtureID); err != nil {

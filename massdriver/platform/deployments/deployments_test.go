@@ -233,6 +233,32 @@ func TestCreate(t *testing.T) {
 	}
 }
 
+func TestCreate_NilParamsSendsEmptyObject(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"createDeployment": map[string]any{
+				"result":     map[string]any{"id": "dep-new", "status": "PENDING", "action": "PROVISION"},
+				"successful": true,
+			},
+		}),
+	)
+
+	if _, err := newService(gqlClient).Create(t.Context(), "ecomm-prod-database", deployments.CreateInput{
+		Action: deployments.ActionProvision,
+	}); err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+
+	// The wire field is Map! (non-null): nil params would serialize as JSON
+	// null and fail GraphQL type validation with an opaque error. The SDK
+	// substitutes an empty object ("{}"" after the scalar's double encoding)
+	// so validation failures come back as real params-schema messages.
+	input, _ := gqlClient.Requests()[0].Variables["input"].(map[string]any)
+	if input["params"] != "{}" {
+		t.Errorf("input.params = %v, want the double-encoded empty object \"{}\"", input["params"])
+	}
+}
+
 func TestCreate_ValidationFailure(t *testing.T) {
 	gqlClient := gqltest.NewClient(
 		gqltest.RespondWithData(map[string]any{

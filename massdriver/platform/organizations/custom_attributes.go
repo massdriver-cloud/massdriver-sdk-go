@@ -40,8 +40,10 @@ type CreateCustomAttributeInput struct {
 	// Scope is the resource level where this attribute applies.
 	Scope AttributeScope
 	// Required, when true, makes the attribute mandatory at create time
-	// for resources at the specified scope. Optional; pass nil to use
-	// the server default (false).
+	// for resources at the specified scope. When nil the server applies
+	// its default, which is currently TRUE — the attribute becomes
+	// mandatory org-wide at its scope. Pass an explicit value rather
+	// than relying on the default.
 	Required *bool
 	// Values is the closed set of values the attribute may take. Must
 	// have at least one entry; the literal "*" is reserved.

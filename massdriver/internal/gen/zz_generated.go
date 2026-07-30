@@ -1485,9 +1485,9 @@ var AllAuditLogsSortField = []AuditLogsSortField{
 // ```
 type BundleIdFilter struct {
 	// Return only results pinned to the bundle release this value resolves to.
-	Eq string `json:"eq"`
+	Eq string `json:"eq,omitempty"`
 	// Return results pinned to any of the bundle releases these values resolve to.
-	In []string `json:"in"`
+	In []string `json:"in,omitempty"`
 }
 
 // GetEq returns BundleIdFilter.Eq, and is useful for accessing the field via an interface.
@@ -16618,9 +16618,9 @@ var AllGroupsSortField = []GroupsSortField{
 // ```
 type IdFilter struct {
 	// Return only results whose ID exactly equals this value.
-	Eq string `json:"eq"`
+	Eq string `json:"eq,omitempty"`
 	// Return results whose ID matches any value in this list.
-	In []string `json:"in"`
+	In []string `json:"in,omitempty"`
 }
 
 // GetEq returns IdFilter.Eq, and is useful for accessing the field via an interface.
@@ -21567,11 +21567,11 @@ var AllOciArtifactType = []OciArtifactType{
 // ```
 type OciRepoNameFilter struct {
 	// Return only results whose OCI repository name exactly equals this value.
-	Eq string `json:"eq"`
+	Eq string `json:"eq,omitempty"`
 	// Return results whose OCI repository name matches any value in this list.
-	In []string `json:"in"`
+	In []string `json:"in,omitempty"`
 	// Return results whose OCI repository name begins with this prefix, e.g. `"aws-"` matches `"aws-aurora-postgres"`.
-	StartsWith string `json:"startsWith"`
+	StartsWith string `json:"startsWith,omitempty"`
 }
 
 // GetEq returns OciRepoNameFilter.Eq, and is useful for accessing the field via an interface.
@@ -21874,11 +21874,11 @@ type ParamDimensionFilter struct {
 	// jq-style path to the configuration parameter (e.g., `".database.instance_type"` or `".containers[0].image"`). Use the `paramDimensions` query to discover available paths.
 	Dimension string `json:"dimension"`
 	// Return only instances whose parameter value exactly equals this string.
-	Eq string `json:"eq"`
+	Eq string `json:"eq,omitempty"`
 	// Return instances whose parameter value matches any string in this list.
-	In []string `json:"in"`
+	In []string `json:"in,omitempty"`
 	// Return instances whose parameter value contains this substring (case-insensitive).
-	Contains string `json:"contains"`
+	Contains string `json:"contains,omitempty"`
 }
 
 // GetDimension returns ParamDimensionFilter.Dimension, and is useful for accessing the field via an interface.
@@ -24774,9 +24774,9 @@ var AllSortOrder = []SortOrder{
 // ```
 type StringFilter struct {
 	// Return only results whose value exactly equals this string.
-	Eq string `json:"eq"`
+	Eq string `json:"eq,omitempty"`
 	// Return results whose value matches any string in this list.
-	In []string `json:"in"`
+	In []string `json:"in,omitempty"`
 }
 
 // GetEq returns StringFilter.Eq, and is useful for accessing the field via an interface.
@@ -24914,19 +24914,19 @@ type UpdateComponentInput struct {
 	// Key-value attributes for this component. Keys and values must be strings. Must conform to the organization's custom attributes for the component scope.
 	Attributes map[string]any `json:"-"`
 	// Optional description of this component's purpose
-	Description string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	// Display name for this component (e.g., 'Billing Database')
-	Name string `json:"name"`
+	Name *string `json:"name,omitempty"`
 }
 
 // GetAttributes returns UpdateComponentInput.Attributes, and is useful for accessing the field via an interface.
 func (v *UpdateComponentInput) GetAttributes() map[string]any { return v.Attributes }
 
 // GetDescription returns UpdateComponentInput.Description, and is useful for accessing the field via an interface.
-func (v *UpdateComponentInput) GetDescription() string { return v.Description }
+func (v *UpdateComponentInput) GetDescription() *string { return v.Description }
 
 // GetName returns UpdateComponentInput.Name, and is useful for accessing the field via an interface.
-func (v *UpdateComponentInput) GetName() string { return v.Name }
+func (v *UpdateComponentInput) GetName() *string { return v.Name }
 
 func (v *UpdateComponentInput) UnmarshalJSON(b []byte) error {
 
@@ -24962,11 +24962,11 @@ func (v *UpdateComponentInput) UnmarshalJSON(b []byte) error {
 }
 
 type __premarshalUpdateComponentInput struct {
-	Attributes json.RawMessage `json:"attributes"`
+	Attributes json.RawMessage `json:"attributes,omitempty"`
 
-	Description string `json:"description"`
+	Description *string `json:"description,omitempty"`
 
-	Name string `json:"name"`
+	Name *string `json:"name,omitempty"`
 }
 
 func (v *UpdateComponentInput) MarshalJSON() ([]byte, error) {
@@ -25482,24 +25482,24 @@ type UpdateEnvironmentInput struct {
 	// Key-value attributes for this environment. Keys and values must be strings. Must conform to the organization's custom attributes for the environment scope.
 	Attributes map[string]any `json:"-"`
 	// When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Toggle it off here before tearing down.
-	DecommissionProtection bool `json:"decommissionProtection"`
+	DecommissionProtection *bool `json:"decommissionProtection,omitempty"`
 	// An optional description of the environment's purpose
-	Description string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	// A human-readable name for the environment
-	Name string `json:"name"`
+	Name *string `json:"name,omitempty"`
 }
 
 // GetAttributes returns UpdateEnvironmentInput.Attributes, and is useful for accessing the field via an interface.
 func (v *UpdateEnvironmentInput) GetAttributes() map[string]any { return v.Attributes }
 
 // GetDecommissionProtection returns UpdateEnvironmentInput.DecommissionProtection, and is useful for accessing the field via an interface.
-func (v *UpdateEnvironmentInput) GetDecommissionProtection() bool { return v.DecommissionProtection }
+func (v *UpdateEnvironmentInput) GetDecommissionProtection() *bool { return v.DecommissionProtection }
 
 // GetDescription returns UpdateEnvironmentInput.Description, and is useful for accessing the field via an interface.
-func (v *UpdateEnvironmentInput) GetDescription() string { return v.Description }
+func (v *UpdateEnvironmentInput) GetDescription() *string { return v.Description }
 
 // GetName returns UpdateEnvironmentInput.Name, and is useful for accessing the field via an interface.
-func (v *UpdateEnvironmentInput) GetName() string { return v.Name }
+func (v *UpdateEnvironmentInput) GetName() *string { return v.Name }
 
 func (v *UpdateEnvironmentInput) UnmarshalJSON(b []byte) error {
 
@@ -25535,13 +25535,13 @@ func (v *UpdateEnvironmentInput) UnmarshalJSON(b []byte) error {
 }
 
 type __premarshalUpdateEnvironmentInput struct {
-	Attributes json.RawMessage `json:"attributes"`
+	Attributes json.RawMessage `json:"attributes,omitempty"`
 
-	DecommissionProtection bool `json:"decommissionProtection"`
+	DecommissionProtection *bool `json:"decommissionProtection,omitempty"`
 
-	Description string `json:"description"`
+	Description *string `json:"description,omitempty"`
 
-	Name string `json:"name"`
+	Name *string `json:"name,omitempty"`
 }
 
 func (v *UpdateEnvironmentInput) MarshalJSON() ([]byte, error) {
@@ -27433,19 +27433,19 @@ type UpdateProjectInput struct {
 	// Key-value attributes for this project. Keys and values must be strings. Must conform to the organization's custom attributes for the project scope.
 	Attributes map[string]any `json:"-"`
 	// An optional description of the project's purpose or contents
-	Description string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	// A human-readable name for the project
-	Name string `json:"name"`
+	Name *string `json:"name,omitempty"`
 }
 
 // GetAttributes returns UpdateProjectInput.Attributes, and is useful for accessing the field via an interface.
 func (v *UpdateProjectInput) GetAttributes() map[string]any { return v.Attributes }
 
 // GetDescription returns UpdateProjectInput.Description, and is useful for accessing the field via an interface.
-func (v *UpdateProjectInput) GetDescription() string { return v.Description }
+func (v *UpdateProjectInput) GetDescription() *string { return v.Description }
 
 // GetName returns UpdateProjectInput.Name, and is useful for accessing the field via an interface.
-func (v *UpdateProjectInput) GetName() string { return v.Name }
+func (v *UpdateProjectInput) GetName() *string { return v.Name }
 
 func (v *UpdateProjectInput) UnmarshalJSON(b []byte) error {
 
@@ -27481,11 +27481,11 @@ func (v *UpdateProjectInput) UnmarshalJSON(b []byte) error {
 }
 
 type __premarshalUpdateProjectInput struct {
-	Attributes json.RawMessage `json:"attributes"`
+	Attributes json.RawMessage `json:"attributes,omitempty"`
 
-	Description string `json:"description"`
+	Description *string `json:"description,omitempty"`
 
-	Name string `json:"name"`
+	Name *string `json:"name,omitempty"`
 }
 
 func (v *UpdateProjectInput) MarshalJSON() ([]byte, error) {

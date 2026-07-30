@@ -150,7 +150,12 @@ type ListInput struct {
 type CreateInput struct {
 	// Action is the operation to perform: PROVISION, DECOMMISSION, or PLAN.
 	Action Action
-	// Params are the bundle configuration values to apply.
+	// Params are the bundle configuration values to apply. The server
+	// requires a full, schema-valid param set for every action — including
+	// DECOMMISSION — and has no "reuse saved params" mode; to redeploy an
+	// instance's current configuration, read it via Instances.Get and pass
+	// its Params back here. Nil is sent as an empty object, which fails
+	// validation unless the bundle has no required params.
 	Params map[string]any
 	// Message is an optional commit-message-like description.
 	Message string
@@ -263,7 +268,7 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Deployment] {
 func (s *Service) Create(ctx context.Context, instanceID string, input CreateInput) (*Deployment, error) {
 	resp, err := gen.CreateDeployment(ctx, s.client.GQLv2, s.client.Config.OrganizationID, instanceID, gen.CreateDeploymentInput{
 		Action:  gen.DeploymentAction(input.Action),
-		Params:  input.Params,
+		Params:  emptyIfNil(input.Params),
 		Message: input.Message,
 	})
 	if err != nil {
@@ -284,7 +289,7 @@ func (s *Service) Create(ctx context.Context, instanceID string, input CreateInp
 func (s *Service) Propose(ctx context.Context, instanceID string, input ProposeInput) (*Deployment, error) {
 	resp, err := gen.ProposeDeployment(ctx, s.client.GQLv2, s.client.Config.OrganizationID, instanceID, gen.ProposeDeploymentInput{
 		Action:  gen.ProposeDeploymentAction(input.Action),
-		Params:  input.Params,
+		Params:  emptyIfNil(input.Params),
 		Message: input.Message,
 	})
 	if err != nil {
@@ -294,6 +299,17 @@ func (s *Service) Propose(ctx context.Context, instanceID string, input ProposeI
 		return nil, err
 	}
 	return toDeployment(resp.ProposeDeployment.Result)
+}
+
+// emptyIfNil substitutes an empty map for nil params. The wire type is
+// non-null (Map!), so nil would serialize as JSON null and fail GraphQL
+// type validation with an opaque error; an empty object reaches the
+// bundle's params schema instead, which produces a real validation message.
+func emptyIfNil(params map[string]any) map[string]any {
+	if params == nil {
+		return map[string]any{}
+	}
+	return params
 }
 
 // Approve releases a PROPOSED deployment into the run queue. The deployment
