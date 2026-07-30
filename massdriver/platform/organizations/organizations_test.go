@@ -38,6 +38,60 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestListCustomAttributesPage(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"organization": map[string]any{
+				"id": "ecomm-corp",
+				"customAttributes": map[string]any{
+					"cursor": map[string]any{"next": "page-2"},
+					"items": []map[string]any{
+						{"id": "attr-1", "key": "team", "scope": "PROJECT", "required": true, "values": []string{"platform", "data"}},
+					},
+				},
+			},
+		}),
+	)
+
+	page, err := newService(gqlClient).ListCustomAttributesPage(t.Context(), organizations.ListCustomAttributesInput{})
+	if err != nil {
+		t.Fatalf("ListCustomAttributesPage: %v", err)
+	}
+	if len(page.Items) != 1 || page.Items[0].Key != "team" || !page.Items[0].Required {
+		t.Errorf("Items = %+v, want one required attribute with key team", page.Items)
+	}
+	if page.Next != "page-2" {
+		t.Errorf("Next = %q, want page-2", page.Next)
+	}
+}
+
+func TestListMembersPage(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"organization": map[string]any{
+				"id": "ecomm-corp",
+				"members": map[string]any{
+					"cursor": map[string]any{"next": "page-2"},
+					"items": []map[string]any{
+						{"id": "acc-1", "email": "alice@example.com", "firstName": "Alice", "lastName": "Ng"},
+					},
+				},
+			},
+		}),
+	)
+
+	page, err := newService(gqlClient).ListMembersPage(t.Context(), organizations.ListMembersInput{PageSize: 50})
+	if err != nil {
+		t.Fatalf("ListMembersPage: %v", err)
+	}
+	if len(page.Items) != 1 || page.Items[0].Email != "alice@example.com" {
+		t.Errorf("Items = %+v, want one account for alice@example.com", page.Items)
+	}
+	if page.Next != "page-2" {
+		t.Errorf("Next = %q, want page-2", page.Next)
+	}
+}
+
 // TestGet_NotFound confirms the wrapper surfaces gql.ErrNotFound when the
 // API returns null for a missing organization.
 func TestGet_NotFound(t *testing.T) {

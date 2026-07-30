@@ -1027,6 +1027,9 @@ mutation RemoveEnvironmentDefault($organizationId: ID!, $id: UUID!) {
 
 # GROUPS
 
+# The group's membership and policy sub-lists are paginated and exposed
+# through the List* queries below rather than inlined here — Get stays a
+# single cheap lookup and callers page through only the lists they need.
 query GetGroup($organizationId: ID!, $id: UUID!) {
   group(organizationId: $organizationId, id: $id) {
     id
@@ -1035,6 +1038,101 @@ query GetGroup($organizationId: ID!, $id: UUID!) {
     role
     createdAt
     updatedAt
+  }
+}
+
+query ListGroupMembers(
+  $organizationId: ID!,
+  $id: UUID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  group(organizationId: $organizationId, id: $id) {
+    id
+    members(cursor: $cursor) {
+      cursor {
+        next
+        previous
+      }
+      items {
+        id
+        email
+        firstName
+        lastName
+      }
+    }
+  }
+}
+
+query ListGroupServiceAccounts(
+  $organizationId: ID!,
+  $id: UUID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  group(organizationId: $organizationId, id: $id) {
+    id
+    serviceAccounts(cursor: $cursor) {
+      cursor {
+        next
+        previous
+      }
+      items {
+        id
+        name
+        description
+        createdAt
+        updatedAt
+      }
+    }
+  }
+}
+
+query ListGroupPolicies(
+  $organizationId: ID!,
+  $id: UUID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  group(organizationId: $organizationId, id: $id) {
+    id
+    policies(cursor: $cursor) {
+      cursor {
+        next
+        previous
+      }
+      items {
+        id
+        effect
+        actions
+        conditions
+        createdAt
+        updatedAt
+      }
+    }
+  }
+}
+
+# Admin-only: non-admin callers receive a top-level forbidden error.
+query ListGroupInvitations(
+  $organizationId: ID!,
+  $id: UUID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  group(organizationId: $organizationId, id: $id) {
+    id
+    invitations(cursor: $cursor) {
+      cursor {
+        next
+        previous
+      }
+      items {
+        id
+        email
+        createdAt
+      }
+    }
   }
 }
 
@@ -1866,6 +1964,9 @@ query ListOciRepoGrants(
 
 # ORGANIZATIONS
 
+# The org's custom-attribute and member sub-lists are paginated and exposed
+# through the List* queries below rather than inlined here — Get stays a
+# single cheap lookup and callers page through only the lists they need.
 query GetOrganization($organizationId: ID!) {
   organization(organizationId: $organizationId) {
     id
@@ -1874,6 +1975,55 @@ query GetOrganization($organizationId: ID!) {
     trialEndsAt
     createdAt
     updatedAt
+  }
+}
+
+query ListOrganizationCustomAttributes(
+  $organizationId: ID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  organization(organizationId: $organizationId) {
+    id
+    customAttributes(cursor: $cursor) {
+      cursor {
+        next
+        previous
+      }
+      items {
+        id
+        key
+        scope
+        required
+        values
+        createdAt
+        updatedAt
+      }
+    }
+  }
+}
+
+# Admin-only: requires organization:manageProfile; non-admin callers receive
+# a top-level forbidden error.
+query ListOrganizationMembers(
+  $organizationId: ID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  organization(organizationId: $organizationId) {
+    id
+    members(cursor: $cursor) {
+      cursor {
+        next
+        previous
+      }
+      items {
+        id
+        email
+        firstName
+        lastName
+      }
+    }
   }
 }
 

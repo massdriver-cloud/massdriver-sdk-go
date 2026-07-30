@@ -30,6 +30,11 @@ import (
 // Group is a Massdriver group — alias of [types.Group].
 type Group = types.Group
 
+// Policy is an ABAC policy attached to a group — alias of [types.Policy].
+// Returned by [Service.IterPolicies] / [Service.ListPoliciesPage]; policy
+// CRUD lives in the policies package.
+type Policy = types.Policy
+
 // Service is the receiver for group operations. Construct with [New];
 // for the typical case you'll use the [massdriver.Client.Groups] field.
 type Service struct {
@@ -96,7 +101,11 @@ type UpdateInput struct {
 	Description string
 }
 
-// Get retrieves a group by ID.
+// Get retrieves a group by ID. The group's membership and policy sub-lists
+// are paginated and exposed separately — [Service.IterMembers],
+// [Service.IterServiceAccounts], [Service.IterPolicies], and
+// [Service.IterInvitations] (each with a ListPage variant) — so Get stays a
+// single cheap lookup and callers page through only the lists they need.
 //
 // Returns [gql.ErrNotFound] (wrapped, match with [errors.Is]) when no group
 // with the given ID exists in the configured organization.
@@ -109,6 +118,48 @@ func (s *Service) Get(ctx context.Context, id string) (*Group, error) {
 		return nil, fmt.Errorf("get group %s: %w", id, gql.ErrNotFound)
 	}
 	return toGroup(resp.Group)
+}
+
+// ListPoliciesInput controls a [Service.IterPolicies] /
+// [Service.ListPoliciesPage] call. The zero value lists every policy
+// attached to the group.
+type ListPoliciesInput struct {
+	// PageSize bounds how many policies each underlying request fetches
+	// (1..100). Zero lets the server pick its default.
+	PageSize int
+	// After is the opaque cursor from a prior [types.Page].Next, selecting
+	// which page to start from. Empty starts at the first page.
+	After string
+}
+
+// IterPolicies returns a lazy [iter.Seq2] over the ABAC policies attached to
+// the group as principal, fetching pages on demand. To buffer every policy
+// into a slice, wrap with [types.Collect].
+func (s *Service) IterPolicies(ctx context.Context, groupID string, input ListPoliciesInput) iter.Seq2[Policy, error] {
+	return paging.Iter(ctx, input.After, s.policiesPage(groupID, input))
+}
+
+// ListPoliciesPage returns a single page of the group's attached policies.
+// input.PageSize bounds the page and input.After (an opaque cursor from a
+// prior page's Next) selects which page.
+func (s *Service) ListPoliciesPage(ctx context.Context, groupID string, input ListPoliciesInput) (types.Page[Policy], error) {
+	return s.policiesPage(groupID, input)(ctx, input.After)
+}
+
+// policiesPage builds the single-page fetcher shared by IterPolicies and
+// ListPoliciesPage.
+func (s *Service) policiesPage(groupID string, input ListPoliciesInput) paging.FetchFunc[Policy] {
+	return paging.DecodeFetch[Policy](input.PageSize, "policy", func(ctx context.Context, cursor *scalars.Cursor) (paging.RawPage, error) {
+		resp, err := gen.ListGroupPolicies(ctx, s.client.GQLv2, s.client.Config.OrganizationID, groupID, cursor)
+		if err != nil {
+			return paging.RawPage{}, gql.ClassifyError(fmt.Errorf("list policies for group %s: %w", groupID, err))
+		}
+		return paging.RawPage{
+			Items:    resp.Group.Policies.Items,
+			Next:     resp.Group.Policies.Cursor.Next,
+			Previous: resp.Group.Policies.Cursor.Previous,
+		}, nil
+	})
 }
 
 // Iter returns a lazy [iter.Seq2] over groups matching input, fetching pages

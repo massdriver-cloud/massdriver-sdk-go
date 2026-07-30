@@ -3,10 +3,13 @@ package organizations
 import (
 	"context"
 	"fmt"
+	"iter"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
@@ -55,6 +58,48 @@ type CreateCustomAttributeInput struct {
 type UpdateCustomAttributeInput struct {
 	Required *bool
 	Values   []string
+}
+
+// ListCustomAttributesInput controls a [Service.IterCustomAttributes] /
+// [Service.ListCustomAttributesPage] call. The zero value lists every
+// declared custom attribute, sorted alphabetically by key.
+type ListCustomAttributesInput struct {
+	// PageSize bounds how many attributes each underlying request fetches
+	// (1..100). Zero lets the server pick its default.
+	PageSize int
+	// After is the opaque cursor from a prior [types.Page].Next, selecting
+	// which page to start from. Empty starts at the first page.
+	After string
+}
+
+// IterCustomAttributes returns a lazy [iter.Seq2] over the organization's
+// declared custom attributes, fetching pages on demand. To buffer every
+// attribute into a slice, wrap with [types.Collect].
+func (s *Service) IterCustomAttributes(ctx context.Context, input ListCustomAttributesInput) iter.Seq2[CustomAttribute, error] {
+	return paging.Iter(ctx, input.After, s.customAttributesPage(input))
+}
+
+// ListCustomAttributesPage returns a single page of the organization's
+// declared custom attributes. input.PageSize bounds the page and input.After
+// (an opaque cursor from a prior page's Next) selects which page.
+func (s *Service) ListCustomAttributesPage(ctx context.Context, input ListCustomAttributesInput) (types.Page[CustomAttribute], error) {
+	return s.customAttributesPage(input)(ctx, input.After)
+}
+
+// customAttributesPage builds the single-page fetcher shared by
+// IterCustomAttributes and ListCustomAttributesPage.
+func (s *Service) customAttributesPage(input ListCustomAttributesInput) paging.FetchFunc[CustomAttribute] {
+	return paging.DecodeFetch[CustomAttribute](input.PageSize, "custom attribute", func(ctx context.Context, cursor *scalars.Cursor) (paging.RawPage, error) {
+		resp, err := gen.ListOrganizationCustomAttributes(ctx, s.client.GQLv2, s.client.Config.OrganizationID, cursor)
+		if err != nil {
+			return paging.RawPage{}, gql.ClassifyError(fmt.Errorf("list custom attributes: %w", err))
+		}
+		return paging.RawPage{
+			Items:    resp.Organization.CustomAttributes.Items,
+			Next:     resp.Organization.CustomAttributes.Cursor.Next,
+			Previous: resp.Organization.CustomAttributes.Cursor.Previous,
+		}, nil
+	})
 }
 
 // CreateCustomAttribute declares a new custom attribute for the

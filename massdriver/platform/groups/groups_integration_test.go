@@ -14,8 +14,40 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/groups"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/policies"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
+
+// TestIntegration_Groups_ListAdminGroupMembers confirms the membership
+// listing resolves. The built-in Organization Admin group is used because it
+// exists on every organization and always has at least one member (someone
+// must administer the org).
+func TestIntegration_Groups_ListAdminGroupMembers(t *testing.T) {
+	c := inttest.Client(t)
+	ctx := context.Background()
+
+	var admin *groups.Group
+	for g, err := range c.Groups.Iter(ctx, groups.ListInput{}) {
+		if err != nil {
+			t.Fatalf("Iter: %v", err)
+		}
+		if g.Role == string(groups.RoleOrganizationAdmin) {
+			admin = &g
+			break
+		}
+	}
+	if admin == nil {
+		t.Fatal("no ORGANIZATION_ADMIN group found; every organization should have one")
+	}
+
+	page, err := c.Groups.ListMembersPage(ctx, admin.ID, groups.ListMembersInput{})
+	if err != nil {
+		t.Fatalf("ListMembersPage: %v", err)
+	}
+	if len(page.Items) == 0 {
+		t.Errorf("ListMembersPage on the admin group is empty; want at least one member")
+	}
+}
 
 // TestIntegration_Groups_CRUD walks Create → Get → Update → Delete
 // against a live API. Built-in groups (Admins, Viewers) are not
@@ -50,6 +82,43 @@ func TestIntegration_Groups_CRUD(t *testing.T) {
 	}
 	if got.Description != "Created by SDK integration test; safe to delete." {
 		t.Errorf("Get description = %q, want the create-time value", got.Description)
+	}
+
+	// A fresh custom group has no policies; attach one and confirm the
+	// policies listing returns it.
+	pol, err := c.Policies.Create(ctx, created.ID, policies.CreatePolicyInput{
+		Effect:  policies.EffectAllow,
+		Actions: []string{"project:view"},
+	})
+	if err != nil {
+		t.Fatalf("Policies.Create: %v", err)
+	}
+	polPage, err := c.Groups.ListPoliciesPage(ctx, created.ID, groups.ListPoliciesInput{})
+	if err != nil {
+		t.Fatalf("ListPoliciesPage: %v", err)
+	}
+	foundPolicy := false
+	for _, p := range polPage.Items {
+		if p.ID == pol.ID {
+			foundPolicy = true
+		}
+	}
+	if !foundPolicy {
+		t.Errorf("ListPoliciesPage = %+v, want it to include policy %s", polPage.Items, pol.ID)
+	}
+
+	// Invitations listing is admin-gated; the sandbox token is an admin, so
+	// this must succeed (a fresh group simply has none pending).
+	invs, err := c.Groups.ListInvitationsPage(ctx, created.ID, groups.ListInvitationsInput{})
+	if err != nil {
+		t.Fatalf("ListInvitationsPage: %v", err)
+	}
+	if len(invs.Items) != 0 {
+		t.Errorf("ListInvitationsPage on a fresh group = %+v, want no pending invitations", invs.Items)
+	}
+
+	if _, err := c.Policies.Delete(ctx, pol.ID); err != nil {
+		t.Fatalf("Policies.Delete: %v", err)
 	}
 
 	renamed := name + "-renamed"

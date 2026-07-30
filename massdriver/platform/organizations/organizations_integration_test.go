@@ -36,6 +36,27 @@ func TestIntegration_Organizations_Get(t *testing.T) {
 	}
 }
 
+// TestIntegration_Organizations_ListMembers confirms the admin-gated member
+// roster resolves with the sandbox's admin token. Every organization has at
+// least one member (someone must administer it).
+func TestIntegration_Organizations_ListMembers(t *testing.T) {
+	c := inttest.Client(t)
+	ctx := context.Background()
+
+	page, err := c.Organizations.ListMembersPage(ctx, organizations.ListMembersInput{})
+	if err != nil {
+		t.Fatalf("ListMembersPage: %v", err)
+	}
+	if len(page.Items) == 0 {
+		t.Errorf("ListMembersPage returned no members; want at least one")
+	}
+	for _, m := range page.Items {
+		if m.Email == "" {
+			t.Errorf("member %s has empty email", m.ID)
+		}
+	}
+}
+
 // TestIntegration_Organizations_CustomAttributes_CRUD walks Create →
 // Update → Delete on a custom attribute. The Key is constructed
 // manually instead of via inttest.FixtureName because attribute
@@ -76,6 +97,21 @@ func TestIntegration_Organizations_CustomAttributes_CRUD(t *testing.T) {
 	}
 	if created.Scope != string(organizations.AttributeScopeRepo) {
 		t.Errorf("Create scope = %q, want %q", created.Scope, organizations.AttributeScopeRepo)
+	}
+
+	// The declared attribute must show up in the custom-attributes listing.
+	foundAttr := false
+	for a, err := range c.Organizations.IterCustomAttributes(ctx, organizations.ListCustomAttributesInput{}) {
+		if err != nil {
+			t.Fatalf("IterCustomAttributes: %v", err)
+		}
+		if a.ID == created.ID {
+			foundAttr = true
+			break
+		}
+	}
+	if !foundAttr {
+		t.Errorf("IterCustomAttributes did not return %s (%s)", created.ID, key)
 	}
 
 	updated, err := c.Organizations.UpdateCustomAttribute(ctx, created.ID, organizations.UpdateCustomAttributeInput{
