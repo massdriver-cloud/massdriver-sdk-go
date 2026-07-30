@@ -18469,6 +18469,686 @@ func (v *ListEnvironmentsResponse) GetEnvironments() ListEnvironmentsEnvironment
 	return v.Environments
 }
 
+// ListGroupInvitationsGroup includes the requested fields of the GraphQL type Group.
+// The GraphQL type's documentation follows.
+//
+// A collection of users and service accounts that share the same access level within your organization.
+//
+// Groups are the primary mechanism for managing access control in Massdriver. Rather than
+// assigning permissions to individual users, you add them to groups that define what they
+// can see and do.
+//
+// ```mermaid
+// graph TD
+// O["Organization"] --> G1["Group: Admins"]
+// O --> G2["Group: Developers"]
+// O --> G3["Group: Custom"]
+// G1 --> U1["User: alice@co.com"]
+// G2 --> U2["User: bob@co.com"]
+// G2 --> SA1["Service Account: ci-bot"]
+// G3 -->|"project_admin"| P1["Project: backend"]
+// G3 -->|"project_viewer"| P2["Project: frontend"]
+// ```
+//
+// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
+// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+//
+// **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
+// Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
+//
+// **Members** — Both human users and service accounts can be group members. Users live under
+// `members` and are added via `addAccountToGroup` (auto-adds existing org members or sends an
+// invitation otherwise). Service accounts live under `serviceAccounts` and are added via
+// `addServiceAccountToGroup`.
+type ListGroupInvitationsGroup struct {
+	// Unique identifier for this group.
+	Id string `json:"id"`
+	// Paginated list of pending invitations to this group. Visible to organization admins only.
+	//
+	// Pending invitations are users who have been invited by email but have not yet accepted.
+	// Once accepted, the row is replaced by a `GroupMembership` and no longer appears here.
+	// Non-admin callers receive `null` here with a top-level forbidden error so the rest of the
+	// response still resolves; viewers should query `Viewer.invites` for their own invitations.
+	Invitations ListGroupInvitationsGroupInvitationsGroupInvitationsPage `json:"invitations"`
+}
+
+// GetId returns ListGroupInvitationsGroup.Id, and is useful for accessing the field via an interface.
+func (v *ListGroupInvitationsGroup) GetId() string { return v.Id }
+
+// GetInvitations returns ListGroupInvitationsGroup.Invitations, and is useful for accessing the field via an interface.
+func (v *ListGroupInvitationsGroup) GetInvitations() ListGroupInvitationsGroupInvitationsGroupInvitationsPage {
+	return v.Invitations
+}
+
+// ListGroupInvitationsGroupInvitationsGroupInvitationsPage includes the requested fields of the GraphQL type GroupInvitationsPage.
+type ListGroupInvitationsGroupInvitationsGroupInvitationsPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListGroupInvitationsGroupInvitationsGroupInvitationsPageCursorPaginationCursor `json:"cursor"`
+	// A list of type group_invitation.
+	Items []ListGroupInvitationsGroupInvitationsGroupInvitationsPageItemsGroupInvitation `json:"items"`
+}
+
+// GetCursor returns ListGroupInvitationsGroupInvitationsGroupInvitationsPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListGroupInvitationsGroupInvitationsGroupInvitationsPage) GetCursor() ListGroupInvitationsGroupInvitationsGroupInvitationsPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListGroupInvitationsGroupInvitationsGroupInvitationsPage.Items, and is useful for accessing the field via an interface.
+func (v *ListGroupInvitationsGroupInvitationsGroupInvitationsPage) GetItems() []ListGroupInvitationsGroupInvitationsGroupInvitationsPageItemsGroupInvitation {
+	return v.Items
+}
+
+// ListGroupInvitationsGroupInvitationsGroupInvitationsPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListGroupInvitationsGroupInvitationsGroupInvitationsPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListGroupInvitationsGroupInvitationsGroupInvitationsPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListGroupInvitationsGroupInvitationsGroupInvitationsPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListGroupInvitationsGroupInvitationsGroupInvitationsPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListGroupInvitationsGroupInvitationsGroupInvitationsPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListGroupInvitationsGroupInvitationsGroupInvitationsPageItemsGroupInvitation includes the requested fields of the GraphQL type GroupInvitation.
+// The GraphQL type's documentation follows.
+//
+// A pending invitation for a user to join a group.
+//
+// Invitations are sent by email. The invited user must accept the invitation to become
+// a group member. Pending invitations can be revoked by an organization admin before
+// they are accepted.
+type ListGroupInvitationsGroupInvitationsGroupInvitationsPageItemsGroupInvitation struct {
+	// Unique identifier for this invitation.
+	Id string `json:"id"`
+	// Email address the invitation was sent to.
+	Email string `json:"email"`
+	// When the invitation was sent (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// GetId returns ListGroupInvitationsGroupInvitationsGroupInvitationsPageItemsGroupInvitation.Id, and is useful for accessing the field via an interface.
+func (v *ListGroupInvitationsGroupInvitationsGroupInvitationsPageItemsGroupInvitation) GetId() string {
+	return v.Id
+}
+
+// GetEmail returns ListGroupInvitationsGroupInvitationsGroupInvitationsPageItemsGroupInvitation.Email, and is useful for accessing the field via an interface.
+func (v *ListGroupInvitationsGroupInvitationsGroupInvitationsPageItemsGroupInvitation) GetEmail() string {
+	return v.Email
+}
+
+// GetCreatedAt returns ListGroupInvitationsGroupInvitationsGroupInvitationsPageItemsGroupInvitation.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListGroupInvitationsGroupInvitationsGroupInvitationsPageItemsGroupInvitation) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// ListGroupInvitationsResponse is returned by ListGroupInvitations on success.
+type ListGroupInvitationsResponse struct {
+	// Retrieve a single group by its identifier.
+	//
+	// Returns `null` with a `NOT_FOUND` error if the group does not exist or you do not have
+	// permission to view it.
+	Group ListGroupInvitationsGroup `json:"group"`
+}
+
+// GetGroup returns ListGroupInvitationsResponse.Group, and is useful for accessing the field via an interface.
+func (v *ListGroupInvitationsResponse) GetGroup() ListGroupInvitationsGroup { return v.Group }
+
+// ListGroupMembersGroup includes the requested fields of the GraphQL type Group.
+// The GraphQL type's documentation follows.
+//
+// A collection of users and service accounts that share the same access level within your organization.
+//
+// Groups are the primary mechanism for managing access control in Massdriver. Rather than
+// assigning permissions to individual users, you add them to groups that define what they
+// can see and do.
+//
+// ```mermaid
+// graph TD
+// O["Organization"] --> G1["Group: Admins"]
+// O --> G2["Group: Developers"]
+// O --> G3["Group: Custom"]
+// G1 --> U1["User: alice@co.com"]
+// G2 --> U2["User: bob@co.com"]
+// G2 --> SA1["Service Account: ci-bot"]
+// G3 -->|"project_admin"| P1["Project: backend"]
+// G3 -->|"project_viewer"| P2["Project: frontend"]
+// ```
+//
+// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
+// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+//
+// **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
+// Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
+//
+// **Members** — Both human users and service accounts can be group members. Users live under
+// `members` and are added via `addAccountToGroup` (auto-adds existing org members or sends an
+// invitation otherwise). Service accounts live under `serviceAccounts` and are added via
+// `addServiceAccountToGroup`.
+type ListGroupMembersGroup struct {
+	// Unique identifier for this group.
+	Id string `json:"id"`
+	// Paginated list of human accounts that are members of this group.
+	//
+	// Service accounts are exposed separately via `serviceAccounts` — pair both queries when
+	// rendering the full membership of a group.
+	Members ListGroupMembersGroupMembersAccountsPage `json:"members"`
+}
+
+// GetId returns ListGroupMembersGroup.Id, and is useful for accessing the field via an interface.
+func (v *ListGroupMembersGroup) GetId() string { return v.Id }
+
+// GetMembers returns ListGroupMembersGroup.Members, and is useful for accessing the field via an interface.
+func (v *ListGroupMembersGroup) GetMembers() ListGroupMembersGroupMembersAccountsPage {
+	return v.Members
+}
+
+// ListGroupMembersGroupMembersAccountsPage includes the requested fields of the GraphQL type AccountsPage.
+type ListGroupMembersGroupMembersAccountsPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListGroupMembersGroupMembersAccountsPageCursorPaginationCursor `json:"cursor"`
+	// A list of type account.
+	Items []ListGroupMembersGroupMembersAccountsPageItemsAccount `json:"items"`
+}
+
+// GetCursor returns ListGroupMembersGroupMembersAccountsPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListGroupMembersGroupMembersAccountsPage) GetCursor() ListGroupMembersGroupMembersAccountsPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListGroupMembersGroupMembersAccountsPage.Items, and is useful for accessing the field via an interface.
+func (v *ListGroupMembersGroupMembersAccountsPage) GetItems() []ListGroupMembersGroupMembersAccountsPageItemsAccount {
+	return v.Items
+}
+
+// ListGroupMembersGroupMembersAccountsPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListGroupMembersGroupMembersAccountsPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListGroupMembersGroupMembersAccountsPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListGroupMembersGroupMembersAccountsPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListGroupMembersGroupMembersAccountsPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListGroupMembersGroupMembersAccountsPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListGroupMembersGroupMembersAccountsPageItemsAccount includes the requested fields of the GraphQL type Account.
+// The GraphQL type's documentation follows.
+//
+// A human user account in your organization.
+//
+// Returned wherever the API exposes the people behind group memberships and
+// organization roster — for example as an element of `Group.members` and
+// `Organization.members`. Every account in the result set is already a
+// member of at least one group in the organization.
+type ListGroupMembersGroupMembersAccountsPageItemsAccount struct {
+	// Unique identifier for this account.
+	Id string `json:"id"`
+	// Email address used to sign in and receive notifications.
+	Email string `json:"email"`
+	// Given name as it appears in the UI, or `null` if not set.
+	FirstName string `json:"firstName"`
+	// Family name as it appears in the UI, or `null` if not set.
+	LastName string `json:"lastName"`
+}
+
+// GetId returns ListGroupMembersGroupMembersAccountsPageItemsAccount.Id, and is useful for accessing the field via an interface.
+func (v *ListGroupMembersGroupMembersAccountsPageItemsAccount) GetId() string { return v.Id }
+
+// GetEmail returns ListGroupMembersGroupMembersAccountsPageItemsAccount.Email, and is useful for accessing the field via an interface.
+func (v *ListGroupMembersGroupMembersAccountsPageItemsAccount) GetEmail() string { return v.Email }
+
+// GetFirstName returns ListGroupMembersGroupMembersAccountsPageItemsAccount.FirstName, and is useful for accessing the field via an interface.
+func (v *ListGroupMembersGroupMembersAccountsPageItemsAccount) GetFirstName() string {
+	return v.FirstName
+}
+
+// GetLastName returns ListGroupMembersGroupMembersAccountsPageItemsAccount.LastName, and is useful for accessing the field via an interface.
+func (v *ListGroupMembersGroupMembersAccountsPageItemsAccount) GetLastName() string {
+	return v.LastName
+}
+
+// ListGroupMembersResponse is returned by ListGroupMembers on success.
+type ListGroupMembersResponse struct {
+	// Retrieve a single group by its identifier.
+	//
+	// Returns `null` with a `NOT_FOUND` error if the group does not exist or you do not have
+	// permission to view it.
+	Group ListGroupMembersGroup `json:"group"`
+}
+
+// GetGroup returns ListGroupMembersResponse.Group, and is useful for accessing the field via an interface.
+func (v *ListGroupMembersResponse) GetGroup() ListGroupMembersGroup { return v.Group }
+
+// ListGroupPoliciesGroup includes the requested fields of the GraphQL type Group.
+// The GraphQL type's documentation follows.
+//
+// A collection of users and service accounts that share the same access level within your organization.
+//
+// Groups are the primary mechanism for managing access control in Massdriver. Rather than
+// assigning permissions to individual users, you add them to groups that define what they
+// can see and do.
+//
+// ```mermaid
+// graph TD
+// O["Organization"] --> G1["Group: Admins"]
+// O --> G2["Group: Developers"]
+// O --> G3["Group: Custom"]
+// G1 --> U1["User: alice@co.com"]
+// G2 --> U2["User: bob@co.com"]
+// G2 --> SA1["Service Account: ci-bot"]
+// G3 -->|"project_admin"| P1["Project: backend"]
+// G3 -->|"project_viewer"| P2["Project: frontend"]
+// ```
+//
+// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
+// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+//
+// **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
+// Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
+//
+// **Members** — Both human users and service accounts can be group members. Users live under
+// `members` and are added via `addAccountToGroup` (auto-adds existing org members or sends an
+// invitation otherwise). Service accounts live under `serviceAccounts` and are added via
+// `addServiceAccountToGroup`.
+type ListGroupPoliciesGroup struct {
+	// Unique identifier for this group.
+	Id string `json:"id"`
+	// Paginated list of ABAC policies attached to this group as the principal.
+	//
+	// Group policies define what every member of the group can do across the organization.
+	Policies ListGroupPoliciesGroupPoliciesPoliciesPage `json:"policies"`
+}
+
+// GetId returns ListGroupPoliciesGroup.Id, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesGroup) GetId() string { return v.Id }
+
+// GetPolicies returns ListGroupPoliciesGroup.Policies, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesGroup) GetPolicies() ListGroupPoliciesGroupPoliciesPoliciesPage {
+	return v.Policies
+}
+
+// ListGroupPoliciesGroupPoliciesPoliciesPage includes the requested fields of the GraphQL type PoliciesPage.
+type ListGroupPoliciesGroupPoliciesPoliciesPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListGroupPoliciesGroupPoliciesPoliciesPageCursorPaginationCursor `json:"cursor"`
+	// A list of type policy.
+	Items []ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy `json:"items"`
+}
+
+// GetCursor returns ListGroupPoliciesGroupPoliciesPoliciesPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPage) GetCursor() ListGroupPoliciesGroupPoliciesPoliciesPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListGroupPoliciesGroupPoliciesPoliciesPage.Items, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPage) GetItems() []ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy {
+	return v.Items
+}
+
+// ListGroupPoliciesGroupPoliciesPoliciesPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListGroupPoliciesGroupPoliciesPoliciesPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListGroupPoliciesGroupPoliciesPoliciesPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListGroupPoliciesGroupPoliciesPoliciesPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy includes the requested fields of the GraphQL type Policy.
+// The GraphQL type's documentation follows.
+//
+// A single ABAC group policy: an effect (`ALLOW`/`DENY`), one or more actions,
+// optional attribute conditions, and the group whose members the policy
+// applies to.
+//
+// Conditions are evaluated AND within a policy and OR across policies on the
+// same group. A policy with no conditions is a wildcard — it matches any
+// resource of each action's entity. Deny policies win over allow policies. A
+// policy can list actions across different entities (for example
+// `project:view` together with `instance:deploy`); for each action, condition
+// keys whose registered attribute scope is unreachable for that action's
+// entity are skipped, and a policy whose conditions all skip for a given
+// action is a wildcard match for that action. See `docs/guides/abac.md` for
+// the full evaluation model.
+type ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy struct {
+	// Unique identifier for this policy.
+	Id string `json:"id"`
+	// Whether this policy grants (`ALLOW`) or blocks (`DENY`) the actions.
+	Effect PolicyEffect `json:"effect"`
+	// The actions this policy authorizes, each in `{entity}:{verb}` form (for example `["repo:pull", "instance:deploy"]`). Always non-empty.
+	Actions []string `json:"actions"`
+	// Either `"*"` (the policy is a wildcard — every resource of the entity matches) or a JSON-encoded object of attribute conditions. Keys are attribute names; values are a string or list of strings.
+	Conditions types.PolicyConditions `json:"-"`
+	// When this policy was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// When this policy was last updated.
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy.Id, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy) GetId() string { return v.Id }
+
+// GetEffect returns ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy.Effect, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy) GetEffect() PolicyEffect {
+	return v.Effect
+}
+
+// GetActions returns ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy.Actions, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy) GetActions() []string {
+	return v.Actions
+}
+
+// GetConditions returns ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy.Conditions, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy) GetConditions() types.PolicyConditions {
+	return v.Conditions
+}
+
+// GetCreatedAt returns ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy
+		Conditions json.RawMessage `json:"conditions"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Conditions
+		src := firstPass.Conditions
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalConditions(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy.Conditions: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy struct {
+	Id string `json:"id"`
+
+	Effect PolicyEffect `json:"effect"`
+
+	Actions []string `json:"actions"`
+
+	Conditions json.RawMessage `json:"conditions"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy) __premarshalJSON() (*__premarshalListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy, error) {
+	var retval __premarshalListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy
+
+	retval.Id = v.Id
+	retval.Effect = v.Effect
+	retval.Actions = v.Actions
+	{
+
+		dst := &retval.Conditions
+		src := v.Conditions
+		var err error
+		*dst, err = scalars.MarshalConditions(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListGroupPoliciesGroupPoliciesPoliciesPageItemsPolicy.Conditions: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// ListGroupPoliciesResponse is returned by ListGroupPolicies on success.
+type ListGroupPoliciesResponse struct {
+	// Retrieve a single group by its identifier.
+	//
+	// Returns `null` with a `NOT_FOUND` error if the group does not exist or you do not have
+	// permission to view it.
+	Group ListGroupPoliciesGroup `json:"group"`
+}
+
+// GetGroup returns ListGroupPoliciesResponse.Group, and is useful for accessing the field via an interface.
+func (v *ListGroupPoliciesResponse) GetGroup() ListGroupPoliciesGroup { return v.Group }
+
+// ListGroupServiceAccountsGroup includes the requested fields of the GraphQL type Group.
+// The GraphQL type's documentation follows.
+//
+// A collection of users and service accounts that share the same access level within your organization.
+//
+// Groups are the primary mechanism for managing access control in Massdriver. Rather than
+// assigning permissions to individual users, you add them to groups that define what they
+// can see and do.
+//
+// ```mermaid
+// graph TD
+// O["Organization"] --> G1["Group: Admins"]
+// O --> G2["Group: Developers"]
+// O --> G3["Group: Custom"]
+// G1 --> U1["User: alice@co.com"]
+// G2 --> U2["User: bob@co.com"]
+// G2 --> SA1["Service Account: ci-bot"]
+// G3 -->|"project_admin"| P1["Project: backend"]
+// G3 -->|"project_viewer"| P2["Project: frontend"]
+// ```
+//
+// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
+// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+//
+// **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
+// Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
+//
+// **Members** — Both human users and service accounts can be group members. Users live under
+// `members` and are added via `addAccountToGroup` (auto-adds existing org members or sends an
+// invitation otherwise). Service accounts live under `serviceAccounts` and are added via
+// `addServiceAccountToGroup`.
+type ListGroupServiceAccountsGroup struct {
+	// Unique identifier for this group.
+	Id string `json:"id"`
+	// Paginated list of service accounts in this group.
+	//
+	// Human accounts are exposed separately via `members` — pair both queries when rendering
+	// the full group membership.
+	ServiceAccounts ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPage `json:"serviceAccounts"`
+}
+
+// GetId returns ListGroupServiceAccountsGroup.Id, and is useful for accessing the field via an interface.
+func (v *ListGroupServiceAccountsGroup) GetId() string { return v.Id }
+
+// GetServiceAccounts returns ListGroupServiceAccountsGroup.ServiceAccounts, and is useful for accessing the field via an interface.
+func (v *ListGroupServiceAccountsGroup) GetServiceAccounts() ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPage {
+	return v.ServiceAccounts
+}
+
+// ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPage includes the requested fields of the GraphQL type ServiceAccountsPage.
+type ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageCursorPaginationCursor `json:"cursor"`
+	// A list of type service_account.
+	Items []ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount `json:"items"`
+}
+
+// GetCursor returns ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPage) GetCursor() ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPage.Items, and is useful for accessing the field via an interface.
+func (v *ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPage) GetItems() []ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount {
+	return v.Items
+}
+
+// ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount includes the requested fields of the GraphQL type ServiceAccount.
+// The GraphQL type's documentation follows.
+//
+// A non-human identity for programmatic API access.
+//
+// Service accounts let you integrate CI/CD pipelines, scripts, and external tools with the
+// Massdriver API. They authenticate using access tokens — issue one with `createAccessToken`
+// and pass it as a bearer token on API requests.
+//
+// **Permissions** — Service accounts have no inherent permissions. Add them to groups to grant
+// access, using the same role model as human users. A service account in the `Admins` group
+// has the same access as a human admin.
+//
+// **Lifecycle:**
+// 1. Create the service account.
+// 2. Add the service account to one or more groups to grant access.
+// 3. Issue one or more access tokens for the service account via `createAccessToken`. The raw
+// token value is only shown once at creation — store it securely before navigating away.
+// 4. Delete the service account when it is no longer needed. This immediately revokes all access,
+// including any active access tokens.
+type ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount struct {
+	// Unique identifier for this service account.
+	Id string `json:"id"`
+	// Human-readable name displayed in the UI, logs, and audit trail.
+	Name string `json:"name"`
+	// Optional text explaining what this service account is used for.
+	Description string `json:"description"`
+	// When this service account was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this service account was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount.Id, and is useful for accessing the field via an interface.
+func (v *ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount) GetId() string {
+	return v.Id
+}
+
+// GetName returns ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount.Name, and is useful for accessing the field via an interface.
+func (v *ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount) GetName() string {
+	return v.Name
+}
+
+// GetDescription returns ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount.Description, and is useful for accessing the field via an interface.
+func (v *ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount) GetDescription() string {
+	return v.Description
+}
+
+// GetCreatedAt returns ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageItemsServiceAccount) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// ListGroupServiceAccountsResponse is returned by ListGroupServiceAccounts on success.
+type ListGroupServiceAccountsResponse struct {
+	// Retrieve a single group by its identifier.
+	//
+	// Returns `null` with a `NOT_FOUND` error if the group does not exist or you do not have
+	// permission to view it.
+	Group ListGroupServiceAccountsGroup `json:"group"`
+}
+
+// GetGroup returns ListGroupServiceAccountsResponse.Group, and is useful for accessing the field via an interface.
+func (v *ListGroupServiceAccountsResponse) GetGroup() ListGroupServiceAccountsGroup { return v.Group }
+
 // ListGroupsGroupsGroupsPage includes the requested fields of the GraphQL type GroupsPage.
 type ListGroupsGroupsGroupsPage struct {
 	// Pagination cursors for navigating between pages.
@@ -19916,6 +20596,336 @@ type ListOciReposResponse struct {
 
 // GetOciRepos returns ListOciReposResponse.OciRepos, and is useful for accessing the field via an interface.
 func (v *ListOciReposResponse) GetOciRepos() ListOciReposOciReposOciReposPage { return v.OciRepos }
+
+// ListOrganizationCustomAttributesOrganization includes the requested fields of the GraphQL type Organization.
+// The GraphQL type's documentation follows.
+//
+// The top-level account that owns all your infrastructure, projects, and team members.
+//
+// An organization is the root of the Massdriver resource hierarchy. Everything you build
+// and deploy lives under an organization: **Projects** contain your infrastructure designs,
+// **Environments** (like staging and production) are where those designs come to life, and
+// **Instances** are the actual running cloud resources.
+//
+// ```mermaid
+// graph TD
+// O["Organization"] --> P1["Project"]
+// O --> P2["Project"]
+// P1 --> E1["Environment: staging"]
+// P1 --> E2["Environment: production"]
+// E1 --> I1["Instance"]
+// E1 --> I2["Instance"]
+// ```
+//
+// Members access resources through **group memberships** with role-based permissions.
+// Custom attributes defined at the organization level govern attribute metadata across all child resources.
+//
+// Administrative fields (`billing`, `members`, `customAttributes`) resolve to `null` for
+// callers who lack the corresponding ABAC action; in that case a top-level `FORBIDDEN`
+// error is added to the response while the rest of the organization still resolves.
+type ListOrganizationCustomAttributesOrganization struct {
+	Id string `json:"id"`
+	// Paginated list of custom attributes that govern attribute metadata across this organization.
+	//
+	// Requires the `organization:manageCustomAttributes` action.
+	CustomAttributes ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPage `json:"customAttributes"`
+}
+
+// GetId returns ListOrganizationCustomAttributesOrganization.Id, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganization) GetId() string { return v.Id }
+
+// GetCustomAttributes returns ListOrganizationCustomAttributesOrganization.CustomAttributes, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganization) GetCustomAttributes() ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPage {
+	return v.CustomAttributes
+}
+
+// ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPage includes the requested fields of the GraphQL type CustomAttributesPage.
+type ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageCursorPaginationCursor `json:"cursor"`
+	// A list of type custom_attribute.
+	Items []ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute `json:"items"`
+}
+
+// GetCursor returns ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPage) GetCursor() ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPage.Items, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPage) GetItems() []ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute {
+	return v.Items
+}
+
+// ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute includes the requested fields of the GraphQL type CustomAttribute.
+// The GraphQL type's documentation follows.
+//
+// A user-declared attribute key, the resource scope where it applies, and whether it is required.
+//
+// Custom attributes enforce consistent metadata across your organization. When a custom
+// attribute is marked as **required**, any resource created at the specified scope must
+// include the attribute key. Optional custom attributes define allowed keys without
+// mandating them.
+//
+// System attributes (`md-*`) are auto-injected by Massdriver and are not declared here —
+// only user-defined keys live in this list.
+//
+// Use the `customAttributeSchema` query to generate a JSON Schema document narrowed
+// to the values your policies permit for a given action — useful for client-side
+// validation that mirrors what the API will accept on write. Use
+// `customAttributeValues` to fetch just the closed set for a single key.
+//
+// **Example:** A custom attribute with `key: "TEAM"`, `scope: PROJECT`, `required: true`
+// means every project must have a `TEAM` attribute set at creation time.
+type ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute struct {
+	// Unique identifier for this custom attribute.
+	Id string `json:"id"`
+	// The attribute key name (e.g., `TEAM`, `COST_CENTER`, `DOMAIN`). Case-sensitive.
+	Key string `json:"key"`
+	// The resource level where this attribute must or may be set.
+	Scope AttributeScope `json:"scope"`
+	// When `true`, resources created at the specified scope must include this attribute. When `false`, the attribute is allowed but optional.
+	Required bool `json:"required"`
+	// The closed set of values this attribute may take. Resource attribute writes and policy conditions referencing this key must use one of these values.
+	Values []string `json:"values"`
+	// When this custom attribute was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this custom attribute was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute.Id, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute) GetId() string {
+	return v.Id
+}
+
+// GetKey returns ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute.Key, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute) GetKey() string {
+	return v.Key
+}
+
+// GetScope returns ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute.Scope, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute) GetScope() AttributeScope {
+	return v.Scope
+}
+
+// GetRequired returns ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute.Required, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute) GetRequired() bool {
+	return v.Required
+}
+
+// GetValues returns ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute.Values, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute) GetValues() []string {
+	return v.Values
+}
+
+// GetCreatedAt returns ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesOrganizationCustomAttributesCustomAttributesPageItemsCustomAttribute) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// ListOrganizationCustomAttributesResponse is returned by ListOrganizationCustomAttributes on success.
+type ListOrganizationCustomAttributesResponse struct {
+	// Fetch your organization's details, including custom attributes and logo.
+	//
+	// ```graphql
+	// query {
+	// organization(organizationId: "my-org") {
+	// id
+	// name
+	// subscriptionStatus
+	// customAttributes { items { key scope required } }
+	// }
+	// }
+	// ```
+	Organization ListOrganizationCustomAttributesOrganization `json:"organization"`
+}
+
+// GetOrganization returns ListOrganizationCustomAttributesResponse.Organization, and is useful for accessing the field via an interface.
+func (v *ListOrganizationCustomAttributesResponse) GetOrganization() ListOrganizationCustomAttributesOrganization {
+	return v.Organization
+}
+
+// ListOrganizationMembersOrganization includes the requested fields of the GraphQL type Organization.
+// The GraphQL type's documentation follows.
+//
+// The top-level account that owns all your infrastructure, projects, and team members.
+//
+// An organization is the root of the Massdriver resource hierarchy. Everything you build
+// and deploy lives under an organization: **Projects** contain your infrastructure designs,
+// **Environments** (like staging and production) are where those designs come to life, and
+// **Instances** are the actual running cloud resources.
+//
+// ```mermaid
+// graph TD
+// O["Organization"] --> P1["Project"]
+// O --> P2["Project"]
+// P1 --> E1["Environment: staging"]
+// P1 --> E2["Environment: production"]
+// E1 --> I1["Instance"]
+// E1 --> I2["Instance"]
+// ```
+//
+// Members access resources through **group memberships** with role-based permissions.
+// Custom attributes defined at the organization level govern attribute metadata across all child resources.
+//
+// Administrative fields (`billing`, `members`, `customAttributes`) resolve to `null` for
+// callers who lack the corresponding ABAC action; in that case a top-level `FORBIDDEN`
+// error is added to the response while the rest of the organization still resolves.
+type ListOrganizationMembersOrganization struct {
+	Id string `json:"id"`
+	// Paginated list of every human account in this organization, whether or not they belong to a group.
+	// Includes members provisioned by an identity provider (e.g. Okta) who have not yet been added to a group.
+	//
+	// Sorted by email ascending. Service accounts live under the top-level `serviceAccounts`
+	// query — pair both when rendering the full organization roster.
+	//
+	// Requires the `organization:manageProfile` action.
+	Members ListOrganizationMembersOrganizationMembersAccountsPage `json:"members"`
+}
+
+// GetId returns ListOrganizationMembersOrganization.Id, and is useful for accessing the field via an interface.
+func (v *ListOrganizationMembersOrganization) GetId() string { return v.Id }
+
+// GetMembers returns ListOrganizationMembersOrganization.Members, and is useful for accessing the field via an interface.
+func (v *ListOrganizationMembersOrganization) GetMembers() ListOrganizationMembersOrganizationMembersAccountsPage {
+	return v.Members
+}
+
+// ListOrganizationMembersOrganizationMembersAccountsPage includes the requested fields of the GraphQL type AccountsPage.
+type ListOrganizationMembersOrganizationMembersAccountsPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListOrganizationMembersOrganizationMembersAccountsPageCursorPaginationCursor `json:"cursor"`
+	// A list of type account.
+	Items []ListOrganizationMembersOrganizationMembersAccountsPageItemsAccount `json:"items"`
+}
+
+// GetCursor returns ListOrganizationMembersOrganizationMembersAccountsPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListOrganizationMembersOrganizationMembersAccountsPage) GetCursor() ListOrganizationMembersOrganizationMembersAccountsPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListOrganizationMembersOrganizationMembersAccountsPage.Items, and is useful for accessing the field via an interface.
+func (v *ListOrganizationMembersOrganizationMembersAccountsPage) GetItems() []ListOrganizationMembersOrganizationMembersAccountsPageItemsAccount {
+	return v.Items
+}
+
+// ListOrganizationMembersOrganizationMembersAccountsPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListOrganizationMembersOrganizationMembersAccountsPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListOrganizationMembersOrganizationMembersAccountsPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListOrganizationMembersOrganizationMembersAccountsPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListOrganizationMembersOrganizationMembersAccountsPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListOrganizationMembersOrganizationMembersAccountsPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListOrganizationMembersOrganizationMembersAccountsPageItemsAccount includes the requested fields of the GraphQL type Account.
+// The GraphQL type's documentation follows.
+//
+// A human user account in your organization.
+//
+// Returned wherever the API exposes the people behind group memberships and
+// organization roster — for example as an element of `Group.members` and
+// `Organization.members`. Every account in the result set is already a
+// member of at least one group in the organization.
+type ListOrganizationMembersOrganizationMembersAccountsPageItemsAccount struct {
+	// Unique identifier for this account.
+	Id string `json:"id"`
+	// Email address used to sign in and receive notifications.
+	Email string `json:"email"`
+	// Given name as it appears in the UI, or `null` if not set.
+	FirstName string `json:"firstName"`
+	// Family name as it appears in the UI, or `null` if not set.
+	LastName string `json:"lastName"`
+}
+
+// GetId returns ListOrganizationMembersOrganizationMembersAccountsPageItemsAccount.Id, and is useful for accessing the field via an interface.
+func (v *ListOrganizationMembersOrganizationMembersAccountsPageItemsAccount) GetId() string {
+	return v.Id
+}
+
+// GetEmail returns ListOrganizationMembersOrganizationMembersAccountsPageItemsAccount.Email, and is useful for accessing the field via an interface.
+func (v *ListOrganizationMembersOrganizationMembersAccountsPageItemsAccount) GetEmail() string {
+	return v.Email
+}
+
+// GetFirstName returns ListOrganizationMembersOrganizationMembersAccountsPageItemsAccount.FirstName, and is useful for accessing the field via an interface.
+func (v *ListOrganizationMembersOrganizationMembersAccountsPageItemsAccount) GetFirstName() string {
+	return v.FirstName
+}
+
+// GetLastName returns ListOrganizationMembersOrganizationMembersAccountsPageItemsAccount.LastName, and is useful for accessing the field via an interface.
+func (v *ListOrganizationMembersOrganizationMembersAccountsPageItemsAccount) GetLastName() string {
+	return v.LastName
+}
+
+// ListOrganizationMembersResponse is returned by ListOrganizationMembers on success.
+type ListOrganizationMembersResponse struct {
+	// Fetch your organization's details, including custom attributes and logo.
+	//
+	// ```graphql
+	// query {
+	// organization(organizationId: "my-org") {
+	// id
+	// name
+	// subscriptionStatus
+	// customAttributes { items { key scope required } }
+	// }
+	// }
+	// ```
+	Organization ListOrganizationMembersOrganization `json:"organization"`
+}
+
+// GetOrganization returns ListOrganizationMembersResponse.Organization, and is useful for accessing the field via an interface.
+func (v *ListOrganizationMembersResponse) GetOrganization() ListOrganizationMembersOrganization {
+	return v.Organization
+}
 
 // ListPolicyActionsPolicyActionsPolicyAction includes the requested fields of the GraphQL type PolicyAction.
 // The GraphQL type's documentation follows.
@@ -29170,6 +30180,70 @@ func (v *__ListEnvironmentsInput) GetSort() *EnvironmentsSort { return v.Sort }
 // GetCursor returns __ListEnvironmentsInput.Cursor, and is useful for accessing the field via an interface.
 func (v *__ListEnvironmentsInput) GetCursor() *scalars.Cursor { return v.Cursor }
 
+// __ListGroupInvitationsInput is used internally by genqlient
+type __ListGroupInvitationsInput struct {
+	OrganizationId string          `json:"organizationId"`
+	Id             string          `json:"id"`
+	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListGroupInvitationsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListGroupInvitationsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __ListGroupInvitationsInput.Id, and is useful for accessing the field via an interface.
+func (v *__ListGroupInvitationsInput) GetId() string { return v.Id }
+
+// GetCursor returns __ListGroupInvitationsInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListGroupInvitationsInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+// __ListGroupMembersInput is used internally by genqlient
+type __ListGroupMembersInput struct {
+	OrganizationId string          `json:"organizationId"`
+	Id             string          `json:"id"`
+	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListGroupMembersInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListGroupMembersInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __ListGroupMembersInput.Id, and is useful for accessing the field via an interface.
+func (v *__ListGroupMembersInput) GetId() string { return v.Id }
+
+// GetCursor returns __ListGroupMembersInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListGroupMembersInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+// __ListGroupPoliciesInput is used internally by genqlient
+type __ListGroupPoliciesInput struct {
+	OrganizationId string          `json:"organizationId"`
+	Id             string          `json:"id"`
+	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListGroupPoliciesInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListGroupPoliciesInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __ListGroupPoliciesInput.Id, and is useful for accessing the field via an interface.
+func (v *__ListGroupPoliciesInput) GetId() string { return v.Id }
+
+// GetCursor returns __ListGroupPoliciesInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListGroupPoliciesInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+// __ListGroupServiceAccountsInput is used internally by genqlient
+type __ListGroupServiceAccountsInput struct {
+	OrganizationId string          `json:"organizationId"`
+	Id             string          `json:"id"`
+	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListGroupServiceAccountsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListGroupServiceAccountsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __ListGroupServiceAccountsInput.Id, and is useful for accessing the field via an interface.
+func (v *__ListGroupServiceAccountsInput) GetId() string { return v.Id }
+
+// GetCursor returns __ListGroupServiceAccountsInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListGroupServiceAccountsInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
 // __ListGroupsInput is used internally by genqlient
 type __ListGroupsInput struct {
 	OrganizationId string          `json:"organizationId"`
@@ -29261,6 +30335,30 @@ func (v *__ListOciReposInput) GetSort() *OciReposSort { return v.Sort }
 
 // GetCursor returns __ListOciReposInput.Cursor, and is useful for accessing the field via an interface.
 func (v *__ListOciReposInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+// __ListOrganizationCustomAttributesInput is used internally by genqlient
+type __ListOrganizationCustomAttributesInput struct {
+	OrganizationId string          `json:"organizationId"`
+	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListOrganizationCustomAttributesInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListOrganizationCustomAttributesInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetCursor returns __ListOrganizationCustomAttributesInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListOrganizationCustomAttributesInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+// __ListOrganizationMembersInput is used internally by genqlient
+type __ListOrganizationMembersInput struct {
+	OrganizationId string          `json:"organizationId"`
+	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListOrganizationMembersInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListOrganizationMembersInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetCursor returns __ListOrganizationMembersInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListOrganizationMembersInput) GetCursor() *scalars.Cursor { return v.Cursor }
 
 // __ListPolicyActionsInput is used internally by genqlient
 type __ListPolicyActionsInput struct {
@@ -32452,6 +33550,9 @@ query GetGroup ($organizationId: ID!, $id: UUID!) {
 }
 `
 
+// The group's membership and policy sub-lists are paginated and exposed
+// through the List* queries below rather than inlined here — Get stays a
+// single cheap lookup and callers page through only the lists they need.
 func GetGroup(
 	ctx_ context.Context,
 	client_ graphql.Client,
@@ -32771,6 +33872,9 @@ query GetOrganization ($organizationId: ID!) {
 }
 `
 
+// The org's custom-attribute and member sub-lists are paginated and exposed
+// through the List* queries below rather than inlined here — Get stays a
+// single cheap lookup and callers page through only the lists they need.
 func GetOrganization(
 	ctx_ context.Context,
 	client_ graphql.Client,
@@ -33465,6 +34569,209 @@ func ListEnvironments(
 	return data_, err_
 }
 
+// The query executed by ListGroupInvitations.
+const ListGroupInvitations_Operation = `
+query ListGroupInvitations ($organizationId: ID!, $id: UUID!, $cursor: Cursor) {
+	group(organizationId: $organizationId, id: $id) {
+		id
+		invitations(cursor: $cursor) {
+			cursor {
+				next
+				previous
+			}
+			items {
+				id
+				email
+				createdAt
+			}
+		}
+	}
+}
+`
+
+// Admin-only: non-admin callers receive a top-level forbidden error.
+func ListGroupInvitations(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+	cursor *scalars.Cursor,
+) (data_ *ListGroupInvitationsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListGroupInvitations",
+		Query:  ListGroupInvitations_Operation,
+		Variables: &__ListGroupInvitationsInput{
+			OrganizationId: organizationId,
+			Id:             id,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListGroupInvitationsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListGroupMembers.
+const ListGroupMembers_Operation = `
+query ListGroupMembers ($organizationId: ID!, $id: UUID!, $cursor: Cursor) {
+	group(organizationId: $organizationId, id: $id) {
+		id
+		members(cursor: $cursor) {
+			cursor {
+				next
+				previous
+			}
+			items {
+				id
+				email
+				firstName
+				lastName
+			}
+		}
+	}
+}
+`
+
+func ListGroupMembers(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+	cursor *scalars.Cursor,
+) (data_ *ListGroupMembersResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListGroupMembers",
+		Query:  ListGroupMembers_Operation,
+		Variables: &__ListGroupMembersInput{
+			OrganizationId: organizationId,
+			Id:             id,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListGroupMembersResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListGroupPolicies.
+const ListGroupPolicies_Operation = `
+query ListGroupPolicies ($organizationId: ID!, $id: UUID!, $cursor: Cursor) {
+	group(organizationId: $organizationId, id: $id) {
+		id
+		policies(cursor: $cursor) {
+			cursor {
+				next
+				previous
+			}
+			items {
+				id
+				effect
+				actions
+				conditions
+				createdAt
+				updatedAt
+			}
+		}
+	}
+}
+`
+
+func ListGroupPolicies(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+	cursor *scalars.Cursor,
+) (data_ *ListGroupPoliciesResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListGroupPolicies",
+		Query:  ListGroupPolicies_Operation,
+		Variables: &__ListGroupPoliciesInput{
+			OrganizationId: organizationId,
+			Id:             id,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListGroupPoliciesResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListGroupServiceAccounts.
+const ListGroupServiceAccounts_Operation = `
+query ListGroupServiceAccounts ($organizationId: ID!, $id: UUID!, $cursor: Cursor) {
+	group(organizationId: $organizationId, id: $id) {
+		id
+		serviceAccounts(cursor: $cursor) {
+			cursor {
+				next
+				previous
+			}
+			items {
+				id
+				name
+				description
+				createdAt
+				updatedAt
+			}
+		}
+	}
+}
+`
+
+func ListGroupServiceAccounts(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+	cursor *scalars.Cursor,
+) (data_ *ListGroupServiceAccountsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListGroupServiceAccounts",
+		Query:  ListGroupServiceAccounts_Operation,
+		Variables: &__ListGroupServiceAccountsInput{
+			OrganizationId: organizationId,
+			Id:             id,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListGroupServiceAccountsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The query executed by ListGroups.
 const ListGroups_Operation = `
 query ListGroups ($organizationId: ID!, $sort: GroupsSort, $cursor: Cursor) {
@@ -33765,6 +35072,107 @@ func ListOciRepos(
 	}
 
 	data_ = &ListOciReposResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListOrganizationCustomAttributes.
+const ListOrganizationCustomAttributes_Operation = `
+query ListOrganizationCustomAttributes ($organizationId: ID!, $cursor: Cursor) {
+	organization(organizationId: $organizationId) {
+		id
+		customAttributes(cursor: $cursor) {
+			cursor {
+				next
+				previous
+			}
+			items {
+				id
+				key
+				scope
+				required
+				values
+				createdAt
+				updatedAt
+			}
+		}
+	}
+}
+`
+
+func ListOrganizationCustomAttributes(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	cursor *scalars.Cursor,
+) (data_ *ListOrganizationCustomAttributesResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListOrganizationCustomAttributes",
+		Query:  ListOrganizationCustomAttributes_Operation,
+		Variables: &__ListOrganizationCustomAttributesInput{
+			OrganizationId: organizationId,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListOrganizationCustomAttributesResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListOrganizationMembers.
+const ListOrganizationMembers_Operation = `
+query ListOrganizationMembers ($organizationId: ID!, $cursor: Cursor) {
+	organization(organizationId: $organizationId) {
+		id
+		members(cursor: $cursor) {
+			cursor {
+				next
+				previous
+			}
+			items {
+				id
+				email
+				firstName
+				lastName
+			}
+		}
+	}
+}
+`
+
+// Admin-only: requires organization:manageProfile; non-admin callers receive
+// a top-level forbidden error.
+func ListOrganizationMembers(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	cursor *scalars.Cursor,
+) (data_ *ListOrganizationMembersResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListOrganizationMembers",
+		Query:  ListOrganizationMembers_Operation,
+		Variables: &__ListOrganizationMembersInput{
+			OrganizationId: organizationId,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListOrganizationMembersResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

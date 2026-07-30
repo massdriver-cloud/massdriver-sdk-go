@@ -40,6 +40,122 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestListMembersPage(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"group": map[string]any{
+				"id": "g-1",
+				"members": map[string]any{
+					"cursor": map[string]any{"next": "page-2"},
+					"items": []map[string]any{
+						{"id": "acc-1", "email": "alice@example.com", "firstName": "Alice"},
+					},
+				},
+			},
+		}),
+	)
+
+	page, err := newService(gqlClient).ListMembersPage(t.Context(), "g-1", groups.ListMembersInput{PageSize: 50})
+	if err != nil {
+		t.Fatalf("ListMembersPage: %v", err)
+	}
+	if len(page.Items) != 1 || page.Items[0].Email != "alice@example.com" {
+		t.Errorf("Items = %+v, want one member for alice@example.com", page.Items)
+	}
+	if page.Next != "page-2" {
+		t.Errorf("Next = %q, want page-2", page.Next)
+	}
+
+	// The page size must reach the wire as the cursor limit.
+	cursor, _ := gqlClient.Requests()[0].Variables["cursor"].(map[string]any)
+	if cursor["limit"] != float64(50) {
+		t.Errorf("cursor.limit = %v, want 50", cursor["limit"])
+	}
+}
+
+func TestListServiceAccountsPage(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"group": map[string]any{
+				"id": "g-1",
+				"serviceAccounts": map[string]any{
+					"cursor": map[string]any{},
+					"items": []map[string]any{
+						{"id": "sa-1", "name": "deploy-bot"},
+					},
+				},
+			},
+		}),
+	)
+
+	page, err := newService(gqlClient).ListServiceAccountsPage(t.Context(), "g-1", groups.ListServiceAccountsInput{})
+	if err != nil {
+		t.Fatalf("ListServiceAccountsPage: %v", err)
+	}
+	if len(page.Items) != 1 || page.Items[0].Name != "deploy-bot" {
+		t.Errorf("Items = %+v, want one service account named deploy-bot", page.Items)
+	}
+}
+
+func TestListPoliciesPage(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"group": map[string]any{
+				"id": "g-1",
+				"policies": map[string]any{
+					"cursor": map[string]any{},
+					"items": []map[string]any{
+						{
+							"id":         "pol-1",
+							"effect":     "ALLOW",
+							"actions":    []string{"project:view"},
+							"conditions": map[string]any{"md-team": []string{"platform"}},
+						},
+					},
+				},
+			},
+		}),
+	)
+
+	page, err := newService(gqlClient).ListPoliciesPage(t.Context(), "g-1", groups.ListPoliciesInput{})
+	if err != nil {
+		t.Fatalf("ListPoliciesPage: %v", err)
+	}
+	if len(page.Items) != 1 || page.Items[0].Effect != "ALLOW" {
+		t.Fatalf("Items = %+v, want one ALLOW policy", page.Items)
+	}
+	if len(page.Items[0].Conditions["md-team"]) != 1 {
+		t.Errorf("Conditions = %+v, want md-team condition", page.Items[0].Conditions)
+	}
+}
+
+func TestListInvitationsPage(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"group": map[string]any{
+				"id": "g-1",
+				"invitations": map[string]any{
+					"cursor": map[string]any{"next": "page-2"},
+					"items": []map[string]any{
+						{"id": "inv-1", "email": "newhire@example.com"},
+					},
+				},
+			},
+		}),
+	)
+
+	page, err := newService(gqlClient).ListInvitationsPage(t.Context(), "g-1", groups.ListInvitationsInput{PageSize: 50})
+	if err != nil {
+		t.Fatalf("ListInvitationsPage: %v", err)
+	}
+	if len(page.Items) != 1 || page.Items[0].Email != "newhire@example.com" {
+		t.Errorf("Items = %+v, want one invitation for newhire@example.com", page.Items)
+	}
+	if page.Next != "page-2" {
+		t.Errorf("Next = %q, want page-2", page.Next)
+	}
+}
+
 // TestGet_NotFound confirms the wrapper surfaces gql.ErrNotFound when the
 // API returns null for a missing group.
 func TestGet_NotFound(t *testing.T) {
