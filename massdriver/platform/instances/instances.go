@@ -60,6 +60,24 @@ const (
 	StatusFailed Status = "FAILED"
 )
 
+// DependencySource is how an instance dependency slot was filled — the
+// possible values of [types.InstanceDependency].Source.
+type DependencySource string
+
+const (
+	// DependencySourceConnection means the slot was wired by a blueprint
+	// link between two components in the project.
+	DependencySourceConnection DependencySource = "CONNECTION"
+	// DependencySourceRemoteReference means the slot was wired by a
+	// per-instance override pointing at a resource from another project
+	// (or an imported resource).
+	DependencySourceRemoteReference DependencySource = "REMOTE_REFERENCE"
+	// DependencySourceEnvironmentDefault means no explicit wire was set,
+	// so the slot was filled from the environment's default for the
+	// resource type.
+	DependencySourceEnvironmentDefault DependencySource = "ENVIRONMENT_DEFAULT"
+)
+
 // SortField is the field a [Service.Iter] result can be ordered by.
 type SortField string
 
@@ -167,14 +185,19 @@ type CopyInput struct {
 
 // Get retrieves an instance by ID. The returned [Instance] includes
 // params, paramsSchema, statePaths, the environment/bundle/component refs,
-// and the instance's produced [types.Resource]s flattened into
-// Instance.Resources.
+// the instance's produced [types.Resource]s flattened into
+// Instance.Resources, and the resources wired into it as
+// [types.InstanceDependency]s in Instance.Dependencies.
 //
 // The wire shape for resources is a list of `InstanceResource` wrappers
 // (each pairing a bundle output handle with the produced resource); the
 // wrapper unwraps them to a flat `[]Resource` for ergonomic access.
 // Callers who need bundle-handle metadata (e.g. the Required flag) can
 // introspect the bundle via platform/bundles.Get.
+//
+// Dependencies keep their wrapper shape because the consuming handle name
+// and Required flag live on the slot, not the resource. Each entry's
+// Source reports how the slot was filled — see [DependencySource].
 //
 // Returns [gql.ErrNotFound] (wrapped, match with [errors.Is]) when no
 // instance with the given ID exists in the configured organization.
@@ -204,7 +227,42 @@ func (s *Service) Get(ctx context.Context, id string) (*Instance, error) {
 			inst.Resources = append(inst.Resources, r)
 		}
 	}
+
+	// Dependencies carry a union `source` field that mapstructure can't
+	// decode — flatten manually, reducing the union to its typename.
+	if n := len(resp.Instance.Dependencies); n > 0 {
+		inst.Dependencies = make([]types.InstanceDependency, 0, n)
+		for _, dep := range resp.Instance.Dependencies {
+			d := types.InstanceDependency{
+				Field:    dep.Field,
+				Required: dep.Required,
+				Source:   string(dependencySource(dep.Source)),
+			}
+			if derr := decode.Decode(dep.Resource, &d.Resource); derr != nil {
+				return nil, fmt.Errorf("decode instance dependency: %w", derr)
+			}
+			inst.Dependencies = append(inst.Dependencies, d)
+		}
+	}
 	return inst, nil
+}
+
+// dependencySource maps the GraphQL InstanceDependencySource union member
+// to the SDK's [DependencySource] constant.
+func dependencySource(src gen.GetInstanceInstanceDependenciesInstanceDependencySource) DependencySource {
+	if src == nil {
+		return ""
+	}
+	switch src.GetTypename() {
+	case "Connection":
+		return DependencySourceConnection
+	case "RemoteReference":
+		return DependencySourceRemoteReference
+	case "EnvironmentDefault":
+		return DependencySourceEnvironmentDefault
+	default:
+		return DependencySource(src.GetTypename())
+	}
 }
 
 // Iter returns a lazy [iter.Seq2] over instances matching input, fetching pages

@@ -13571,6 +13571,13 @@ type GetInstanceInstance struct {
 	// (e.g., connection strings, endpoints, credentials). Other instances consume
 	// these resources via connections.
 	Resources []GetInstanceInstanceResourcesInstanceResource `json:"resources"`
+	// Dependencies wired into this instance's bundle slots, sorted alphabetically by field.
+	//
+	// Each entry is one filled slot from the bundle's `connections_schema` along
+	// with the source object that filled it — a blueprint `Connection`, a
+	// per-instance `RemoteReference`, or an `EnvironmentDefault` from the
+	// environment. Unfilled slots are not included.
+	Dependencies []GetInstanceInstanceDependenciesInstanceDependency `json:"dependencies"`
 }
 
 // GetId returns GetInstanceInstance.Id, and is useful for accessing the field via an interface.
@@ -13629,6 +13636,11 @@ func (v *GetInstanceInstance) GetComponent() GetInstanceInstanceComponent { retu
 // GetResources returns GetInstanceInstance.Resources, and is useful for accessing the field via an interface.
 func (v *GetInstanceInstance) GetResources() []GetInstanceInstanceResourcesInstanceResource {
 	return v.Resources
+}
+
+// GetDependencies returns GetInstanceInstance.Dependencies, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstance) GetDependencies() []GetInstanceInstanceDependenciesInstanceDependency {
+	return v.Dependencies
 }
 
 func (v *GetInstanceInstance) UnmarshalJSON(b []byte) error {
@@ -13728,6 +13740,8 @@ type __premarshalGetInstanceInstance struct {
 	Component GetInstanceInstanceComponent `json:"component"`
 
 	Resources []GetInstanceInstanceResourcesInstanceResource `json:"resources"`
+
+	Dependencies []GetInstanceInstanceDependenciesInstanceDependency `json:"dependencies"`
 }
 
 func (v *GetInstanceInstance) MarshalJSON() ([]byte, error) {
@@ -13792,6 +13806,7 @@ func (v *GetInstanceInstance) __premarshalJSON() (*__premarshalGetInstanceInstan
 	retval.Bundle = v.Bundle
 	retval.Component = v.Component
 	retval.Resources = v.Resources
+	retval.Dependencies = v.Dependencies
 	return &retval, nil
 }
 
@@ -14133,6 +14148,563 @@ func (v *GetInstanceInstanceCostCostSummaryMonthlyAverageCostSample) GetAmount()
 // GetCurrency returns GetInstanceInstanceCostCostSummaryMonthlyAverageCostSample.Currency, and is useful for accessing the field via an interface.
 func (v *GetInstanceInstanceCostCostSummaryMonthlyAverageCostSample) GetCurrency() string {
 	return v.Currency
+}
+
+// GetInstanceInstanceDependenciesInstanceDependency includes the requested fields of the GraphQL type InstanceDependency.
+// The GraphQL type's documentation follows.
+//
+// An input dependency consumed by an instance, keyed by the field handle that receives it.
+//
+// Dependencies are resources wired into this instance's bundle slots — either
+// through a blueprint connection, a per-instance remote-reference override, or
+// the environment's default for the resource type.
+type GetInstanceInstanceDependenciesInstanceDependency struct {
+	// The input handle name that consumes this resource (e.g., `database`).
+	Field string `json:"field"`
+	// Whether this dependency must be connected before the instance can be deployed.
+	Required bool `json:"required"`
+	// Where this slot's wire-in comes from. Inspect the concrete type — `Connection`, `RemoteReference`, or `EnvironmentDefault` — to distinguish.
+	Source GetInstanceInstanceDependenciesInstanceDependencySource `json:"-"`
+	// The resource containing the actual data.
+	Resource GetInstanceInstanceDependenciesInstanceDependencyResource `json:"resource"`
+}
+
+// GetField returns GetInstanceInstanceDependenciesInstanceDependency.Field, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependency) GetField() string { return v.Field }
+
+// GetRequired returns GetInstanceInstanceDependenciesInstanceDependency.Required, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependency) GetRequired() bool { return v.Required }
+
+// GetSource returns GetInstanceInstanceDependenciesInstanceDependency.Source, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependency) GetSource() GetInstanceInstanceDependenciesInstanceDependencySource {
+	return v.Source
+}
+
+// GetResource returns GetInstanceInstanceDependenciesInstanceDependency.Resource, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependency) GetResource() GetInstanceInstanceDependenciesInstanceDependencyResource {
+	return v.Resource
+}
+
+func (v *GetInstanceInstanceDependenciesInstanceDependency) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*GetInstanceInstanceDependenciesInstanceDependency
+		Source json.RawMessage `json:"source"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.GetInstanceInstanceDependenciesInstanceDependency = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Source
+		src := firstPass.Source
+		if len(src) != 0 && string(src) != "null" {
+			err = __unmarshalGetInstanceInstanceDependenciesInstanceDependencySource(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetInstanceInstanceDependenciesInstanceDependency.Source: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalGetInstanceInstanceDependenciesInstanceDependency struct {
+	Field string `json:"field"`
+
+	Required bool `json:"required"`
+
+	Source json.RawMessage `json:"source"`
+
+	Resource GetInstanceInstanceDependenciesInstanceDependencyResource `json:"resource"`
+}
+
+func (v *GetInstanceInstanceDependenciesInstanceDependency) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *GetInstanceInstanceDependenciesInstanceDependency) __premarshalJSON() (*__premarshalGetInstanceInstanceDependenciesInstanceDependency, error) {
+	var retval __premarshalGetInstanceInstanceDependenciesInstanceDependency
+
+	retval.Field = v.Field
+	retval.Required = v.Required
+	{
+
+		dst := &retval.Source
+		src := v.Source
+		var err error
+		*dst, err = __marshalGetInstanceInstanceDependenciesInstanceDependencySource(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetInstanceInstanceDependenciesInstanceDependency.Source: %w", err)
+		}
+	}
+	retval.Resource = v.Resource
+	return &retval, nil
+}
+
+// GetInstanceInstanceDependenciesInstanceDependencyResource includes the requested fields of the GraphQL type Resource.
+// The GraphQL type's documentation follows.
+//
+// A cloud credential, database connection string, network configuration, or other
+// infrastructure output produced by (or imported into) Massdriver.
+//
+// Resources are the connective tissue between instances. When an instance is deployed, it
+// produces resources as outputs. Other instances can consume those resources as inputs,
+// creating a dependency graph of your infrastructure.
+//
+// Resources have two origins:
+// - **Imported** — created directly through the API (e.g., uploading existing AWS credentials).
+// You have full CRUD control over these resources.
+// - **Provisioned** — created automatically when an instance is deployed. These are read-only
+// and managed entirely by the owning instance's lifecycle.
+type GetInstanceInstanceDependenciesInstanceDependencyResource struct {
+	// Unique identifier for this resource.
+	Id string `json:"id"`
+	// Human-readable display name for this resource.
+	Name string `json:"name"`
+	// How this resource was created. Determines whether it can be modified through the API.
+	Origin ResourceOrigin `json:"origin"`
+	// The bundle output handle that produced this resource (e.g., `authentication`, `database`).
+	//
+	// Set only for **provisioned** resources — it corresponds to a field declared under
+	// `artifacts` in the producing bundle's `massdriver.yaml`. Null for **imported** resources.
+	Field string `json:"field"`
+	// Key-value attributes assigned directly to this resource, used by ABAC
+	// policies. Reserved keys starting with `md-` are auto-injected by the system
+	// and excluded from this map — see `effectiveAttributes` for the merged view.
+	Attributes map[string]any `json:"-"`
+	// The resource's structured payload. Fields marked `$md.sensitive` in the resource type's
+	// schema are masked as `[SENSITIVE]`. Use `exportResource` to retrieve an unmasked copy —
+	// that operation is recorded in the audit log.
+	Payload map[string]any `json:"-"`
+	// When this resource was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this resource was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The resource type that this resource conforms to, defining its schema and validation rules.
+	ResourceType *GetInstanceInstanceDependenciesInstanceDependencyResourceResourceType `json:"resourceType"`
+	// The instance whose deployment produced this resource.
+	//
+	// Null for **imported** resources. For **provisioned** resources, this is the instance
+	// that owns the resource's lifecycle — updating or decommissioning the instance will
+	// update or remove the resource.
+	Instance *GetInstanceInstanceDependenciesInstanceDependencyResourceInstance `json:"instance"`
+}
+
+// GetId returns GetInstanceInstanceDependenciesInstanceDependencyResource.Id, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) GetId() string { return v.Id }
+
+// GetName returns GetInstanceInstanceDependenciesInstanceDependencyResource.Name, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) GetName() string { return v.Name }
+
+// GetOrigin returns GetInstanceInstanceDependenciesInstanceDependencyResource.Origin, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) GetOrigin() ResourceOrigin {
+	return v.Origin
+}
+
+// GetField returns GetInstanceInstanceDependenciesInstanceDependencyResource.Field, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) GetField() string { return v.Field }
+
+// GetAttributes returns GetInstanceInstanceDependenciesInstanceDependencyResource.Attributes, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) GetAttributes() map[string]any {
+	return v.Attributes
+}
+
+// GetPayload returns GetInstanceInstanceDependenciesInstanceDependencyResource.Payload, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) GetPayload() map[string]any {
+	return v.Payload
+}
+
+// GetCreatedAt returns GetInstanceInstanceDependenciesInstanceDependencyResource.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns GetInstanceInstanceDependenciesInstanceDependencyResource.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetResourceType returns GetInstanceInstanceDependenciesInstanceDependencyResource.ResourceType, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) GetResourceType() *GetInstanceInstanceDependenciesInstanceDependencyResourceResourceType {
+	return v.ResourceType
+}
+
+// GetInstance returns GetInstanceInstanceDependenciesInstanceDependencyResource.Instance, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) GetInstance() *GetInstanceInstanceDependenciesInstanceDependencyResourceInstance {
+	return v.Instance
+}
+
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*GetInstanceInstanceDependenciesInstanceDependencyResource
+		Attributes json.RawMessage `json:"attributes"`
+		Payload    json.RawMessage `json:"payload"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.GetInstanceInstanceDependenciesInstanceDependencyResource = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetInstanceInstanceDependenciesInstanceDependencyResource.Attributes: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Payload
+		src := firstPass.Payload
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetInstanceInstanceDependenciesInstanceDependencyResource.Payload: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalGetInstanceInstanceDependenciesInstanceDependencyResource struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Origin ResourceOrigin `json:"origin"`
+
+	Field string `json:"field"`
+
+	Attributes json.RawMessage `json:"attributes"`
+
+	Payload json.RawMessage `json:"payload"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	ResourceType *GetInstanceInstanceDependenciesInstanceDependencyResourceResourceType `json:"resourceType"`
+
+	Instance *GetInstanceInstanceDependenciesInstanceDependencyResourceInstance `json:"instance"`
+}
+
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResource) __premarshalJSON() (*__premarshalGetInstanceInstanceDependenciesInstanceDependencyResource, error) {
+	var retval __premarshalGetInstanceInstanceDependenciesInstanceDependencyResource
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Origin = v.Origin
+	retval.Field = v.Field
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetInstanceInstanceDependenciesInstanceDependencyResource.Attributes: %w", err)
+		}
+	}
+	{
+
+		dst := &retval.Payload
+		src := v.Payload
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetInstanceInstanceDependenciesInstanceDependencyResource.Payload: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	retval.ResourceType = v.ResourceType
+	retval.Instance = v.Instance
+	return &retval, nil
+}
+
+// GetInstanceInstanceDependenciesInstanceDependencyResourceInstance includes the requested fields of the GraphQL type Instance.
+// The GraphQL type's documentation follows.
+//
+// A deployed piece of infrastructure in an environment.
+//
+// An instance is the **runtime representation** of a component. When you add a
+// "database" component to your blueprint and deploy it to the `staging`
+// environment, Massdriver creates an instance that tracks the database's
+// configuration, deployment state, costs, and produced resources.
+//
+// **Lifecycle:** Instances progress through a well-defined set of states:
+//
+// ```mermaid
+// stateDiagram-v2
+// [*] --> INITIALIZED: "Component added to environment"
+// INITIALIZED --> PROVISIONED: "Deployment succeeds"
+// INITIALIZED --> FAILED: "Deployment fails"
+// PROVISIONED --> PROVISIONED: "Redeploy / update"
+// PROVISIONED --> DECOMMISSIONED: "Decommission succeeds"
+// PROVISIONED --> FAILED: "Deployment fails"
+// FAILED --> PROVISIONED: "Retry succeeds"
+// FAILED --> DECOMMISSIONED: "Decommission"
+// ```
+//
+// **Version resolution:** Each instance has a `version` constraint (e.g., `~1.0`)
+// and a `releaseStrategy` (stable or development). Together these determine
+// the `resolvedVersion` that will be used on the next deployment. Compare
+// `resolvedVersion` with `deployedVersion` to see if a redeployment is needed,
+// or check `availableUpgrade` for newer matching releases.
+type GetInstanceInstanceDependenciesInstanceDependencyResourceInstance struct {
+	Id string `json:"id"`
+	// Name of the instance.
+	Name string `json:"name"`
+}
+
+// GetId returns GetInstanceInstanceDependenciesInstanceDependencyResourceInstance.Id, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResourceInstance) GetId() string {
+	return v.Id
+}
+
+// GetName returns GetInstanceInstanceDependenciesInstanceDependencyResourceInstance.Name, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResourceInstance) GetName() string {
+	return v.Name
+}
+
+// GetInstanceInstanceDependenciesInstanceDependencyResourceResourceType includes the requested fields of the GraphQL type ResourceType.
+// The GraphQL type's documentation follows.
+//
+// A resource type that defines what kind of infrastructure a resource represents.
+//
+// Resource types are the schema layer for Massdriver's connection system. Every
+// dependency a bundle declares and every resource a bundle produces references a
+// resource type. This is what makes bundles composable -- a database bundle that
+// produces an `aws-rds-instance` resource can be connected to any application
+// bundle that declares an `aws-rds-instance` dependency.
+//
+// Resource types include both public types provided by Massdriver (e.g.,
+// `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
+// organization for custom infrastructure.
+type GetInstanceInstanceDependenciesInstanceDependencyResourceResourceType struct {
+	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	Id string `json:"id"`
+	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
+	Name string `json:"name"`
+}
+
+// GetId returns GetInstanceInstanceDependenciesInstanceDependencyResourceResourceType.Id, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResourceResourceType) GetId() string {
+	return v.Id
+}
+
+// GetName returns GetInstanceInstanceDependenciesInstanceDependencyResourceResourceType.Name, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencyResourceResourceType) GetName() string {
+	return v.Name
+}
+
+// GetInstanceInstanceDependenciesInstanceDependencySource includes the requested fields of the GraphQL interface InstanceDependencySource.
+//
+// GetInstanceInstanceDependenciesInstanceDependencySource is implemented by the following types:
+// GetInstanceInstanceDependenciesInstanceDependencySourceConnection
+// GetInstanceInstanceDependenciesInstanceDependencySourceEnvironmentDefault
+// GetInstanceInstanceDependenciesInstanceDependencySourceRemoteReference
+// The GraphQL type's documentation follows.
+//
+// Where a dependency wire-in comes from.
+//
+// - `Connection` — the wire was drawn from a blueprint Link between two
+// components in this project.
+// - `RemoteReference` — the wire is a per-instance override pointing at a
+// resource from another project (or an imported resource).
+// - `EnvironmentDefault` — no explicit wire was set, so the slot is filled
+// from the environment's default for this resource type.
+//
+// Per-instance `RemoteReference` overrides take priority over blueprint
+// `Connection`s, which take priority over `EnvironmentDefault`s.
+type GetInstanceInstanceDependenciesInstanceDependencySource interface {
+	implementsGraphQLInterfaceGetInstanceInstanceDependenciesInstanceDependencySource()
+	// GetTypename returns the receiver's concrete GraphQL type-name (see interface doc for possible values).
+	GetTypename() string
+}
+
+func (v *GetInstanceInstanceDependenciesInstanceDependencySourceConnection) implementsGraphQLInterfaceGetInstanceInstanceDependenciesInstanceDependencySource() {
+}
+func (v *GetInstanceInstanceDependenciesInstanceDependencySourceEnvironmentDefault) implementsGraphQLInterfaceGetInstanceInstanceDependenciesInstanceDependencySource() {
+}
+func (v *GetInstanceInstanceDependenciesInstanceDependencySourceRemoteReference) implementsGraphQLInterfaceGetInstanceInstanceDependenciesInstanceDependencySource() {
+}
+
+func __unmarshalGetInstanceInstanceDependenciesInstanceDependencySource(b []byte, v *GetInstanceInstanceDependenciesInstanceDependencySource) error {
+	if string(b) == "null" {
+		return nil
+	}
+
+	var tn struct {
+		TypeName string `json:"__typename"`
+	}
+	err := json.Unmarshal(b, &tn)
+	if err != nil {
+		return err
+	}
+
+	switch tn.TypeName {
+	case "Connection":
+		*v = new(GetInstanceInstanceDependenciesInstanceDependencySourceConnection)
+		return json.Unmarshal(b, *v)
+	case "EnvironmentDefault":
+		*v = new(GetInstanceInstanceDependenciesInstanceDependencySourceEnvironmentDefault)
+		return json.Unmarshal(b, *v)
+	case "RemoteReference":
+		*v = new(GetInstanceInstanceDependenciesInstanceDependencySourceRemoteReference)
+		return json.Unmarshal(b, *v)
+	case "":
+		return fmt.Errorf(
+			"response was missing InstanceDependencySource.__typename")
+	default:
+		return fmt.Errorf(
+			`unexpected concrete type for GetInstanceInstanceDependenciesInstanceDependencySource: "%v"`, tn.TypeName)
+	}
+}
+
+func __marshalGetInstanceInstanceDependenciesInstanceDependencySource(v *GetInstanceInstanceDependenciesInstanceDependencySource) ([]byte, error) {
+
+	var typename string
+	switch v := (*v).(type) {
+	case *GetInstanceInstanceDependenciesInstanceDependencySourceConnection:
+		typename = "Connection"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*GetInstanceInstanceDependenciesInstanceDependencySourceConnection
+		}{typename, v}
+		return json.Marshal(result)
+	case *GetInstanceInstanceDependenciesInstanceDependencySourceEnvironmentDefault:
+		typename = "EnvironmentDefault"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*GetInstanceInstanceDependenciesInstanceDependencySourceEnvironmentDefault
+		}{typename, v}
+		return json.Marshal(result)
+	case *GetInstanceInstanceDependenciesInstanceDependencySourceRemoteReference:
+		typename = "RemoteReference"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*GetInstanceInstanceDependenciesInstanceDependencySourceRemoteReference
+		}{typename, v}
+		return json.Marshal(result)
+	case nil:
+		return []byte("null"), nil
+	default:
+		return nil, fmt.Errorf(
+			`unexpected concrete type for GetInstanceInstanceDependenciesInstanceDependencySource: "%T"`, v)
+	}
+}
+
+// GetInstanceInstanceDependenciesInstanceDependencySourceConnection includes the requested fields of the GraphQL type Connection.
+// The GraphQL type's documentation follows.
+//
+// A runtime wiring between two instances in an environment.
+//
+// A connection is the **runtime realization** of a blueprint link. Where a link
+// says "the database component's `authentication` output goes to the app
+// component's `database` input," the connection in each environment carries the
+// *actual* resource data (e.g., a connection string) from the source instance
+// to the destination instance.
+//
+// Connections are created automatically when instances are deployed and a
+// matching blueprint link exists.
+type GetInstanceInstanceDependenciesInstanceDependencySourceConnection struct {
+	Typename string `json:"__typename"`
+}
+
+// GetTypename returns GetInstanceInstanceDependenciesInstanceDependencySourceConnection.Typename, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencySourceConnection) GetTypename() string {
+	return v.Typename
+}
+
+// GetInstanceInstanceDependenciesInstanceDependencySourceEnvironmentDefault includes the requested fields of the GraphQL type EnvironmentDefault.
+// The GraphQL type's documentation follows.
+//
+// An environment default that automatically provides a resource to instances.
+//
+// When an instance in the environment requires a resource type that matches this default,
+// the resource is automatically connected without manual configuration. Only one default
+// per resource type is allowed per environment -- remove the existing default before
+// setting a new one.
+type GetInstanceInstanceDependenciesInstanceDependencySourceEnvironmentDefault struct {
+	Typename string `json:"__typename"`
+}
+
+// GetTypename returns GetInstanceInstanceDependenciesInstanceDependencySourceEnvironmentDefault.Typename, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencySourceEnvironmentDefault) GetTypename() string {
+	return v.Typename
+}
+
+// GetInstanceInstanceDependenciesInstanceDependencySourceRemoteReference includes the requested fields of the GraphQL type RemoteReference.
+// The GraphQL type's documentation follows.
+//
+// A per-instance override of a single connection slot. The blueprint Link wires
+// a slot from a sibling package's output; a remote reference overrides that
+// wiring on one instance, pointing the slot at a resource from another project
+// (or an imported resource) instead.
+//
+// Remote references enable cross-project infrastructure sharing. For example, a
+// networking team provisions a VPC in one project, and application teams override
+// the `vpc` connection slot on their database/cache/etc. instances to point at
+// that shared VPC.
+//
+// Each remote reference binds a specific `field` on the instance — a key in the
+// instance's bundle's `connectionsSchema` — to the target resource. The override
+// takes priority over any blueprint-level Link on the same slot, and reverts to
+// the Link (or environment default) when removed.
+type GetInstanceInstanceDependenciesInstanceDependencySourceRemoteReference struct {
+	Typename string `json:"__typename"`
+}
+
+// GetTypename returns GetInstanceInstanceDependenciesInstanceDependencySourceRemoteReference.Typename, and is useful for accessing the field via an interface.
+func (v *GetInstanceInstanceDependenciesInstanceDependencySourceRemoteReference) GetTypename() string {
+	return v.Typename
 }
 
 // GetInstanceInstanceEnvironment includes the requested fields of the GraphQL type Environment.
@@ -33644,6 +34216,31 @@ query GetInstance ($organizationId: ID!, $id: ID!) {
 				createdAt
 				updatedAt
 				resourceType {
+					id
+					name
+				}
+			}
+		}
+		dependencies {
+			field
+			required
+			source {
+				__typename
+			}
+			resource {
+				id
+				name
+				origin
+				field
+				attributes
+				payload
+				createdAt
+				updatedAt
+				resourceType {
+					id
+					name
+				}
+				instance {
 					id
 					name
 				}

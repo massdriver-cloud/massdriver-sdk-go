@@ -81,6 +81,41 @@ func TestGet(t *testing.T) {
 						},
 					},
 				},
+				"dependencies": []map[string]any{
+					{
+						"field":    "vpc",
+						"required": true,
+						"source":   map[string]any{"__typename": "Connection"},
+						"resource": map[string]any{
+							"id":     "res-vpc",
+							"name":   "prod-network",
+							"origin": "PROVISIONED",
+							"field":  "vpc",
+							"resourceType": map[string]any{
+								"id":   "aws-vpc",
+								"name": "AWS VPC",
+							},
+							"instance": map[string]any{
+								"id":   "ecomm-prod-network",
+								"name": "Network",
+							},
+						},
+					},
+					{
+						"field":    "dns",
+						"required": false,
+						"source":   map[string]any{"__typename": "EnvironmentDefault"},
+						"resource": map[string]any{
+							"id":     "res-dns",
+							"name":   "prod-zone",
+							"origin": "IMPORTED",
+							"resourceType": map[string]any{
+								"id":   "aws-route53-zone",
+								"name": "AWS Route53 Zone",
+							},
+						},
+					},
+				},
 			},
 		}),
 	)
@@ -126,11 +161,44 @@ func TestGet(t *testing.T) {
 		t.Errorf("Resources[0].ResourceType = %+v, want ID aws-iam-role", got.Resources[0].ResourceType)
 	}
 
+	// Dependencies keep their wrapper shape (consuming handle + required +
+	// source kind), with the wired resource nested inside.
+	if len(got.Dependencies) != 2 {
+		t.Fatalf("Dependencies len = %d, want 2", len(got.Dependencies))
+	}
+	vpc := got.Dependencies[0]
+	if vpc.Field != "vpc" || !vpc.Required {
+		t.Errorf("Dependencies[0] = %+v, want field=vpc required=true", vpc)
+	}
+	if vpc.Source != string(instances.DependencySourceConnection) {
+		t.Errorf("Dependencies[0].Source = %q, want CONNECTION", vpc.Source)
+	}
+	if vpc.Resource.ID != "res-vpc" || vpc.Resource.Name != "prod-network" {
+		t.Errorf("Dependencies[0].Resource = %+v, want id=res-vpc name=prod-network", vpc.Resource)
+	}
+	if vpc.Resource.ResourceType == nil || vpc.Resource.ResourceType.ID != "aws-vpc" {
+		t.Errorf("Dependencies[0].Resource.ResourceType = %+v, want ID aws-vpc", vpc.Resource.ResourceType)
+	}
+	if vpc.Resource.Instance == nil || vpc.Resource.Instance.ID != "ecomm-prod-network" {
+		t.Errorf("Dependencies[0].Resource.Instance = %+v, want ID ecomm-prod-network", vpc.Resource.Instance)
+	}
+	dns := got.Dependencies[1]
+	if dns.Field != "dns" || dns.Required {
+		t.Errorf("Dependencies[1] = %+v, want field=dns required=false", dns)
+	}
+	if dns.Source != string(instances.DependencySourceEnvironmentDefault) {
+		t.Errorf("Dependencies[1].Source = %q, want ENVIRONMENT_DEFAULT", dns.Source)
+	}
+	if dns.Resource.Instance != nil {
+		t.Errorf("Dependencies[1].Resource.Instance = %+v, want nil for imported resource", dns.Resource.Instance)
+	}
+
 	// Compile-time checks: embedded refs are the canonical types.* types.
 	var _ *types.Environment = got.Environment
 	var _ *types.Bundle = got.Bundle
 	var _ *types.Component = got.Component
 	var _ types.Resource = got.Resources[0]
+	var _ types.InstanceDependency = got.Dependencies[0]
 }
 
 // TestGet_NotFound confirms the wrapper surfaces gql.ErrNotFound when the

@@ -1354,6 +1354,33 @@ query GetInstance($organizationId: ID!, $id: ID!) {
         }
       }
     }
+    dependencies {
+      field
+      required
+      source {
+        __typename
+      }
+      resource {
+        id
+        name
+        origin
+        field
+        attributes
+        payload
+        createdAt
+        updatedAt
+        # @genqlient(pointer: true)
+        resourceType {
+          id
+          name
+        }
+        # @genqlient(pointer: true)
+        instance {
+          id
+          name
+        }
+      }
+    }
   }
 }
 
