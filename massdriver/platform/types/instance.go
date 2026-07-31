@@ -9,9 +9,9 @@ import "time"
 // relationships.
 //
 // Reference fields (Environment, Bundle, Component) are populated when
-// the underlying GraphQL query selected them. StatePaths and Resources
-// are populated by instances.Get; instances.List leaves them empty to
-// keep paginated responses small. Alarms and secrets are managed
+// the underlying GraphQL query selected them. StatePaths, Resources, and
+// Dependencies are populated by instances.Get; instances.List leaves them
+// empty to keep paginated responses small. Alarms and secrets are managed
 // separately via instances.IterAlarms / instances.SetSecret etc.
 type Instance struct {
 	ID               string         `json:"id" mapstructure:"id"`
@@ -28,11 +28,30 @@ type Instance struct {
 	UpdatedAt        time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
 	Cost             CostSummary    `json:"cost,omitzero" mapstructure:"cost"`
 
-	Environment *Environment        `json:"environment,omitempty" mapstructure:"environment,omitempty"`
-	Bundle      *Bundle             `json:"bundle,omitempty" mapstructure:"bundle,omitempty"`
-	Component   *Component          `json:"component,omitempty" mapstructure:"component,omitempty"`
-	StatePaths  []InstanceStatePath `json:"statePaths,omitempty" mapstructure:"statePaths,omitempty"`
-	Resources   []Resource          `json:"resources,omitempty" mapstructure:"-"`
+	Environment  *Environment         `json:"environment,omitempty" mapstructure:"environment,omitempty"`
+	Bundle       *Bundle              `json:"bundle,omitempty" mapstructure:"bundle,omitempty"`
+	Component    *Component           `json:"component,omitempty" mapstructure:"component,omitempty"`
+	StatePaths   []InstanceStatePath  `json:"statePaths,omitempty" mapstructure:"statePaths,omitempty"`
+	Resources    []Resource           `json:"resources,omitempty" mapstructure:"-"`
+	Dependencies []InstanceDependency `json:"dependencies,omitempty" mapstructure:"-"`
+}
+
+// InstanceDependency is one filled input slot on an [Instance] — a resource
+// wired into a handle declared in the bundle's `connections_schema`. Field is
+// the consuming handle name on this instance (distinct from
+// [Resource.Field], which is the handle that produced the resource on its
+// source instance). For provisioned resources, Resource.Instance identifies
+// the instance the dependency comes from.
+//
+// Source is how the slot was filled — "CONNECTION" (a blueprint link),
+// "REMOTE_REFERENCE" (a per-instance override), or "ENVIRONMENT_DEFAULT"
+// (the environment's default for the resource type). See
+// [platform/instances].DependencySource for the typed constants.
+type InstanceDependency struct {
+	Field    string   `json:"field"`
+	Required bool     `json:"required"`
+	Source   string   `json:"source,omitempty"`
+	Resource Resource `json:"resource"`
 }
 
 // InstanceStatePath is a Terraform/OpenTofu state path for a single

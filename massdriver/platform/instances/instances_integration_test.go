@@ -37,6 +37,51 @@ func TestIntegration_Instances_NotFoundClassification(t *testing.T) {
 	}
 }
 
+// TestIntegration_Instances_Get_Dependencies exercises the Get path's
+// dependency flattening against live data. It scans deployed instances
+// for one with wired dependencies and validates the decoded shape —
+// handle name, source kind, and the nested resource. Skips (rather than
+// fails) when the sandbox has no instance with dependencies.
+func TestIntegration_Instances_Get_Dependencies(t *testing.T) {
+	c := inttest.Client(t)
+	ctx := context.Background()
+
+	const maxScan = 25
+	seen := 0
+	for inst, err := range c.Instances.Iter(ctx, instances.ListInput{}) {
+		if err != nil {
+			t.Fatalf("Iter yielded error: %v", err)
+		}
+		if seen++; seen > maxScan {
+			break
+		}
+		full, err := c.Instances.Get(ctx, inst.ID)
+		if err != nil {
+			t.Fatalf("Get %s: %v", inst.ID, err)
+		}
+		if len(full.Dependencies) == 0 {
+			continue
+		}
+		for _, dep := range full.Dependencies {
+			if dep.Field == "" {
+				t.Errorf("instance %s: dependency with empty Field: %+v", inst.ID, dep)
+			}
+			switch instances.DependencySource(dep.Source) {
+			case instances.DependencySourceConnection,
+				instances.DependencySourceRemoteReference,
+				instances.DependencySourceEnvironmentDefault:
+			default:
+				t.Errorf("instance %s dependency %q: unexpected Source %q", inst.ID, dep.Field, dep.Source)
+			}
+			if dep.Resource.ID == "" {
+				t.Errorf("instance %s dependency %q: empty Resource.ID", inst.ID, dep.Field)
+			}
+		}
+		return
+	}
+	t.Skip("no instance with dependencies found in sandbox")
+}
+
 // TestIntegration_Instances_List exercises the unfiltered list path.
 // Because we can't deterministically create an instance from inside
 // the SDK (they're created by the deployment system, not by callers),
