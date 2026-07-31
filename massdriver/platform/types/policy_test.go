@@ -96,11 +96,65 @@ func TestPolicyConditions_Mixed(t *testing.T) {
 	}
 }
 
+// TestPolicyConditions_ScalarStringValue covers the platform's read-path
+// quirk: grants written by platform internals store a single-valued
+// condition as a bare scalar string (e.g. {"md-environment":"s3demo-demo"})
+// even though the GraphQL input validation only accepts arrays or "*".
+// Decode promotes the scalar to a single-element set; marshal re-emits
+// the canonical array form.
+func TestPolicyConditions_ScalarStringValue(t *testing.T) {
+	cases := []struct {
+		name string
+		json string
+		want types.PolicyConditions
+	}{
+		{
+			name: "scalar string promotes to single-element set",
+			json: `{"md-environment":"s3demo-demo"}`,
+			want: types.PolicyConditions{"md-environment": {"s3demo-demo"}},
+		},
+		{
+			name: "mixed scalar and array values",
+			json: `{"md-environment":"prod","md-project":["a","b"]}`,
+			want: types.PolicyConditions{"md-environment": {"prod"}, "md-project": {"a", "b"}},
+		},
+		{
+			name: "star is still the per-key wildcard, not a value",
+			json: `{"md-environment":"*"}`,
+			want: types.PolicyConditions{"md-environment": nil},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var got types.PolicyConditions
+			if err := json.Unmarshal([]byte(tc.json), &got); err != nil {
+				t.Fatalf("Unmarshal: %v", err)
+			}
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Fatalf("got %#v, want %#v", got, tc.want)
+			}
+
+			// Marshal of the decoded value emits the canonical array
+			// form (or "*"), so re-decoding is stable.
+			out, err := json.Marshal(got)
+			if err != nil {
+				t.Fatalf("Marshal: %v", err)
+			}
+			var back types.PolicyConditions
+			if err := json.Unmarshal(out, &back); err != nil {
+				t.Fatalf("re-Unmarshal %s: %v", out, err)
+			}
+			if !reflect.DeepEqual(back, tc.want) {
+				t.Errorf("roundtrip via %s = %#v, want %#v", out, back, tc.want)
+			}
+		})
+	}
+}
+
 func TestPolicyConditions_UnmarshalMalformed(t *testing.T) {
 	cases := []string{
 		`not json`,
-		`{"key": 123}`,        // value isn't string-or-array
-		`{"key": "not-star"}`, // string that isn't "*"
+		`{"key": 123}`, // value isn't string, "*", or array
 	}
 	for _, in := range cases {
 		t.Run(in, func(t *testing.T) {

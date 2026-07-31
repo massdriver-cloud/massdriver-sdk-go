@@ -136,12 +136,25 @@ func (c *PolicyConditions) UnmarshalJSON(data []byte) error {
 	}
 	out := make(PolicyConditions, len(raw))
 	for k, v := range raw {
-		if bytes.Equal(bytes.TrimSpace(v), []byte(`"*"`)) {
+		tv := bytes.TrimSpace(v)
+		if bytes.Equal(tv, []byte(`"*"`)) {
 			out[k] = nil
 			continue
 		}
+		// The platform's read path can serialize a single-valued
+		// condition as a bare scalar string (grants written by platform
+		// internals bypass the array-or-"*" input validation), so
+		// promote a scalar to a single-element set.
+		if len(tv) > 0 && tv[0] == '"' {
+			var s string
+			if err := json.Unmarshal(tv, &s); err != nil {
+				return fmt.Errorf("PolicyConditions[%s]: %w", k, err)
+			}
+			out[k] = []string{s}
+			continue
+		}
 		var vals []string
-		if err := json.Unmarshal(v, &vals); err != nil {
+		if err := json.Unmarshal(tv, &vals); err != nil {
 			return fmt.Errorf("PolicyConditions[%s]: %w", k, err)
 		}
 		out[k] = vals
