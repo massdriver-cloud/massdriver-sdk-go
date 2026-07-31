@@ -2937,17 +2937,14 @@ mutation RemoveServiceAccountFromGroup($organizationId: ID!, $serviceAccountId: 
 query GetViewer {
   viewer {
     __typename
+    # No organization selection here: defaultOrganization is "most recently
+    # joined" — unrelated to the org the credential or client is scoped to.
+    # The viewer wrapper resolves the configured org separately.
     ... on AccountViewer {
       id
       email
       firstName
       lastName
-      defaultOrganization {
-        id
-        name
-        createdAt
-        updatedAt
-      }
     }
     ... on ServiceAccountViewer {
       id

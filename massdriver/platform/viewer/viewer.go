@@ -50,6 +50,13 @@ func New(c *client.Client) *Service { return &Service{client: c} }
 // state, verify which credentials are active, or distinguish a user from
 // a service account.
 //
+// The returned Organization is the org this client operates against: for
+// service accounts, the org the credential belongs to; for accounts, the
+// configured organization id resolved via a second lookup (nil when none
+// is configured). An account authenticated against an organization it
+// cannot access gets an error wrapping [gql.ErrNotFound] — surfacing the
+// credential/org mismatch is the point of a "who am I?" check.
+//
 // Returns an error if no viewer is returned (typically because the
 // request is unauthenticated or the credentials are invalid).
 func (s *Service) Get(ctx context.Context) (*Viewer, error) {
@@ -70,15 +77,23 @@ func (s *Service) Get(ctx context.Context) (*Viewer, error) {
 			FirstName: v.FirstName,
 			LastName:  v.LastName,
 		}
-		// defaultOrganization may be null for users that don't belong to
-		// any organization. The genqlient-generated wrapper produces a
-		// zero struct in that case; treat an empty Id as nil.
-		if v.DefaultOrganization.Id != "" {
+		// A human credential can span many orgs, so the API can't tell us
+		// which one is "current" — resolve the org this client is
+		// configured to operate against instead. Left nil when no
+		// organization id is configured.
+		if orgID := s.client.Config.OrganizationID; orgID != "" {
+			org, err := gen.GetOrganization(ctx, s.client.GQLv2, orgID)
+			if err != nil {
+				return nil, gql.ClassifyError(fmt.Errorf("get viewer: resolve configured organization %q: %w", orgID, err))
+			}
+			if org.Organization.Id == "" {
+				return nil, fmt.Errorf("get viewer: configured organization %q: %w", orgID, gql.ErrNotFound)
+			}
 			view.Organization = &types.Organization{
-				ID:        v.DefaultOrganization.Id,
-				Name:      v.DefaultOrganization.Name,
-				CreatedAt: v.DefaultOrganization.CreatedAt,
-				UpdatedAt: v.DefaultOrganization.UpdatedAt,
+				ID:        org.Organization.Id,
+				Name:      org.Organization.Name,
+				CreatedAt: org.Organization.CreatedAt,
+				UpdatedAt: org.Organization.UpdatedAt,
 			}
 		}
 		return view, nil
