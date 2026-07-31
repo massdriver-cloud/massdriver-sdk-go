@@ -16382,11 +16382,6 @@ type GetViewerViewerAccountViewer struct {
 	FirstName string `json:"firstName"`
 	// Last name, if set in the user's profile.
 	LastName string `json:"lastName"`
-	// Your most recently joined organization.
-	//
-	// Useful for setting a default context when the user first opens the application.
-	// Returns `null` if the user does not belong to any organization.
-	DefaultOrganization GetViewerViewerAccountViewerDefaultOrganization `json:"defaultOrganization"`
 }
 
 // GetTypename returns GetViewerViewerAccountViewer.Typename, and is useful for accessing the field via an interface.
@@ -16403,63 +16398,6 @@ func (v *GetViewerViewerAccountViewer) GetFirstName() string { return v.FirstNam
 
 // GetLastName returns GetViewerViewerAccountViewer.LastName, and is useful for accessing the field via an interface.
 func (v *GetViewerViewerAccountViewer) GetLastName() string { return v.LastName }
-
-// GetDefaultOrganization returns GetViewerViewerAccountViewer.DefaultOrganization, and is useful for accessing the field via an interface.
-func (v *GetViewerViewerAccountViewer) GetDefaultOrganization() GetViewerViewerAccountViewerDefaultOrganization {
-	return v.DefaultOrganization
-}
-
-// GetViewerViewerAccountViewerDefaultOrganization includes the requested fields of the GraphQL type Organization.
-// The GraphQL type's documentation follows.
-//
-// The top-level account that owns all your infrastructure, projects, and team members.
-//
-// An organization is the root of the Massdriver resource hierarchy. Everything you build
-// and deploy lives under an organization: **Projects** contain your infrastructure designs,
-// **Environments** (like staging and production) are where those designs come to life, and
-// **Instances** are the actual running cloud resources.
-//
-// ```mermaid
-// graph TD
-// O["Organization"] --> P1["Project"]
-// O --> P2["Project"]
-// P1 --> E1["Environment: staging"]
-// P1 --> E2["Environment: production"]
-// E1 --> I1["Instance"]
-// E1 --> I2["Instance"]
-// ```
-//
-// Members access resources through **group memberships** with role-based permissions.
-// Custom attributes defined at the organization level govern attribute metadata across all child resources.
-//
-// Administrative fields (`billing`, `members`, `customAttributes`) resolve to `null` for
-// callers who lack the corresponding ABAC action; in that case a top-level `FORBIDDEN`
-// error is added to the response while the rest of the organization still resolves.
-type GetViewerViewerAccountViewerDefaultOrganization struct {
-	Id string `json:"id"`
-	// Display name shown in the UI and CLI.
-	Name string `json:"name"`
-	// When this organization was created (UTC).
-	CreatedAt time.Time `json:"createdAt"`
-	// When this organization was last modified (UTC).
-	UpdatedAt time.Time `json:"updatedAt"`
-}
-
-// GetId returns GetViewerViewerAccountViewerDefaultOrganization.Id, and is useful for accessing the field via an interface.
-func (v *GetViewerViewerAccountViewerDefaultOrganization) GetId() string { return v.Id }
-
-// GetName returns GetViewerViewerAccountViewerDefaultOrganization.Name, and is useful for accessing the field via an interface.
-func (v *GetViewerViewerAccountViewerDefaultOrganization) GetName() string { return v.Name }
-
-// GetCreatedAt returns GetViewerViewerAccountViewerDefaultOrganization.CreatedAt, and is useful for accessing the field via an interface.
-func (v *GetViewerViewerAccountViewerDefaultOrganization) GetCreatedAt() time.Time {
-	return v.CreatedAt
-}
-
-// GetUpdatedAt returns GetViewerViewerAccountViewerDefaultOrganization.UpdatedAt, and is useful for accessing the field via an interface.
-func (v *GetViewerViewerAccountViewerDefaultOrganization) GetUpdatedAt() time.Time {
-	return v.UpdatedAt
-}
 
 // GetViewerViewerServiceAccountViewer includes the requested fields of the GraphQL type ServiceAccountViewer.
 // The GraphQL type's documentation follows.
@@ -34140,12 +34078,6 @@ query GetViewer {
 			email
 			firstName
 			lastName
-			defaultOrganization {
-				id
-				name
-				createdAt
-				updatedAt
-			}
 		}
 		... on ServiceAccountViewer {
 			id

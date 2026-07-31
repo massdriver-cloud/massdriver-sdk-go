@@ -22,10 +22,10 @@ const (
 //   - [ViewerKindServiceAccount]: Name and Description populated; Email,
 //     FirstName, LastName are empty.
 //
-// Organization is populated on both kinds — for accounts, it's the
-// "default" (most recently joined) organization (may be nil if the user
-// belongs to none); for service accounts, it's always the owning
-// organization.
+// Organization is the org this client operates against — for service
+// accounts, the owning organization (always set); for accounts, the
+// organization the client is configured with (nil when the client has no
+// organization id configured).
 type Viewer struct {
 	Kind         ViewerKind    `json:"kind" mapstructure:"kind"`
 	ID           string        `json:"id" mapstructure:"id"`
