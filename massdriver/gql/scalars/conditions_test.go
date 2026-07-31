@@ -47,6 +47,12 @@ func TestUnmarshalConditions(t *testing.T) {
 		{name: "wire object", wire: `"{\"team\":[\"eng\"]}"`, want: types.PolicyConditions{"team": {"eng"}}},
 		{name: "bare object response", wire: `{"team":["eng"]}`, want: types.PolicyConditions{"team": {"eng"}}},
 		{name: "bare per-key wildcard", wire: `{"team":"*"}`, want: types.PolicyConditions{"team": nil}},
+		// The read path can return a single-valued condition as a bare
+		// scalar string (grants written by platform internals); it
+		// promotes to a single-element set. Covered in both the bare
+		// and JSON-string-wrapped wire shapes.
+		{name: "bare scalar value", wire: `{"md-environment":"s3demo-demo"}`, want: types.PolicyConditions{"md-environment": {"s3demo-demo"}}},
+		{name: "wire scalar value", wire: `"{\"md-environment\":\"s3demo-demo\"}"`, want: types.PolicyConditions{"md-environment": {"s3demo-demo"}}},
 		{name: "null", wire: `null`, want: nil},
 	}
 	for _, tc := range cases {
