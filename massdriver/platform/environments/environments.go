@@ -251,7 +251,7 @@ func buildListFilter(input ListInput) *gen.EnvironmentsFilter {
 		set = true
 	}
 	if len(input.IDs) > 0 {
-		filter.Id = &gen.StringFilter{In: input.IDs}
+		filter.Id = &gen.IdFilter{In: input.IDs}
 		set = true
 	}
 	if len(input.Attributes) > 0 {

@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"iter"
+	"time"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
@@ -119,6 +120,12 @@ type ListInput struct {
 	// targets one attribute key; multiple entries are AND'd together.
 	Attributes []types.AttributeFilter
 
+	// CreatedAfter and CreatedBefore narrow results to projects created in
+	// a time window. Both bounds are inclusive; either may be zero to leave
+	// that side open.
+	CreatedAfter  time.Time
+	CreatedBefore time.Time
+
 	// SortBy controls the sort field. Empty = NAME.
 	SortBy SortField
 	// SortOrder controls sort direction. Empty = ASC.
@@ -199,7 +206,8 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Project] {
 // buildListFilter compiles a ListInput's filter fields into the generated
 // input. Returns nil when no filter fields are set.
 func buildListFilter(input ListInput) *gen.ProjectsFilter {
-	if input.Name == "" && len(input.NameIn) == 0 && input.Search == "" && len(input.Attributes) == 0 {
+	if input.Name == "" && len(input.NameIn) == 0 && input.Search == "" && len(input.Attributes) == 0 &&
+		input.CreatedAfter.IsZero() && input.CreatedBefore.IsZero() {
 		return nil
 	}
 	filter := &gen.ProjectsFilter{
@@ -209,7 +217,23 @@ func buildListFilter(input ListInput) *gen.ProjectsFilter {
 	if input.Name != "" || len(input.NameIn) > 0 {
 		filter.Name = &gen.StringFilter{Eq: input.Name, In: input.NameIn}
 	}
+	if !input.CreatedAfter.IsZero() || !input.CreatedBefore.IsZero() {
+		filter.CreatedAt = buildDatetimeFilter(input.CreatedAfter, input.CreatedBefore)
+	}
 	return filter
+}
+
+// buildDatetimeFilter maps an inclusive [after, before] window onto the
+// generated input, leaving zero bounds unset.
+func buildDatetimeFilter(after, before time.Time) *gen.DatetimeFilter {
+	dt := &gen.DatetimeFilter{}
+	if !after.IsZero() {
+		dt.Gte = &after
+	}
+	if !before.IsZero() {
+		dt.Lte = &before
+	}
+	return dt
 }
 
 // toGenAttributeFilters maps the SDK's attribute filters onto the generated

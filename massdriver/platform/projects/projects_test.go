@@ -3,6 +3,7 @@ package projects_test
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/Khan/genqlient/graphql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
@@ -417,6 +418,36 @@ func TestList_NameInFilter(t *testing.T) {
 	// sending `eq: ""` alongside `in` matches nothing.
 	if _, present := name["eq"]; present {
 		t.Errorf("filter.name.eq = %v, want the key absent", name["eq"])
+	}
+}
+
+func TestList_CreatedAtFilter(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"projects": map[string]any{
+				"cursor": map[string]any{},
+				"items":  []map[string]any{{"id": "ecomm", "name": "E-Commerce"}},
+			},
+		}),
+	)
+
+	_, err := types.Collect(newService(gqlClient).Iter(t.Context(), projects.ListInput{
+		CreatedAfter: time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC),
+	}))
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+
+	reqs := gqlClient.Requests()
+	filter, _ := reqs[0].Variables["filter"].(map[string]any)
+	created, _ := filter["createdAt"].(map[string]any)
+	if created["gte"] == nil {
+		t.Errorf("createdAt = %v, want gte set", created)
+	}
+	// Only the lower bound was given — the open upper bound must stay off
+	// the wire.
+	if _, present := created["lte"]; present {
+		t.Errorf("createdAt.lte should be omitted when CreatedBefore is zero, got %v", created["lte"])
 	}
 }
 

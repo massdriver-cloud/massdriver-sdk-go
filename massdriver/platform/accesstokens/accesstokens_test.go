@@ -47,13 +47,13 @@ func TestList_FilterByActive(t *testing.T) {
 	}
 }
 
-func TestCreate(t *testing.T) {
+func TestCreatePersonal(t *testing.T) {
 	gqlClient := gqltest.NewClient(
 		gqltest.RespondWithData(map[string]any{
-			"createAccessToken": map[string]any{
+			"createPersonalAccessToken": map[string]any{
 				"result": map[string]any{
 					"id":        "t-new",
-					"name":      "deploy-token",
+					"name":      "local-cli",
 					"token":     "md_RAW_BEARER_VALUE_HERE",
 					"prefix":    "md_a1b2c3d4",
 					"scopes":    []string{"*"},
@@ -65,13 +65,13 @@ func TestCreate(t *testing.T) {
 		}),
 	)
 
-	created, err := newService(gqlClient).Create(t.Context(), accesstokens.CreateInput{
-		Name:             "deploy-token",
+	created, err := newService(gqlClient).CreatePersonal(t.Context(), accesstokens.CreateInput{
+		Name:             "local-cli",
 		Scopes:           []string{"*"},
 		ExpiresInMinutes: 30,
 	})
 	if err != nil {
-		t.Fatalf("Create: %v", err)
+		t.Fatalf("CreatePersonal: %v", err)
 	}
 	if created.ID != "t-new" {
 		t.Errorf("ID = %q, want t-new", created.ID)
@@ -92,22 +92,22 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestCreate_OmitsExpiresWhenZero(t *testing.T) {
+func TestCreatePersonal_OmitsExpiresWhenZero(t *testing.T) {
 	gqlClient := gqltest.NewClient(
 		gqltest.RespondWithData(map[string]any{
-			"createAccessToken": map[string]any{
+			"createPersonalAccessToken": map[string]any{
 				"result":     map[string]any{"id": "t", "name": "t", "token": "tok", "prefix": "p", "scopes": []string{"*"}},
 				"successful": true,
 			},
 		}),
 	)
 
-	_, err := newService(gqlClient).Create(t.Context(), accesstokens.CreateInput{
+	_, err := newService(gqlClient).CreatePersonal(t.Context(), accesstokens.CreateInput{
 		Name:   "default-expiry",
 		Scopes: []string{"*"},
 	})
 	if err != nil {
-		t.Fatalf("Create: %v", err)
+		t.Fatalf("CreatePersonal: %v", err)
 	}
 
 	// expiresInMinutes was zero so the wrapper passed nil — the wire input
@@ -116,6 +116,46 @@ func TestCreate_OmitsExpiresWhenZero(t *testing.T) {
 	input, _ := reqs[0].Variables["input"].(map[string]any)
 	if _, present := input["expiresInMinutes"]; present {
 		t.Errorf("expiresInMinutes should be omitted when zero, got %v", input["expiresInMinutes"])
+	}
+}
+
+func TestCreateServiceAccountToken(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"createServiceAccountAccessToken": map[string]any{
+				"result": map[string]any{
+					"id":        "t-sa",
+					"name":      "deploy-token",
+					"token":     "md_SA_BEARER_VALUE",
+					"prefix":    "md_e5f6",
+					"scopes":    []string{"*"},
+					"expiresAt": "2036-01-01T00:00:00Z",
+					"createdAt": "2026-05-08T10:00:00Z",
+				},
+				"successful": true,
+			},
+		}),
+	)
+
+	created, err := newService(gqlClient).CreateServiceAccountToken(t.Context(), accesstokens.CreateInput{
+		Name:             "deploy-token",
+		Scopes:           []string{"*"},
+		ExpiresInMinutes: 525600,
+	})
+	if err != nil {
+		t.Fatalf("CreateServiceAccountToken: %v", err)
+	}
+	if created.ID != "t-sa" {
+		t.Errorf("ID = %q, want t-sa", created.ID)
+	}
+	if created.Token != "md_SA_BEARER_VALUE" {
+		t.Errorf("Token = %q, want raw bearer value", created.Token)
+	}
+
+	reqs := gqlClient.Requests()
+	input, _ := reqs[0].Variables["input"].(map[string]any)
+	if input["expiresInMinutes"] != float64(525600) {
+		t.Errorf("input.expiresInMinutes = %v, want 525600", input["expiresInMinutes"])
 	}
 }
 

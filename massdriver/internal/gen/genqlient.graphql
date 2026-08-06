@@ -35,12 +35,36 @@ query ListAccessTokens(
   }
 }
 
-# @genqlient(for: "CreateAccessTokenInput.expiresInMinutes", omitempty: true, pointer: true)
-mutation CreateAccessToken(
+# @genqlient(for: "CreatePersonalAccessTokenInput.expiresInMinutes", omitempty: true, pointer: true)
+mutation CreatePersonalAccessToken(
   $organizationId: ID!,
-  $input: CreateAccessTokenInput!
+  $input: CreatePersonalAccessTokenInput!
 ) {
-  createAccessToken(organizationId: $organizationId, input: $input) {
+  createPersonalAccessToken(organizationId: $organizationId, input: $input) {
+    result {
+      id
+      name
+      token
+      prefix
+      scopes
+      expiresAt
+      createdAt
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+# @genqlient(for: "CreateServiceAccountAccessTokenInput.expiresInMinutes", omitempty: true, pointer: true)
+mutation CreateServiceAccountAccessToken(
+  $organizationId: ID!,
+  $input: CreateServiceAccountAccessTokenInput!
+) {
+  createServiceAccountAccessToken(organizationId: $organizationId, input: $input) {
     result {
       id
       name
@@ -100,11 +124,11 @@ query GetAuditLog($organizationId: ID!, $id: ID!) {
 # @genqlient(for: "AuditLogsFilter.actorType", omitempty: true, pointer: true)
 # @genqlient(for: "AuditLogsFilter.actorId", omitempty: true, pointer: true)
 # @genqlient(for: "AuditLogsFilter.actor", omitempty: true, pointer: true)
-# @genqlient(for: "DatetimeFilter.eq", omitempty: true)
-# @genqlient(for: "DatetimeFilter.gt", omitempty: true)
-# @genqlient(for: "DatetimeFilter.gte", omitempty: true)
-# @genqlient(for: "DatetimeFilter.lt", omitempty: true)
-# @genqlient(for: "DatetimeFilter.lte", omitempty: true)
+# @genqlient(for: "DatetimeFilter.eq", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.gt", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.gte", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.lt", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.lte", omitempty: true, pointer: true)
 # @genqlient(for: "AuditLogActorTypeFilter.eq", omitempty: true)
 # @genqlient(for: "AuditLogActorTypeFilter.in", omitempty: true)
 # @genqlient(for: "ActorSearchFilter.search", omitempty: true)
@@ -724,8 +748,6 @@ query GetEnvironment($organizationId: ID!, $id: ID!) {
 # @genqlient(for: "EnvironmentsFilter.attributes", omitempty: true)
 # @genqlient(for: "IdFilter.eq", omitempty: true)
 # @genqlient(for: "IdFilter.in", omitempty: true)
-# @genqlient(for: "StringFilter.eq", omitempty: true)
-# @genqlient(for: "StringFilter.in", omitempty: true)
 # @genqlient(for: "AttributeFilter.eq", omitempty: true)
 # @genqlient(for: "AttributeFilter.in", omitempty: true)
 query ListEnvironments(
@@ -1838,10 +1860,19 @@ query GetOciRepo($organizationId: ID!, $id: ID!) {
 
 # @genqlient(for: "OciReposFilter.artifactType", omitempty: true)
 # @genqlient(for: "OciReposFilter.name", omitempty: true, pointer: true)
+# @genqlient(for: "OciReposFilter.createdAt", omitempty: true, pointer: true)
+# @genqlient(for: "OciReposFilter.attributes", omitempty: true)
 # @genqlient(for: "OciReposFilter.search", omitempty: true)
 # @genqlient(for: "OciRepoNameFilter.eq", omitempty: true)
 # @genqlient(for: "OciRepoNameFilter.in", omitempty: true)
 # @genqlient(for: "OciRepoNameFilter.startsWith", omitempty: true)
+# @genqlient(for: "DatetimeFilter.eq", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.gt", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.gte", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.lt", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.lte", omitempty: true, pointer: true)
+# @genqlient(for: "AttributeFilter.eq", omitempty: true)
+# @genqlient(for: "AttributeFilter.in", omitempty: true)
 query ListOciRepos(
   $organizationId: ID!,
   # @genqlient(omitempty: true, pointer: true)
@@ -2050,6 +2081,42 @@ query ListOrganizationMembers(
         firstName
         lastName
       }
+    }
+  }
+}
+
+# Requires organization:manageSettings; non-admin callers get a top-level
+# forbidden error and a null settings field.
+query GetOrganizationSettings($organizationId: ID!) {
+  organization(organizationId: $organizationId) {
+    id
+    # @genqlient(pointer: true)
+    settings {
+      defaultBundleAccess
+    }
+  }
+}
+
+# Omitted settings keep their current values, so unset fields must stay off
+# the wire — see UpdateComponent.
+# @genqlient(for: "UpdateOrganizationSettingsInput.defaultBundleAccess", omitempty: true)
+mutation UpdateOrganizationSettings(
+  $organizationId: ID!,
+  $input: UpdateOrganizationSettingsInput!
+) {
+  updateOrganizationSettings(organizationId: $organizationId, input: $input) {
+    result {
+      id
+      # @genqlient(pointer: true)
+      settings {
+        defaultBundleAccess
+      }
+    }
+    successful
+    messages {
+      code
+      field
+      message
     }
   }
 }
@@ -2377,10 +2444,16 @@ query GetProject($organizationId: ID!, $id: ID!) {
 }
 
 # @genqlient(for: "ProjectsFilter.name", omitempty: true, pointer: true)
+# @genqlient(for: "ProjectsFilter.createdAt", omitempty: true, pointer: true)
 # @genqlient(for: "ProjectsFilter.search", omitempty: true)
 # @genqlient(for: "ProjectsFilter.attributes", omitempty: true)
 # @genqlient(for: "StringFilter.eq", omitempty: true)
 # @genqlient(for: "StringFilter.in", omitempty: true)
+# @genqlient(for: "DatetimeFilter.eq", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.gt", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.gte", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.lt", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.lte", omitempty: true, pointer: true)
 # @genqlient(for: "AttributeFilter.eq", omitempty: true)
 # @genqlient(for: "AttributeFilter.in", omitempty: true)
 query ListProjects(
@@ -2592,6 +2665,8 @@ query GetResource($organizationId: ID!, $id: ID!) {
 # @genqlient(for: "ResourcesFilter.origin", omitempty: true, pointer: true)
 # @genqlient(for: "ResourcesFilter.resourceType", omitempty: true, pointer: true)
 # @genqlient(for: "ResourcesFilter.environmentId", omitempty: true, pointer: true)
+# @genqlient(for: "ResourcesFilter.createdAt", omitempty: true, pointer: true)
+# @genqlient(for: "ResourcesFilter.attributes", omitempty: true)
 # @genqlient(for: "ResourcesFilter.search", omitempty: true)
 # @genqlient(for: "ResourceOriginFilter.eq", omitempty: true)
 # @genqlient(for: "ResourceOriginFilter.in", omitempty: true)
@@ -2599,6 +2674,13 @@ query GetResource($organizationId: ID!, $id: ID!) {
 # @genqlient(for: "StringFilter.in", omitempty: true)
 # @genqlient(for: "IdFilter.eq", omitempty: true)
 # @genqlient(for: "IdFilter.in", omitempty: true)
+# @genqlient(for: "DatetimeFilter.eq", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.gt", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.gte", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.lt", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.lte", omitempty: true, pointer: true)
+# @genqlient(for: "AttributeFilter.eq", omitempty: true)
+# @genqlient(for: "AttributeFilter.in", omitempty: true)
 query ListResources(
   $organizationId: ID!,
   # @genqlient(omitempty: true, pointer: true)

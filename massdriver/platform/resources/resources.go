@@ -30,6 +30,7 @@ import (
 	"context"
 	"fmt"
 	"iter"
+	"time"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
@@ -92,13 +93,29 @@ type ListInput struct {
 	Origin Origin
 
 	// ResourceType limits to resources of the given type id (e.g.
-	// "aws-iam-role").
+	// "aws-iam-role"). Append `@<version>` (e.g. "aws-iam-role@1.2.3") to
+	// match a specific published version; a bare identifier matches the
+	// type's 0.0.0 document.
 	ResourceType string
 
 	// EnvironmentID limits to provisioned resources in the named
 	// environment. Imported resources have no environment and are
 	// excluded when this filter is set.
 	EnvironmentID string
+
+	// CreatedAfter and CreatedBefore narrow results to resources created
+	// in a time window. Both bounds are inclusive; either may be zero to
+	// leave that side open.
+	CreatedAfter  time.Time
+	CreatedBefore time.Time
+
+	// Attributes filters by the resource's effective attributes. A
+	// provisioned resource matches attributes set anywhere on its instance
+	// chain (project, environment, component, instance) as well as
+	// `md-resource-type` and `md-id`. An imported resource has no instance
+	// chain, so only `md-resource-type` and `md-id` can match it. Each
+	// entry targets one attribute key; multiple entries are AND'd together.
+	Attributes []types.AttributeFilter
 
 	// Search is a full-text search across the resource name. When set
 	// without an explicit SortBy, results rank by relevance.
@@ -196,8 +213,11 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Resource] {
 	}
 }
 
-// Create imports a new resource of the named resource type. The
-// returned [Resource] has [OriginImported].
+// Create imports a new resource of the named resource type (e.g.
+// "aws-iam-role"). Append `@<version>` to resourceTypeID (e.g.
+// "aws-iam-role@1.2.3") to conform to a specific published version; a bare
+// identifier means the type's 0.0.0 document. The returned [Resource] has
+// [OriginImported].
 func (s *Service) Create(ctx context.Context, resourceTypeID string, input CreateInput) (*Resource, error) {
 	resp, err := gen.CreateResource(ctx, s.client.GQLv2, s.client.Config.OrganizationID, resourceTypeID, gen.CreateResourceInput{
 		Name:    input.Name,
@@ -267,6 +287,14 @@ func buildListFilter(input ListInput) *gen.ResourcesFilter {
 		filter.EnvironmentId = &gen.IdFilter{Eq: input.EnvironmentID}
 		set = true
 	}
+	if !input.CreatedAfter.IsZero() || !input.CreatedBefore.IsZero() {
+		filter.CreatedAt = buildDatetimeFilter(input.CreatedAfter, input.CreatedBefore)
+		set = true
+	}
+	if len(input.Attributes) > 0 {
+		filter.Attributes = toGenAttributeFilters(input.Attributes)
+		set = true
+	}
 	if input.Search != "" {
 		filter.Search = input.Search
 		set = true
@@ -275,6 +303,29 @@ func buildListFilter(input ListInput) *gen.ResourcesFilter {
 		return nil
 	}
 	return filter
+}
+
+// buildDatetimeFilter maps an inclusive [after, before] window onto the
+// generated input, leaving zero bounds unset.
+func buildDatetimeFilter(after, before time.Time) *gen.DatetimeFilter {
+	dt := &gen.DatetimeFilter{}
+	if !after.IsZero() {
+		dt.Gte = &after
+	}
+	if !before.IsZero() {
+		dt.Lte = &before
+	}
+	return dt
+}
+
+// toGenAttributeFilters maps the SDK's attribute filters onto the generated
+// input type.
+func toGenAttributeFilters(in []types.AttributeFilter) []gen.AttributeFilter {
+	out := make([]gen.AttributeFilter, 0, len(in))
+	for _, a := range in {
+		out = append(out, gen.AttributeFilter{Key: a.Key, Eq: a.Eq, In: a.In})
+	}
+	return out
 }
 
 func buildListSort(input ListInput) *gen.ResourcesSort {

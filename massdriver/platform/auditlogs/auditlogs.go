@@ -223,10 +223,10 @@ func buildListFilter(input ListInput) *gen.AuditLogsFilter {
 	if !input.TimeRangeStart.IsZero() || !input.TimeRangeEnd.IsZero() {
 		dt := &gen.DatetimeFilter{}
 		if !input.TimeRangeStart.IsZero() {
-			dt.Gte = input.TimeRangeStart
+			dt.Gte = &input.TimeRangeStart
 		}
 		if !input.TimeRangeEnd.IsZero() {
-			dt.Lte = input.TimeRangeEnd
+			dt.Lte = &input.TimeRangeEnd
 		}
 		filter.OccurredAt = dt
 		set = true

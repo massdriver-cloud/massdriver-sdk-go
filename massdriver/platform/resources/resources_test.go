@@ -3,6 +3,7 @@ package resources_test
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
@@ -105,6 +106,43 @@ func TestList_FilterByOriginAndType(t *testing.T) {
 	rtype, _ := filter["resourceType"].(map[string]any)
 	if rtype["eq"] != "aws-iam-role" {
 		t.Errorf("filter.resourceType.eq = %v, want aws-iam-role", rtype["eq"])
+	}
+}
+
+func TestList_FilterByCreatedAtAndAttributes(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"resources": map[string]any{
+				"cursor": map[string]any{},
+				"items": []map[string]any{
+					{"id": "res-1", "name": "ci-role", "origin": "IMPORTED"},
+				},
+			},
+		}),
+	)
+
+	_, err := types.Collect(newService(gqlClient).Iter(t.Context(), resources.ListInput{
+		CreatedAfter:  time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC),
+		CreatedBefore: time.Date(2026, 5, 31, 23, 59, 59, 0, time.UTC),
+		Attributes:    []types.AttributeFilter{{Key: "team", Eq: "platform"}},
+	}))
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+
+	reqs := gqlClient.Requests()
+	filter, _ := reqs[0].Variables["filter"].(map[string]any)
+	created, _ := filter["createdAt"].(map[string]any)
+	if created["gte"] == nil || created["lte"] == nil {
+		t.Errorf("createdAt = %v, want both gte and lte set", created)
+	}
+	attrs, _ := filter["attributes"].([]any)
+	if len(attrs) != 1 {
+		t.Fatalf("attributes = %v, want 1 entry", attrs)
+	}
+	attr, _ := attrs[0].(map[string]any)
+	if attr["key"] != "team" || attr["eq"] != "platform" {
+		t.Errorf("attributes[0] = %v, want key=team eq=platform", attr)
 	}
 }
 

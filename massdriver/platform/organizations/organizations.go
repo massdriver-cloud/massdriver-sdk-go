@@ -10,7 +10,9 @@
 // expiry), declare custom attributes, or remove a member.
 //
 // Custom attribute CRUD lives in custom_attributes.go in this package.
-// Logo upload requires multipart file transport and is not yet exposed.
+// Organization-wide behavior settings ([Service.GetSettings] /
+// [Service.UpdateSettings]) live in settings.go. Logo upload requires
+// multipart file transport and is not yet exposed.
 //
 // Construct a [*Service] with [New] passing the low-level client, or use the
 // pre-wired [massdriver.Client.Organizations] field on the top-level SDK client.

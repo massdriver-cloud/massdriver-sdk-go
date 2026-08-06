@@ -11,20 +11,31 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/inttest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/accesstokens"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/viewer"
 )
 
-// TestIntegration_AccessTokens_CreateAndRevoke creates a fresh PAT and
-// revokes it. Personal access tokens are an auth-sensitive surface:
-// revoking the wrong token could lock the test runner out, so this
-// test only revokes the token it just created — never anything from
-// List.
+// TestIntegration_AccessTokens_CreateAndRevoke creates a fresh token and
+// revokes it. The create mutation is identity-gated, so the test asks the
+// viewer which identity the sandbox credential is and picks the matching
+// create method. Access tokens are an auth-sensitive surface: revoking the
+// wrong token could lock the test runner out, so this test only revokes
+// the token it just created — never anything from List.
 func TestIntegration_AccessTokens_CreateAndRevoke(t *testing.T) {
 	c := inttest.Client(t)
 	ctx := context.Background()
 
 	name := inttest.FixtureName(t, "pat")
 
-	created, err := c.AccessTokens.Create(ctx, accesstokens.CreateInput{
+	v, err := c.Viewer.Get(ctx)
+	if err != nil {
+		t.Fatalf("Viewer.Get: %v", err)
+	}
+	create := c.AccessTokens.CreatePersonal
+	if v.Kind == viewer.KindServiceAccount {
+		create = c.AccessTokens.CreateServiceAccountToken
+	}
+
+	created, err := create(ctx, accesstokens.CreateInput{
 		Name:             name,
 		Scopes:           []string{"*"},
 		ExpiresInMinutes: 60,

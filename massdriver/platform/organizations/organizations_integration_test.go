@@ -128,3 +128,30 @@ func TestIntegration_Organizations_CustomAttributes_CRUD(t *testing.T) {
 		t.Fatalf("DeleteCustomAttribute: %v", err)
 	}
 }
+
+// TestIntegration_Organizations_Settings reads the organization's behavior
+// settings and writes the same value back — a no-op update that exercises
+// the mutation without changing sandbox state.
+func TestIntegration_Organizations_Settings(t *testing.T) {
+	c := inttest.Client(t)
+	ctx := context.Background()
+
+	settings, err := c.Organizations.GetSettings(ctx)
+	if err != nil {
+		t.Fatalf("GetSettings: %v", err)
+	}
+	if settings.DefaultBundleAccess != organizations.DefaultBundleAccessNone &&
+		settings.DefaultBundleAccess != organizations.DefaultBundleAccessAllProjects {
+		t.Errorf("DefaultBundleAccess = %q, want NONE or ALL_PROJECTS", settings.DefaultBundleAccess)
+	}
+
+	updated, err := c.Organizations.UpdateSettings(ctx, organizations.UpdateSettingsInput{
+		DefaultBundleAccess: settings.DefaultBundleAccess,
+	})
+	if err != nil {
+		t.Fatalf("UpdateSettings: %v", err)
+	}
+	if updated.DefaultBundleAccess != settings.DefaultBundleAccess {
+		t.Errorf("UpdateSettings returned %q, want unchanged %q", updated.DefaultBundleAccess, settings.DefaultBundleAccess)
+	}
+}
