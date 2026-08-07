@@ -1,14 +1,14 @@
-// Package accesstokens provides operations for personal access tokens
-// (PATs) issued to the authenticated identity.
+// Package accesstokens provides operations for access tokens issued to
+// the authenticated identity.
 //
-// Accounts create personal tokens for themselves via
-// [Service.CreatePersonal]; service accounts create tokens for their own
-// identity via [Service.CreateServiceAccountToken]. There is no admin view
-// of another user's personal tokens — list/create/revoke always operate on
-// the caller's own tokens.
+// Accounts create personal access tokens via [Service.CreatePersonal];
+// service accounts create tokens for their own identity via
+// [Service.CreateServiceAccountToken]. There is no admin view of another
+// user's tokens — list/create/revoke always operate on the caller's own
+// tokens.
 //
 // The full bearer token value is returned only once at creation time
-// ([Created.Token]). Store it immediately — if it's lost, revoke the
+// ([AccessToken.Token]). Store it immediately — if it's lost, revoke the
 // token and create a new one.
 //
 // # Verbs
@@ -36,7 +36,10 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 )
 
-// AccessToken is access-token metadata — alias of [types.AccessToken].
+// AccessToken is an access token — alias of [types.AccessToken].
+// [AccessToken.Token] (the raw bearer credential) is populated only on
+// tokens returned by the create methods; list and revoke results carry
+// metadata only.
 type AccessToken = types.AccessToken
 
 // Service is the receiver for access-token operations. Construct with
@@ -110,16 +113,6 @@ type CreateInput struct {
 	ExpiresInMinutes int
 }
 
-// Created is what the create methods return. The embedded [AccessToken] holds
-// the metadata; [Created.Token] is the raw bearer credential — captured ONCE
-// at creation time and unrecoverable afterwards.
-type Created struct {
-	AccessToken
-	// Token is the raw bearer token. Store immediately; the API never
-	// returns it again. If lost, revoke this token and create a new one.
-	Token string
-}
-
 // Iter returns a lazy [iter.Seq2] over the caller's access tokens matching
 // input, fetching pages on demand. It is the recommended way to list: ranging
 // the sequence streams results without buffering the whole match set, and
@@ -171,36 +164,20 @@ func (s *Service) page(input ListInput) paging.FetchFunc[AccessToken] {
 // [Service.CreateServiceAccountToken]. Expiration is capped at 1 year
 // (525,600 minutes).
 //
-// The raw bearer value is in [Created.Token] and cannot be retrieved later.
-func (s *Service) CreatePersonal(ctx context.Context, input CreateInput) (*Created, error) {
-	in := gen.CreatePersonalAccessTokenInput{
-		Name:   input.Name,
-		Scopes: input.Scopes,
-	}
-	if input.ExpiresInMinutes > 0 {
-		v := input.ExpiresInMinutes
-		in.ExpiresInMinutes = &v
-	}
-
-	resp, err := gen.CreatePersonalAccessToken(ctx, s.client.GQLv2, s.client.Config.OrganizationID, in)
+// The raw bearer value is in [AccessToken.Token] and cannot be retrieved later.
+func (s *Service) CreatePersonal(ctx context.Context, input CreateInput) (*AccessToken, error) {
+	resp, err := gen.CreatePersonalAccessToken(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gen.CreatePersonalAccessTokenInput{
+		Name:             input.Name,
+		Scopes:           input.Scopes,
+		ExpiresInMinutes: expiresPtr(input.ExpiresInMinutes),
+	})
 	if err != nil {
 		return nil, gql.ClassifyError(fmt.Errorf("create personal access token: %w", err))
 	}
 	if err := gql.CheckMutation("create personal access token", resp.CreatePersonalAccessToken.Successful, resp.CreatePersonalAccessToken.Messages); err != nil {
 		return nil, err
 	}
-	r := resp.CreatePersonalAccessToken.Result
-	return &Created{
-		AccessToken: AccessToken{
-			ID:        r.Id,
-			Name:      r.Name,
-			Prefix:    r.Prefix,
-			Scopes:    r.Scopes,
-			ExpiresAt: r.ExpiresAt,
-			CreatedAt: r.CreatedAt,
-		},
-		Token: r.Token,
-	}, nil
+	return toAccessToken(resp.CreatePersonalAccessToken.Result)
 }
 
 // CreateServiceAccountToken issues a new access token for the authenticated
@@ -208,41 +185,35 @@ func (s *Service) CreatePersonal(ctx context.Context, input CreateInput) (*Creat
 // use [Service.CreatePersonal]. Expiration is capped at 10 years
 // (5,256,000 minutes).
 //
-// The raw bearer value is in [Created.Token] and cannot be retrieved later.
-func (s *Service) CreateServiceAccountToken(ctx context.Context, input CreateInput) (*Created, error) {
-	in := gen.CreateServiceAccountAccessTokenInput{
-		Name:   input.Name,
-		Scopes: input.Scopes,
-	}
-	if input.ExpiresInMinutes > 0 {
-		v := input.ExpiresInMinutes
-		in.ExpiresInMinutes = &v
-	}
-
-	resp, err := gen.CreateServiceAccountAccessToken(ctx, s.client.GQLv2, s.client.Config.OrganizationID, in)
+// The raw bearer value is in [AccessToken.Token] and cannot be retrieved later.
+func (s *Service) CreateServiceAccountToken(ctx context.Context, input CreateInput) (*AccessToken, error) {
+	resp, err := gen.CreateServiceAccountAccessToken(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gen.CreateServiceAccountAccessTokenInput{
+		Name:             input.Name,
+		Scopes:           input.Scopes,
+		ExpiresInMinutes: expiresPtr(input.ExpiresInMinutes),
+	})
 	if err != nil {
 		return nil, gql.ClassifyError(fmt.Errorf("create service account access token: %w", err))
 	}
 	if err := gql.CheckMutation("create service account access token", resp.CreateServiceAccountAccessToken.Successful, resp.CreateServiceAccountAccessToken.Messages); err != nil {
 		return nil, err
 	}
-	r := resp.CreateServiceAccountAccessToken.Result
-	return &Created{
-		AccessToken: AccessToken{
-			ID:        r.Id,
-			Name:      r.Name,
-			Prefix:    r.Prefix,
-			Scopes:    r.Scopes,
-			ExpiresAt: r.ExpiresAt,
-			CreatedAt: r.CreatedAt,
-		},
-		Token: r.Token,
-	}, nil
+	return toAccessToken(resp.CreateServiceAccountAccessToken.Result)
+}
+
+// expiresPtr converts CreateInput.ExpiresInMinutes to the wire form: nil
+// when unset (zero) so the server applies its default.
+func expiresPtr(minutes int) *int {
+	if minutes <= 0 {
+		return nil
+	}
+	return &minutes
 }
 
 // Revoke revokes an access token by ID. The token immediately stops
 // working for all API requests. Revoking an already-revoked or expired
-// token is a no-op that returns the existing record.
+// token is a no-op that returns the existing record (metadata only —
+// [AccessToken.Token] is never returned after creation).
 func (s *Service) Revoke(ctx context.Context, id string) (*AccessToken, error) {
 	resp, err := gen.RevokeAccessToken(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id)
 	if err != nil {
@@ -254,6 +225,9 @@ func (s *Service) Revoke(ctx context.Context, id string) (*AccessToken, error) {
 	return toAccessToken(resp.RevokeAccessToken.Result)
 }
 
+// toAccessToken maps a genqlient result onto [AccessToken]. Token is filled only
+// when the source carries the raw bearer value (the create mutations); list
+// and revoke results have no such field, so it decodes to empty.
 func toAccessToken(v any) (*AccessToken, error) {
 	t := AccessToken{}
 	if err := decode.Decode(v, &t); err != nil {

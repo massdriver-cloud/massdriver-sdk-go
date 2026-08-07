@@ -34,8 +34,7 @@ type Client struct {
 	// transport client at construction time).
 	config config.Config
 
-	// AccessTokens manages personal access tokens (PATs) for the
-	// authenticated identity.
+	// AccessTokens manages access tokens for the authenticated identity
 	AccessTokens *accesstokens.Service
 	// AuditLogs reads the organization's audit trail.
 	AuditLogs *auditlogs.Service
