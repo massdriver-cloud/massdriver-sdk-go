@@ -2880,6 +2880,27 @@ query ListResourceGrants(
     }
   }
 }
+# RESOURCE TYPES
+
+query GetResourceType($organizationId: ID!, $id: ID!) {
+  resourceType(organizationId: $organizationId, id: $id) {
+    id
+    name
+    icon
+    connectionOrientation
+    schema
+    uiSchema
+    instructions {
+      label
+      content
+    }
+    effectiveAttributes
+    createdAt
+    updatedAt
+  }
+}
+
+
 # SERVER
 
 query GetServer {

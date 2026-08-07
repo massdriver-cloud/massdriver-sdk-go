@@ -93,9 +93,8 @@ type ListInput struct {
 	Origin Origin
 
 	// ResourceType limits to resources of the given type id (e.g.
-	// "aws-iam-role"). Append `@<version>` (e.g. "aws-iam-role@1.2.3") to
-	// match a specific published version; a bare identifier matches the
-	// type's 0.0.0 document.
+	// "aws-iam-role"), optionally pinned to a specific published version
+	// with an `@<version>` suffix (e.g. "aws-iam-role@1.2.3").
 	ResourceType string
 
 	// EnvironmentID limits to provisioned resources in the named
@@ -214,10 +213,9 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Resource] {
 }
 
 // Create imports a new resource of the named resource type (e.g.
-// "aws-iam-role"). Append `@<version>` to resourceTypeID (e.g.
-// "aws-iam-role@1.2.3") to conform to a specific published version; a bare
-// identifier means the type's 0.0.0 document. The returned [Resource] has
-// [OriginImported].
+// "aws-iam-role"), optionally pinned to a specific published version with
+// an `@<version>` suffix (e.g. "aws-iam-role@1.2.3"). The returned
+// [Resource] has [OriginImported].
 func (s *Service) Create(ctx context.Context, resourceTypeID string, input CreateInput) (*Resource, error) {
 	resp, err := gen.CreateResource(ctx, s.client.GQLv2, s.client.Config.OrganizationID, resourceTypeID, gen.CreateResourceInput{
 		Name:    input.Name,

@@ -3136,6 +3136,24 @@ func (v *CompareEnvironmentsResponse) GetCompareEnvironments() CompareEnvironmen
 	return v.CompareEnvironments
 }
 
+// Determines how instances receive a dependency of this resource type.
+//
+// When a bundle declares a dependency, the connection orientation of the
+// dependency's resource type controls how it gets satisfied at deploy time.
+type ConnectionOrientation string
+
+const (
+	// The dependency is wired explicitly by drawing a connection between two instances on the canvas. The user chooses which specific instance provides the resource.
+	ConnectionOrientationLink ConnectionOrientation = "LINK"
+	// The dependency is satisfied automatically by an environment-level default. The resource is shared across all instances in the environment without explicit wiring.
+	ConnectionOrientationEnvironmentDefault ConnectionOrientation = "ENVIRONMENT_DEFAULT"
+)
+
+var AllConnectionOrientation = []ConnectionOrientation{
+	ConnectionOrientationLink,
+	ConnectionOrientationEnvironmentDefault,
+}
+
 // CopyInstanceCopyInstanceInstancePayload includes the requested fields of the GraphQL type InstancePayload.
 type CopyInstanceCopyInstanceInstancePayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -16866,6 +16884,284 @@ type GetResourceResponse struct {
 
 // GetResource returns GetResourceResponse.Resource, and is useful for accessing the field via an interface.
 func (v *GetResourceResponse) GetResource() GetResourceResource { return v.Resource }
+
+// GetResourceTypeResourceType includes the requested fields of the GraphQL type ResourceType.
+// The GraphQL type's documentation follows.
+//
+// A resource type that defines what kind of infrastructure a resource represents.
+//
+// Resource types are the schema layer for Massdriver's connection system. Every
+// dependency a bundle declares and every resource a bundle produces references a
+// resource type. This is what makes bundles composable -- a database bundle that
+// produces an `aws-rds-instance` resource can be connected to any application
+// bundle that declares an `aws-rds-instance` dependency.
+//
+// Resource types include both public types provided by Massdriver (e.g.,
+// `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
+// organization for custom infrastructure.
+type GetResourceTypeResourceType struct {
+	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	Id string `json:"id"`
+	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
+	Name string `json:"name"`
+	// URL to the icon representing this resource type, if available.
+	Icon string `json:"icon"`
+	// How instances receive a dependency of this resource type. Determines whether connections are explicit links on the canvas or automatic environment-level defaults.
+	ConnectionOrientation ConnectionOrientation `json:"connectionOrientation"`
+	// The full JSON Schema describing the shape of data this resource type exposes to dependents.
+	//
+	// Use this to generate forms, validate inputs, or inspect the fields available on a connection
+	// of this resource type. The schema is returned verbatim, including Massdriver's `$md` extensions
+	// (e.g., `icon`, `ui`). Callers that only want the data contract can read `properties.data` or
+	// strip `$md` themselves.
+	Schema map[string]any `json:"-"`
+	// UI hints describing how to render the import form for this resource type.
+	//
+	// Follows [react-jsonschema-form](https://rjsf-team.github.io/react-jsonschema-form/)'s
+	// `uiSchema` conventions: keys mirror the `data` schema's structure and values contain
+	// rendering directives (e.g., `ui:widget`, `ui:order`, `ui:help`). Returns an empty
+	// object when the resource type does not provide UI hints.
+	UiSchema map[string]any `json:"-"`
+	// Step-by-step import instructions, typically one entry per workflow (CLI, console, etc.).
+	//
+	// Each entry is rendered as its own tab or section so users can pick the workflow they
+	// prefer when importing an existing resource. Returns an empty list when the resource
+	// type does not provide instructions.
+	Instructions []GetResourceTypeResourceTypeInstructionsImportInstruction `json:"instructions"`
+	// The auto-injected `md-*` system attributes for this resource type
+	// (today: `md-id`). Resource types do not yet carry user-settable
+	// attributes; user attributes will arrive when resource types move to
+	// OCI-hosted distribution.
+	EffectiveAttributes map[string]any `json:"-"`
+	// Timestamp when this resource type was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// Timestamp when this resource type was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns GetResourceTypeResourceType.Id, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetId() string { return v.Id }
+
+// GetName returns GetResourceTypeResourceType.Name, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetName() string { return v.Name }
+
+// GetIcon returns GetResourceTypeResourceType.Icon, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetIcon() string { return v.Icon }
+
+// GetConnectionOrientation returns GetResourceTypeResourceType.ConnectionOrientation, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetConnectionOrientation() ConnectionOrientation {
+	return v.ConnectionOrientation
+}
+
+// GetSchema returns GetResourceTypeResourceType.Schema, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetSchema() map[string]any { return v.Schema }
+
+// GetUiSchema returns GetResourceTypeResourceType.UiSchema, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetUiSchema() map[string]any { return v.UiSchema }
+
+// GetInstructions returns GetResourceTypeResourceType.Instructions, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetInstructions() []GetResourceTypeResourceTypeInstructionsImportInstruction {
+	return v.Instructions
+}
+
+// GetEffectiveAttributes returns GetResourceTypeResourceType.EffectiveAttributes, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetEffectiveAttributes() map[string]any {
+	return v.EffectiveAttributes
+}
+
+// GetCreatedAt returns GetResourceTypeResourceType.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetCreatedAt() time.Time { return v.CreatedAt }
+
+// GetUpdatedAt returns GetResourceTypeResourceType.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+func (v *GetResourceTypeResourceType) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*GetResourceTypeResourceType
+		Schema              json.RawMessage `json:"schema"`
+		UiSchema            json.RawMessage `json:"uiSchema"`
+		EffectiveAttributes json.RawMessage `json:"effectiveAttributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.GetResourceTypeResourceType = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Schema
+		src := firstPass.Schema
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetResourceTypeResourceType.Schema: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.UiSchema
+		src := firstPass.UiSchema
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetResourceTypeResourceType.UiSchema: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.EffectiveAttributes
+		src := firstPass.EffectiveAttributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetResourceTypeResourceType.EffectiveAttributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalGetResourceTypeResourceType struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Icon string `json:"icon"`
+
+	ConnectionOrientation ConnectionOrientation `json:"connectionOrientation"`
+
+	Schema json.RawMessage `json:"schema"`
+
+	UiSchema json.RawMessage `json:"uiSchema"`
+
+	Instructions []GetResourceTypeResourceTypeInstructionsImportInstruction `json:"instructions"`
+
+	EffectiveAttributes json.RawMessage `json:"effectiveAttributes"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *GetResourceTypeResourceType) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *GetResourceTypeResourceType) __premarshalJSON() (*__premarshalGetResourceTypeResourceType, error) {
+	var retval __premarshalGetResourceTypeResourceType
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Icon = v.Icon
+	retval.ConnectionOrientation = v.ConnectionOrientation
+	{
+
+		dst := &retval.Schema
+		src := v.Schema
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetResourceTypeResourceType.Schema: %w", err)
+		}
+	}
+	{
+
+		dst := &retval.UiSchema
+		src := v.UiSchema
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetResourceTypeResourceType.UiSchema: %w", err)
+		}
+	}
+	retval.Instructions = v.Instructions
+	{
+
+		dst := &retval.EffectiveAttributes
+		src := v.EffectiveAttributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetResourceTypeResourceType.EffectiveAttributes: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// GetResourceTypeResourceTypeInstructionsImportInstruction includes the requested fields of the GraphQL type ImportInstruction.
+// The GraphQL type's documentation follows.
+//
+// A single set of import instructions for a resource type, typically rendered as a tab.
+//
+// Resource types may ship multiple instruction variants (e.g., one for the CLI and one
+// for the cloud console) so users can pick the workflow they prefer when importing an
+// existing resource. The `label` is the tab heading; the `content` is the markdown body.
+type GetResourceTypeResourceTypeInstructionsImportInstruction struct {
+	// Short heading shown above this instruction set (e.g., "AWS CLI", "AWS Console").
+	Label string `json:"label"`
+	// Markdown body of the instructions. Already decoded from any base64 transport encoding.
+	Content string `json:"content"`
+}
+
+// GetLabel returns GetResourceTypeResourceTypeInstructionsImportInstruction.Label, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceTypeInstructionsImportInstruction) GetLabel() string { return v.Label }
+
+// GetContent returns GetResourceTypeResourceTypeInstructionsImportInstruction.Content, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceTypeInstructionsImportInstruction) GetContent() string {
+	return v.Content
+}
+
+// GetResourceTypeResponse is returned by GetResourceType on success.
+type GetResourceTypeResponse struct {
+	// Fetch a single resource type by its identifier.
+	//
+	// Returns `null` with a `NOT_FOUND` error if the resource type does not exist
+	// or is not accessible to your organization.
+	//
+	// ```graphql
+	// query {
+	// resourceType(organizationId: "your-org-id", id: "aws-iam-role") {
+	// id
+	// name
+	// connectionOrientation
+	// icon
+	// }
+	// }
+	// ```
+	ResourceType GetResourceTypeResourceType `json:"resourceType"`
+}
+
+// GetResourceType returns GetResourceTypeResponse.ResourceType, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResponse) GetResourceType() GetResourceTypeResourceType {
+	return v.ResourceType
+}
 
 // GetServerResponse is returned by GetServer on success.
 type GetServerResponse struct {
@@ -31089,6 +31385,18 @@ func (v *__GetResourceInput) GetOrganizationId() string { return v.OrganizationI
 // GetId returns __GetResourceInput.Id, and is useful for accessing the field via an interface.
 func (v *__GetResourceInput) GetId() string { return v.Id }
 
+// __GetResourceTypeInput is used internally by genqlient
+type __GetResourceTypeInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __GetResourceTypeInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__GetResourceTypeInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __GetResourceTypeInput.Id, and is useful for accessing the field via an interface.
+func (v *__GetResourceTypeInput) GetId() string { return v.Id }
+
 // __GetServiceAccountInput is used internally by genqlient
 type __GetServiceAccountInput struct {
 	OrganizationId string `json:"organizationId"`
@@ -35199,6 +35507,54 @@ func GetResource(
 	}
 
 	data_ = &GetResourceResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by GetResourceType.
+const GetResourceType_Operation = `
+query GetResourceType ($organizationId: ID!, $id: ID!) {
+	resourceType(organizationId: $organizationId, id: $id) {
+		id
+		name
+		icon
+		connectionOrientation
+		schema
+		uiSchema
+		instructions {
+			label
+			content
+		}
+		effectiveAttributes
+		createdAt
+		updatedAt
+	}
+}
+`
+
+func GetResourceType(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *GetResourceTypeResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetResourceType",
+		Query:  GetResourceType_Operation,
+		Variables: &__GetResourceTypeInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &GetResourceTypeResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

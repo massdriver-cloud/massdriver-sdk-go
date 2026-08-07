@@ -77,6 +77,7 @@ field. Common entry points:
 | `c.Instances` | Deployed bundle instances, their alarms, secrets, and produced resources. |
 | `c.Deployments` | Trigger and inspect provisioning runs (incl. live log streaming). |
 | `c.Resources` | Provisioned and imported resources, exports, grants. |
+| `c.ResourceTypes` | Read the resource type catalog (connection contracts). |
 | `c.OciRepos` | OCI repositories (CRUD + `oras.Target` for direct artifact access). |
 | `c.Bundles` | Read the published bundle catalog. |
 | `c.Groups`, `c.Policies` | ABAC groups, members, and policies. |

@@ -16,6 +16,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/policies"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/projects"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/resources"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/resourcetypes"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/server"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/serviceaccounts"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/urls"
@@ -66,6 +67,9 @@ type Client struct {
 	// Resources manages provisioned and imported resources, exports,
 	// and grants.
 	Resources *resources.Service
+	// ResourceTypes reads the resource type catalog — the contracts
+	// behind the connection system.
+	ResourceTypes *resourcetypes.Service
 	// Server reports the connected server's version, mode, and
 	// available login methods.
 	Server *server.Service
@@ -159,6 +163,7 @@ func wrap(c *client.Client) *Client {
 		Policies:        policies.New(c),
 		Projects:        projects.New(c),
 		Resources:       resources.New(c),
+		ResourceTypes:   resourcetypes.New(c),
 		Server:          server.New(c),
 		ServiceAccounts: serviceaccounts.New(c),
 		URLs:            urls.New(c),
