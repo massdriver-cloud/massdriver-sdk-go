@@ -2880,6 +2880,7 @@ query ListResourceGrants(
     }
   }
 }
+
 # RESOURCE TYPES
 
 query GetResourceType($organizationId: ID!, $id: ID!) {
@@ -2899,7 +2900,6 @@ query GetResourceType($organizationId: ID!, $id: ID!) {
     updatedAt
   }
 }
-
 
 # SERVER
 

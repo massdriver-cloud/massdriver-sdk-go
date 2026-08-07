@@ -34,6 +34,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/filters"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
@@ -365,35 +366,12 @@ func buildListFilter(input ListInput) *gen.OciReposFilter {
 		Name:         nameFilter,
 		Search:       input.Search,
 		ArtifactType: wireArtifactType(input.ArtifactType),
-		Attributes:   toGenAttributeFilters(input.Attributes),
+		Attributes:   filters.Attributes(input.Attributes),
 	}
 	if !input.CreatedAfter.IsZero() || !input.CreatedBefore.IsZero() {
-		filter.CreatedAt = buildDatetimeFilter(input.CreatedAfter, input.CreatedBefore)
+		filter.CreatedAt = filters.Datetime(input.CreatedAfter, input.CreatedBefore)
 	}
 	return filter
-}
-
-// buildDatetimeFilter maps an inclusive [after, before] window onto the
-// generated input, leaving zero bounds unset.
-func buildDatetimeFilter(after, before time.Time) *gen.DatetimeFilter {
-	dt := &gen.DatetimeFilter{}
-	if !after.IsZero() {
-		dt.Gte = &after
-	}
-	if !before.IsZero() {
-		dt.Lte = &before
-	}
-	return dt
-}
-
-// toGenAttributeFilters maps the SDK's attribute filters onto the generated
-// input type.
-func toGenAttributeFilters(in []types.AttributeFilter) []gen.AttributeFilter {
-	out := make([]gen.AttributeFilter, 0, len(in))
-	for _, a := range in {
-		out = append(out, gen.AttributeFilter{Key: a.Key, Eq: a.Eq, In: a.In})
-	}
-	return out
 }
 
 // wireArtifactType maps the SDK's typed [ArtifactType] enum onto the OCI
