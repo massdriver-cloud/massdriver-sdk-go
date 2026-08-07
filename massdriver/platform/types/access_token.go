@@ -2,10 +2,14 @@ package types
 
 import "time"
 
-// AccessToken is metadata for a personal access token (PAT) issued to an
-// account or service account. The full bearer token value is returned only
-// once at creation time — see the platform/accesstokens package for the
-// shape that includes the raw value.
+// AccessToken is an access token issued to the authenticated identity — a
+// personal access token when the caller is an account, a service-account
+// token when the caller is a service account. The API models both as one
+// type; which kind you hold is determined by the identity that created it.
+//
+// The Token field is the raw bearer credential and is populated only by
+// the create methods — the API returns it exactly once at creation and
+// never again. Tokens from list and revoke operations carry metadata only.
 //
 // Token states (derive from the timestamps below):
 //   - Active: RevokedAt is zero AND ExpiresAt is in the future.
@@ -20,4 +24,9 @@ type AccessToken struct {
 	RevokedAt  time.Time `json:"revokedAt,omitzero" mapstructure:"revokedAt"`
 	LastUsedAt time.Time `json:"lastUsedAt,omitzero" mapstructure:"lastUsedAt"`
 	CreatedAt  time.Time `json:"createdAt,omitzero" mapstructure:"createdAt"`
+
+	// Token is the raw bearer credential. Populated only at creation —
+	// store it immediately; if lost, revoke the token and create a new
+	// one. Empty on tokens returned by list and revoke operations.
+	Token string `json:"token,omitempty" mapstructure:"token"`
 }

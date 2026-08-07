@@ -4,9 +4,9 @@
 //
 // Service accounts have access tokens for authenticating API requests;
 // when one is created, the server issues a default access token alongside
-// it (returned exactly once via [Created.DefaultToken]). Subsequent
-// tokens for the same service account are issued via the accesstokens
-// package after authenticating as that service account.
+// it (returned exactly once via [ServiceAccountWithToken.DefaultToken]).
+// Subsequent tokens for the same service account are issued via the
+// accesstokens package after authenticating as that service account.
 //
 // Service accounts gain permissions by being added to groups. The
 // group-membership operations live in platform/groups
@@ -104,11 +104,11 @@ type UpdateInput struct {
 	Description string
 }
 
-// Created is what [Service.Create] returns. The embedded [ServiceAccount] holds
-// the metadata; [Created.DefaultToken] is the raw bearer credential of
-// the default access token issued alongside — captured ONCE here, never
-// retrievable later.
-type Created struct {
+// ServiceAccountWithToken is what [Service.Create] returns: the service
+// account (embedded) plus the raw bearer credential of the default access
+// token issued alongside — captured ONCE here, never retrievable later. It
+// mirrors the API's ServiceAccountWithDefaultAccessToken type.
+type ServiceAccountWithToken struct {
 	ServiceAccount
 	// DefaultToken is the raw bearer token of the default access token
 	// issued alongside the service account. Store immediately; if lost,
@@ -178,9 +178,9 @@ func (s *Service) page(input ListInput) paging.FetchFunc[ServiceAccount] {
 }
 
 // Create creates a new service account and issues its default access
-// token. The raw bearer value is in [Created.DefaultToken] and cannot be
-// retrieved later.
-func (s *Service) Create(ctx context.Context, input CreateInput) (*Created, error) {
+// token. The raw bearer value is in [ServiceAccountWithToken.DefaultToken]
+// and cannot be retrieved later.
+func (s *Service) Create(ctx context.Context, input CreateInput) (*ServiceAccountWithToken, error) {
 	resp, err := gen.CreateServiceAccount(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gen.CreateServiceAccountInput{
 		Name:                                  input.Name,
 		Description:                           input.Description,
@@ -193,7 +193,7 @@ func (s *Service) Create(ctx context.Context, input CreateInput) (*Created, erro
 		return nil, err
 	}
 	r := resp.CreateServiceAccount.Result
-	return &Created{
+	return &ServiceAccountWithToken{
 		ServiceAccount: ServiceAccount{
 			ID:          r.Id,
 			Name:        r.Name,

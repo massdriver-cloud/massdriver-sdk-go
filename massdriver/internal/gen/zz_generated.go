@@ -1045,7 +1045,7 @@ func (v *AddServiceAccountToGroupAddServiceAccountToGroupServiceAccountGroupPayl
 // A non-human identity for programmatic API access.
 //
 // Service accounts let you integrate CI/CD pipelines, scripts, and external tools with the
-// Massdriver API. They authenticate using access tokens — issue one with `createAccessToken`
+// Massdriver API. They authenticate using access tokens — issue one with `createServiceAccountAccessToken`
 // and pass it as a bearer token on API requests.
 //
 // **Permissions** — Service accounts have no inherent permissions. Add them to groups to grant
@@ -1055,7 +1055,7 @@ func (v *AddServiceAccountToGroupAddServiceAccountToGroupServiceAccountGroupPayl
 // **Lifecycle:**
 // 1. Create the service account.
 // 2. Add the service account to one or more groups to grant access.
-// 3. Issue one or more access tokens for the service account via `createAccessToken`. The raw
+// 3. Issue one or more access tokens for the service account via `createServiceAccountAccessToken`. The raw
 // token value is only shown once at creation — store it securely before navigating away.
 // 4. Delete the service account when it is no longer needed. This immediately revokes all access,
 // including any active access tokens.
@@ -3136,6 +3136,24 @@ func (v *CompareEnvironmentsResponse) GetCompareEnvironments() CompareEnvironmen
 	return v.CompareEnvironments
 }
 
+// Determines how instances receive a dependency of this resource type.
+//
+// When a bundle declares a dependency, the connection orientation of the
+// dependency's resource type controls how it gets satisfied at deploy time.
+type ConnectionOrientation string
+
+const (
+	// The dependency is wired explicitly by drawing a connection between two instances on the canvas. The user chooses which specific instance provides the resource.
+	ConnectionOrientationLink ConnectionOrientation = "LINK"
+	// The dependency is satisfied automatically by an environment-level default. The resource is shared across all instances in the environment without explicit wiring.
+	ConnectionOrientationEnvironmentDefault ConnectionOrientation = "ENVIRONMENT_DEFAULT"
+)
+
+var AllConnectionOrientation = []ConnectionOrientation{
+	ConnectionOrientationLink,
+	ConnectionOrientationEnvironmentDefault,
+}
+
 // CopyInstanceCopyInstanceInstancePayload includes the requested fields of the GraphQL type InstancePayload.
 type CopyInstanceCopyInstanceInstancePayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -3479,205 +3497,6 @@ type CopyInstanceResponse struct {
 // GetCopyInstance returns CopyInstanceResponse.CopyInstance, and is useful for accessing the field via an interface.
 func (v *CopyInstanceResponse) GetCopyInstance() CopyInstanceCopyInstanceInstancePayload {
 	return v.CopyInstance
-}
-
-// CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayload includes the requested fields of the GraphQL type AccessTokenWithValuePayload.
-type CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayload struct {
-	// The object created/updated/deleted by the mutation. May be null if mutation failed.
-	Result CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue `json:"result"`
-	// Indicates if the mutation completed successfully or not.
-	Successful bool `json:"successful"`
-	// A list of failed validations. May be blank or null if mutation succeeded.
-	Messages []CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage `json:"messages"`
-}
-
-// GetResult returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayload.Result, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayload) GetResult() CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue {
-	return v.Result
-}
-
-// GetSuccessful returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayload.Successful, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayload) GetSuccessful() bool {
-	return v.Successful
-}
-
-// GetMessages returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayload.Messages, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayload) GetMessages() []CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage {
-	return v.Messages
-}
-
-// CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
-// The GraphQL type's documentation follows.
-//
-// Validation messages are returned when mutation input does not meet the requirements.
-// While client-side validation is highly recommended to provide the best User Experience,
-// All inputs will always be validated server-side.
-//
-// Some examples of validations are:
-//
-// * Username must be at least 10 characters
-// * Email field does not contain an email address
-// * Birth Date is required
-//
-// While GraphQL has support for required values, mutation data fields are always
-// set to optional in our API. This allows 'required field' messages
-// to be returned in the same manner as other validations. The only exceptions
-// are id fields, which may be required to perform updates or deletes.
-type CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage struct {
-	// A unique error code for the type of validation used.
-	Code string `json:"code"`
-	// The input field that the error applies to. The field can be used to
-	// identify which field the error message should be displayed next to in the
-	// presentation layer.
-	//
-	// If there are multiple errors to display for a field, multiple validation
-	// messages will be in the result.
-	//
-	// This field may be null in cases where an error cannot be applied to a specific field.
-	Field string `json:"field"`
-	// A friendly error message, appropriate for display to the end user.
-	//
-	// The message is interpolated to include the appropriate variables.
-	//
-	// Example: `Username must be at least 10 characters`
-	//
-	// This message may change without notice, so we do not recommend you match against the text.
-	// Instead, use the *code* field for matching.
-	Message string `json:"message"`
-}
-
-// GetCode returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage) GetCode() string {
-	return v.Code
-}
-
-// GetField returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage) GetField() string {
-	return v.Field
-}
-
-// GetMessage returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage) GetMessage() string {
-	return v.Message
-}
-
-// CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue includes the requested fields of the GraphQL type AccessTokenWithValue.
-// The GraphQL type's documentation follows.
-//
-// An access token with the raw token value included.
-//
-// This type is only returned by the `createAccessToken` mutation. The `token` field contains
-// the full credential needed for API authentication and **cannot be retrieved again** after
-// this response. Store it securely before navigating away.
-type CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue struct {
-	// Unique identifier for this access token.
-	Id string `json:"id"`
-	// Human-readable label for identifying this token.
-	Name string `json:"name"`
-	// The full bearer token value for API authentication. Only returned once at creation time — store it immediately in a secure location.
-	Token string `json:"token"`
-	// A short, non-secret prefix (e.g., `md_a1b2c3d4`) used to identify this token in lists and logs without exposing the full value.
-	Prefix string `json:"prefix"`
-	// Permission scopes that limit what this token can do.
-	Scopes []string `json:"scopes"`
-	// When this token expires and stops working (UTC).
-	ExpiresAt time.Time `json:"expiresAt"`
-	// When this token was created (UTC).
-	CreatedAt time.Time `json:"createdAt"`
-}
-
-// GetId returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Id, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetId() string {
-	return v.Id
-}
-
-// GetName returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Name, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetName() string {
-	return v.Name
-}
-
-// GetToken returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Token, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetToken() string {
-	return v.Token
-}
-
-// GetPrefix returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Prefix, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetPrefix() string {
-	return v.Prefix
-}
-
-// GetScopes returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Scopes, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetScopes() []string {
-	return v.Scopes
-}
-
-// GetExpiresAt returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.ExpiresAt, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetExpiresAt() time.Time {
-	return v.ExpiresAt
-}
-
-// GetCreatedAt returns CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.CreatedAt, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetCreatedAt() time.Time {
-	return v.CreatedAt
-}
-
-// Create a scoped, time-limited access token for the authenticated identity.
-type CreateAccessTokenInput struct {
-	// How many minutes until this token expires. Defaults to 60 (1 hour). Maximum ~5,256,000 (10 years).
-	ExpiresInMinutes *int `json:"expiresInMinutes,omitempty"`
-	// A label to identify this token (e.g., 'CI deploy key')
-	Name string `json:"name"`
-	// Permission scopes. At least one required. Currently only ["*"] (full access) is supported.
-	Scopes []string `json:"scopes"`
-}
-
-// GetExpiresInMinutes returns CreateAccessTokenInput.ExpiresInMinutes, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenInput) GetExpiresInMinutes() *int { return v.ExpiresInMinutes }
-
-// GetName returns CreateAccessTokenInput.Name, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenInput) GetName() string { return v.Name }
-
-// GetScopes returns CreateAccessTokenInput.Scopes, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenInput) GetScopes() []string { return v.Scopes }
-
-// CreateAccessTokenResponse is returned by CreateAccessToken on success.
-type CreateAccessTokenResponse struct {
-	// Create a scoped, time-limited access token for the authenticated identity.
-	//
-	// Accounts create personal access tokens for themselves; service accounts create tokens for
-	// their own identity.
-	//
-	// The `token` field in the response contains the full bearer token value — **it is only
-	// shown once**. Store it securely before navigating away. If you lose it, revoke the
-	// token and create a new one.
-	//
-	// Defaults to a 60-minute expiration if `expiresInMinutes` is not specified.
-	//
-	// **Example:**
-	//
-	// ```graphql
-	// mutation {
-	// createAccessToken(
-	// organizationId: "my-org"
-	// input: { name: "deploy-token", scopes: ["*"], expiresInMinutes: 30 }
-	// ) {
-	// result {
-	// id
-	// token
-	// prefix
-	// expiresAt
-	// }
-	// successful
-	// messages { field message }
-	// }
-	// }
-	// ```
-	CreateAccessToken CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayload `json:"createAccessToken"`
-}
-
-// GetCreateAccessToken returns CreateAccessTokenResponse.CreateAccessToken, and is useful for accessing the field via an interface.
-func (v *CreateAccessTokenResponse) GetCreateAccessToken() CreateAccessTokenCreateAccessTokenAccessTokenWithValuePayload {
-	return v.CreateAccessToken
 }
 
 // CreateCustomAttributeCreateCustomAttributeCustomAttributePayload includes the requested fields of the GraphQL type CustomAttributePayload.
@@ -5717,7 +5536,7 @@ type CreateOciRepoInput struct {
 	ArtifactType OciArtifactType `json:"artifactType"`
 	// Key-value attributes for this repository. Used by ABAC policies for fine-grained access control. Reserved `md-*` keys are rejected. Must conform to the organization's custom attributes for the repo scope.
 	Attributes map[string]any `json:"-"`
-	// Unique repository name within your organization, e.g. `aws-aurora-postgres`. Lowercase letters, numbers, dashes, underscores only. Max 53 characters. Cannot be changed after creation.
+	// Unique repository name within your organization, e.g. `aws-aurora-postgres`. Lowercase letters, numbers, dashes, underscores only. Max 100 characters. Cannot be changed after creation.
 	Id string `json:"id"`
 }
 
@@ -5917,9 +5736,9 @@ func (v *CreateOrganizationCreateOrganizationOrganizationPayloadMessagesValidati
 // Members access resources through **group memberships** with role-based permissions.
 // Custom attributes defined at the organization level govern attribute metadata across all child resources.
 //
-// Administrative fields (`billing`, `members`, `customAttributes`) resolve to `null` for
-// callers who lack the corresponding ABAC action; in that case a top-level `FORBIDDEN`
-// error is added to the response while the rest of the organization still resolves.
+// Administrative fields (`billing`, `members`, `customAttributes`, `settings`) resolve to
+// `null` for callers who lack the corresponding ABAC action; in that case a top-level
+// `FORBIDDEN` error is added to the response while the rest of the organization still resolves.
 type CreateOrganizationCreateOrganizationOrganizationPayloadResultOrganization struct {
 	Id string `json:"id"`
 	// Display name shown in the UI and CLI.
@@ -5985,6 +5804,207 @@ type CreateOrganizationResponse struct {
 // GetCreateOrganization returns CreateOrganizationResponse.CreateOrganization, and is useful for accessing the field via an interface.
 func (v *CreateOrganizationResponse) GetCreateOrganization() CreateOrganizationCreateOrganizationOrganizationPayload {
 	return v.CreateOrganization
+}
+
+// CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayload includes the requested fields of the GraphQL type AccessTokenWithValuePayload.
+type CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayload.Result, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayload) GetResult() CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue {
+	return v.Result
+}
+
+// GetSuccessful returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayload.Successful, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayload.Messages, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayload) GetMessages() []CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue includes the requested fields of the GraphQL type AccessTokenWithValue.
+// The GraphQL type's documentation follows.
+//
+// An access token with the raw token value included.
+//
+// This type is only returned by token-creating mutations (`createPersonalAccessToken`,
+// `createServiceAccountAccessToken`, and the deprecated `createAccessToken`). The `token`
+// field contains the full credential needed for API authentication and **cannot be retrieved
+// again** after this response. Store it securely before navigating away.
+type CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue struct {
+	// Unique identifier for this access token.
+	Id string `json:"id"`
+	// Human-readable label for identifying this token.
+	Name string `json:"name"`
+	// The full bearer token value for API authentication. Only returned once at creation time — store it immediately in a secure location.
+	Token string `json:"token"`
+	// A short, non-secret prefix (e.g., `md_a1b2c3d4`) used to identify this token in lists and logs without exposing the full value.
+	Prefix string `json:"prefix"`
+	// Permission scopes that limit what this token can do.
+	Scopes []string `json:"scopes"`
+	// When this token expires and stops working (UTC).
+	ExpiresAt time.Time `json:"expiresAt"`
+	// When this token was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// GetId returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Id, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetId() string {
+	return v.Id
+}
+
+// GetName returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Name, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetName() string {
+	return v.Name
+}
+
+// GetToken returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Token, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetToken() string {
+	return v.Token
+}
+
+// GetPrefix returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Prefix, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetPrefix() string {
+	return v.Prefix
+}
+
+// GetScopes returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Scopes, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetScopes() []string {
+	return v.Scopes
+}
+
+// GetExpiresAt returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetExpiresAt() time.Time {
+	return v.ExpiresAt
+}
+
+// GetCreatedAt returns CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// Create a scoped, time-limited personal access token for the authenticated account.
+type CreatePersonalAccessTokenInput struct {
+	// How many minutes until this token expires. Defaults to 60 (1 hour). Maximum 525,600 minutes (1 year).
+	ExpiresInMinutes *int `json:"expiresInMinutes,omitempty"`
+	// A label to identify this token (e.g., 'Local CLI')
+	Name string `json:"name"`
+	// Permission scopes. At least one required. Currently only ["*"] (full access) is supported.
+	Scopes []string `json:"scopes"`
+}
+
+// GetExpiresInMinutes returns CreatePersonalAccessTokenInput.ExpiresInMinutes, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenInput) GetExpiresInMinutes() *int { return v.ExpiresInMinutes }
+
+// GetName returns CreatePersonalAccessTokenInput.Name, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenInput) GetName() string { return v.Name }
+
+// GetScopes returns CreatePersonalAccessTokenInput.Scopes, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenInput) GetScopes() []string { return v.Scopes }
+
+// CreatePersonalAccessTokenResponse is returned by CreatePersonalAccessToken on success.
+type CreatePersonalAccessTokenResponse struct {
+	// Create a scoped, time-limited personal access token for the authenticated account.
+	//
+	// Only human accounts can call this mutation — service accounts should use
+	// `createServiceAccountAccessToken` instead. Expiration is capped at 1 year
+	// (525,600 minutes).
+	//
+	// The `token` field in the response contains the full bearer token value — **it is only
+	// shown once**. Store it securely before navigating away. If you lose it, revoke the
+	// token and create a new one.
+	//
+	// Defaults to a 60-minute expiration if `expiresInMinutes` is not specified.
+	//
+	// **Example:**
+	//
+	// ```graphql
+	// mutation {
+	// createPersonalAccessToken(
+	// organizationId: "my-org"
+	// input: { name: "local-cli", scopes: ["*"], expiresInMinutes: 43200 }
+	// ) {
+	// result {
+	// id
+	// token
+	// prefix
+	// expiresAt
+	// }
+	// successful
+	// messages { field message }
+	// }
+	// }
+	// ```
+	CreatePersonalAccessToken CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayload `json:"createPersonalAccessToken"`
+}
+
+// GetCreatePersonalAccessToken returns CreatePersonalAccessTokenResponse.CreatePersonalAccessToken, and is useful for accessing the field via an interface.
+func (v *CreatePersonalAccessTokenResponse) GetCreatePersonalAccessToken() CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayload {
+	return v.CreatePersonalAccessToken
 }
 
 // CreateProjectCreateProjectProjectPayload includes the requested fields of the GraphQL type ProjectPayload.
@@ -7257,6 +7277,207 @@ func (v *CreateResourceResponse) GetCreateResource() CreateResourceCreateResourc
 	return v.CreateResource
 }
 
+// CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayload includes the requested fields of the GraphQL type AccessTokenWithValuePayload.
+type CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayload.Result, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayload) GetResult() CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue {
+	return v.Result
+}
+
+// GetSuccessful returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayload.Successful, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayload.Messages, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayload) GetMessages() []CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue includes the requested fields of the GraphQL type AccessTokenWithValue.
+// The GraphQL type's documentation follows.
+//
+// An access token with the raw token value included.
+//
+// This type is only returned by token-creating mutations (`createPersonalAccessToken`,
+// `createServiceAccountAccessToken`, and the deprecated `createAccessToken`). The `token`
+// field contains the full credential needed for API authentication and **cannot be retrieved
+// again** after this response. Store it securely before navigating away.
+type CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue struct {
+	// Unique identifier for this access token.
+	Id string `json:"id"`
+	// Human-readable label for identifying this token.
+	Name string `json:"name"`
+	// The full bearer token value for API authentication. Only returned once at creation time — store it immediately in a secure location.
+	Token string `json:"token"`
+	// A short, non-secret prefix (e.g., `md_a1b2c3d4`) used to identify this token in lists and logs without exposing the full value.
+	Prefix string `json:"prefix"`
+	// Permission scopes that limit what this token can do.
+	Scopes []string `json:"scopes"`
+	// When this token expires and stops working (UTC).
+	ExpiresAt time.Time `json:"expiresAt"`
+	// When this token was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// GetId returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Id, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetId() string {
+	return v.Id
+}
+
+// GetName returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Name, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetName() string {
+	return v.Name
+}
+
+// GetToken returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Token, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetToken() string {
+	return v.Token
+}
+
+// GetPrefix returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Prefix, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetPrefix() string {
+	return v.Prefix
+}
+
+// GetScopes returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.Scopes, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetScopes() []string {
+	return v.Scopes
+}
+
+// GetExpiresAt returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetExpiresAt() time.Time {
+	return v.ExpiresAt
+}
+
+// GetCreatedAt returns CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// Create a scoped, time-limited access token for the authenticated service account.
+type CreateServiceAccountAccessTokenInput struct {
+	// How many minutes until this token expires. Defaults to 60 (1 hour). Maximum 5,256,000 minutes (10 years).
+	ExpiresInMinutes *int `json:"expiresInMinutes,omitempty"`
+	// A label to identify this token (e.g., 'CI deploy key')
+	Name string `json:"name"`
+	// Permission scopes. At least one required. Currently only ["*"] (full access) is supported.
+	Scopes []string `json:"scopes"`
+}
+
+// GetExpiresInMinutes returns CreateServiceAccountAccessTokenInput.ExpiresInMinutes, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenInput) GetExpiresInMinutes() *int { return v.ExpiresInMinutes }
+
+// GetName returns CreateServiceAccountAccessTokenInput.Name, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenInput) GetName() string { return v.Name }
+
+// GetScopes returns CreateServiceAccountAccessTokenInput.Scopes, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenInput) GetScopes() []string { return v.Scopes }
+
+// CreateServiceAccountAccessTokenResponse is returned by CreateServiceAccountAccessToken on success.
+type CreateServiceAccountAccessTokenResponse struct {
+	// Create a scoped, time-limited access token for the authenticated service account.
+	//
+	// Only service accounts can call this mutation — human accounts should use
+	// `createPersonalAccessToken` instead. Expiration is capped at 10 years
+	// (5,256,000 minutes).
+	//
+	// The `token` field in the response contains the full bearer token value — **it is only
+	// shown once**. Store it securely before navigating away. If you lose it, revoke the
+	// token and create a new one.
+	//
+	// Defaults to a 60-minute expiration if `expiresInMinutes` is not specified.
+	//
+	// **Example:**
+	//
+	// ```graphql
+	// mutation {
+	// createServiceAccountAccessToken(
+	// organizationId: "my-org"
+	// input: { name: "deploy-token", scopes: ["*"], expiresInMinutes: 525600 }
+	// ) {
+	// result {
+	// id
+	// token
+	// prefix
+	// expiresAt
+	// }
+	// successful
+	// messages { field message }
+	// }
+	// }
+	// ```
+	CreateServiceAccountAccessToken CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayload `json:"createServiceAccountAccessToken"`
+}
+
+// GetCreateServiceAccountAccessToken returns CreateServiceAccountAccessTokenResponse.CreateServiceAccountAccessToken, and is useful for accessing the field via an interface.
+func (v *CreateServiceAccountAccessTokenResponse) GetCreateServiceAccountAccessToken() CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayload {
+	return v.CreateServiceAccountAccessToken
+}
+
 // CreateServiceAccountCreateServiceAccountServiceAccountWithDefaultAccessTokenPayload includes the requested fields of the GraphQL type ServiceAccountWithDefaultAccessTokenPayload.
 type CreateServiceAccountCreateServiceAccountServiceAccountWithDefaultAccessTokenPayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -7344,7 +7565,7 @@ func (v *CreateServiceAccountCreateServiceAccountServiceAccountWithDefaultAccess
 //
 // The `defaultAccessToken.token` value is the only opportunity to capture the bearer credential
 // for this service account — store it securely before navigating away. If lost, revoke the token
-// and issue a new one with `createAccessToken`.
+// and issue a new one with `createServiceAccountAccessToken`.
 type CreateServiceAccountCreateServiceAccountServiceAccountWithDefaultAccessTokenPayloadResultServiceAccountWithDefaultAccessToken struct {
 	// Unique identifier for this service account.
 	Id string `json:"id"`
@@ -7395,9 +7616,10 @@ func (v *CreateServiceAccountCreateServiceAccountServiceAccountWithDefaultAccess
 //
 // An access token with the raw token value included.
 //
-// This type is only returned by the `createAccessToken` mutation. The `token` field contains
-// the full credential needed for API authentication and **cannot be retrieved again** after
-// this response. Store it securely before navigating away.
+// This type is only returned by token-creating mutations (`createPersonalAccessToken`,
+// `createServiceAccountAccessToken`, and the deprecated `createAccessToken`). The `token`
+// field contains the full credential needed for API authentication and **cannot be retrieved
+// again** after this response. Store it securely before navigating away.
 type CreateServiceAccountCreateServiceAccountServiceAccountWithDefaultAccessTokenPayloadResultServiceAccountWithDefaultAccessTokenDefaultAccessTokenAccessTokenWithValue struct {
 	// Unique identifier for this access token.
 	Id string `json:"id"`
@@ -7477,7 +7699,7 @@ type CreateServiceAccountResponse struct {
 	//
 	// A default access token is issued in the same request — its raw `token` value is returned
 	// once on the response and **cannot be retrieved later**. Capture it before navigating away;
-	// if it's lost, revoke the token and issue a new one via `createAccessToken`.
+	// if it's lost, revoke the token and issue a new one via `createServiceAccountAccessToken`.
 	//
 	// The new service account has no permissions until you add it to a group. Requires
 	// the `organization:manageServiceAccounts` action.
@@ -7636,31 +7858,31 @@ func (v *CustomAttributeValuesResponse) GetCustomAttributeValues() []string {
 // ```
 type DatetimeFilter struct {
 	// Return only results with a datetime exactly equal to this value.
-	Eq time.Time `json:"eq,omitempty"`
+	Eq *time.Time `json:"eq,omitempty"`
 	// Return only results with a datetime strictly after this value.
-	Gt time.Time `json:"gt,omitempty"`
+	Gt *time.Time `json:"gt,omitempty"`
 	// Return only results with a datetime on or after this value. Combine with `lte` for date ranges.
-	Gte time.Time `json:"gte,omitempty"`
+	Gte *time.Time `json:"gte,omitempty"`
 	// Return only results with a datetime strictly before this value.
-	Lt time.Time `json:"lt,omitempty"`
+	Lt *time.Time `json:"lt,omitempty"`
 	// Return only results with a datetime on or before this value. Combine with `gte` for date ranges.
-	Lte time.Time `json:"lte,omitempty"`
+	Lte *time.Time `json:"lte,omitempty"`
 }
 
 // GetEq returns DatetimeFilter.Eq, and is useful for accessing the field via an interface.
-func (v *DatetimeFilter) GetEq() time.Time { return v.Eq }
+func (v *DatetimeFilter) GetEq() *time.Time { return v.Eq }
 
 // GetGt returns DatetimeFilter.Gt, and is useful for accessing the field via an interface.
-func (v *DatetimeFilter) GetGt() time.Time { return v.Gt }
+func (v *DatetimeFilter) GetGt() *time.Time { return v.Gt }
 
 // GetGte returns DatetimeFilter.Gte, and is useful for accessing the field via an interface.
-func (v *DatetimeFilter) GetGte() time.Time { return v.Gte }
+func (v *DatetimeFilter) GetGte() *time.Time { return v.Gte }
 
 // GetLt returns DatetimeFilter.Lt, and is useful for accessing the field via an interface.
-func (v *DatetimeFilter) GetLt() time.Time { return v.Lt }
+func (v *DatetimeFilter) GetLt() *time.Time { return v.Lt }
 
 // GetLte returns DatetimeFilter.Lte, and is useful for accessing the field via an interface.
-func (v *DatetimeFilter) GetLte() time.Time { return v.Lte }
+func (v *DatetimeFilter) GetLte() *time.Time { return v.Lte }
 
 // DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayload includes the requested fields of the GraphQL type EnvironmentPayload.
 type DecommissionEnvironmentDecommissionEnvironmentEnvironmentPayload struct {
@@ -9612,7 +9834,7 @@ func (v *DeleteServiceAccountDeleteServiceAccountServiceAccountPayloadMessagesVa
 // A non-human identity for programmatic API access.
 //
 // Service accounts let you integrate CI/CD pipelines, scripts, and external tools with the
-// Massdriver API. They authenticate using access tokens — issue one with `createAccessToken`
+// Massdriver API. They authenticate using access tokens — issue one with `createServiceAccountAccessToken`
 // and pass it as a bearer token on API requests.
 //
 // **Permissions** — Service accounts have no inherent permissions. Add them to groups to grant
@@ -9622,7 +9844,7 @@ func (v *DeleteServiceAccountDeleteServiceAccountServiceAccountPayloadMessagesVa
 // **Lifecycle:**
 // 1. Create the service account.
 // 2. Add the service account to one or more groups to grant access.
-// 3. Issue one or more access tokens for the service account via `createAccessToken`. The raw
+// 3. Issue one or more access tokens for the service account via `createServiceAccountAccessToken`. The raw
 // token value is only shown once at creation — store it securely before navigating away.
 // 4. Delete the service account when it is no longer needed. This immediately revokes all access,
 // including any active access tokens.
@@ -9994,7 +10216,7 @@ type EnvironmentsFilter struct {
 	// Filter to environments belonging to a specific project.
 	ProjectId *IdFilter `json:"projectId,omitempty"`
 	// Filter by environment identifier (supports exact match and `in` list).
-	Id *StringFilter `json:"id,omitempty"`
+	Id *IdFilter `json:"id,omitempty"`
 	// Match by the environment's effective attributes, including those inherited from its project. Each entry targets one attribute key; multiple entries are combined with AND.
 	Attributes []AttributeFilter `json:"attributes,omitempty"`
 }
@@ -10003,7 +10225,7 @@ type EnvironmentsFilter struct {
 func (v *EnvironmentsFilter) GetProjectId() *IdFilter { return v.ProjectId }
 
 // GetId returns EnvironmentsFilter.Id, and is useful for accessing the field via an interface.
-func (v *EnvironmentsFilter) GetId() *StringFilter { return v.Id }
+func (v *EnvironmentsFilter) GetId() *IdFilter { return v.Id }
 
 // GetAttributes returns EnvironmentsFilter.Attributes, and is useful for accessing the field via an interface.
 func (v *EnvironmentsFilter) GetAttributes() []AttributeFilter { return v.Attributes }
@@ -11406,7 +11628,7 @@ type GetBundleBundleDependenciesBundleDependency struct {
 	Name string `json:"name"`
 	// When `true`, this dependency must be connected before the bundle can be deployed.
 	Required bool `json:"required"`
-	// The resource type this dependency accepts. `null` if the resource type has been removed from the catalog.
+	// The resource type this dependency accepts. `null` if the field is not pinned to a resource type — for example, the type has been removed from the catalog.
 	ResourceType GetBundleBundleDependenciesBundleDependencyResourceType `json:"resourceType"`
 }
 
@@ -11462,7 +11684,7 @@ type GetBundleBundleResourcesBundleResource struct {
 	Name string `json:"name"`
 	// When `true`, this resource is always produced on a successful deployment.
 	Required bool `json:"required"`
-	// The resource type this output produces. `null` if the resource type has been removed from the catalog.
+	// The resource type this output produces. `null` if the field is not pinned to a resource type — for example, the type has been removed from the catalog.
 	ResourceType GetBundleBundleResourcesBundleResourceResourceType `json:"resourceType"`
 }
 
@@ -15485,9 +15707,9 @@ func (v *GetOciRepoResponse) GetOciRepo() GetOciRepoOciRepo { return v.OciRepo }
 // Members access resources through **group memberships** with role-based permissions.
 // Custom attributes defined at the organization level govern attribute metadata across all child resources.
 //
-// Administrative fields (`billing`, `members`, `customAttributes`) resolve to `null` for
-// callers who lack the corresponding ABAC action; in that case a top-level `FORBIDDEN`
-// error is added to the response while the rest of the organization still resolves.
+// Administrative fields (`billing`, `members`, `customAttributes`, `settings`) resolve to
+// `null` for callers who lack the corresponding ABAC action; in that case a top-level
+// `FORBIDDEN` error is added to the response while the rest of the organization still resolves.
 type GetOrganizationOrganization struct {
 	Id string `json:"id"`
 	// Display name shown in the UI and CLI.
@@ -15548,6 +15770,90 @@ type GetOrganizationResponse struct {
 
 // GetOrganization returns GetOrganizationResponse.Organization, and is useful for accessing the field via an interface.
 func (v *GetOrganizationResponse) GetOrganization() GetOrganizationOrganization {
+	return v.Organization
+}
+
+// GetOrganizationSettingsOrganization includes the requested fields of the GraphQL type Organization.
+// The GraphQL type's documentation follows.
+//
+// The top-level account that owns all your infrastructure, projects, and team members.
+//
+// An organization is the root of the Massdriver resource hierarchy. Everything you build
+// and deploy lives under an organization: **Projects** contain your infrastructure designs,
+// **Environments** (like staging and production) are where those designs come to life, and
+// **Instances** are the actual running cloud resources.
+//
+// ```mermaid
+// graph TD
+// O["Organization"] --> P1["Project"]
+// O --> P2["Project"]
+// P1 --> E1["Environment: staging"]
+// P1 --> E2["Environment: production"]
+// E1 --> I1["Instance"]
+// E1 --> I2["Instance"]
+// ```
+//
+// Members access resources through **group memberships** with role-based permissions.
+// Custom attributes defined at the organization level govern attribute metadata across all child resources.
+//
+// Administrative fields (`billing`, `members`, `customAttributes`, `settings`) resolve to
+// `null` for callers who lack the corresponding ABAC action; in that case a top-level
+// `FORBIDDEN` error is added to the response while the rest of the organization still resolves.
+type GetOrganizationSettingsOrganization struct {
+	Id string `json:"id"`
+	// Organization-wide behavior settings.
+	//
+	// Requires the `organization:manageSettings` action. Change settings with the
+	// `updateOrganizationSettings` mutation.
+	Settings *GetOrganizationSettingsOrganizationSettings `json:"settings"`
+}
+
+// GetId returns GetOrganizationSettingsOrganization.Id, and is useful for accessing the field via an interface.
+func (v *GetOrganizationSettingsOrganization) GetId() string { return v.Id }
+
+// GetSettings returns GetOrganizationSettingsOrganization.Settings, and is useful for accessing the field via an interface.
+func (v *GetOrganizationSettingsOrganization) GetSettings() *GetOrganizationSettingsOrganizationSettings {
+	return v.Settings
+}
+
+// GetOrganizationSettingsOrganizationSettings includes the requested fields of the GraphQL type OrganizationSettings.
+// The GraphQL type's documentation follows.
+//
+// Organization-wide behavior settings.
+//
+// Settings apply to the whole organization and shape platform behavior — for
+// example, the access new bundle repositories receive at creation. Each setting
+// has a default, so organizations created before a setting existed read it as
+// the default. Change settings with the `updateOrganizationSettings` mutation.
+type GetOrganizationSettingsOrganizationSettings struct {
+	// Access granted to new bundle repositories at creation. Defaults to `NONE` — new repositories are restricted until a grant is authored for them.
+	DefaultBundleAccess OrganizationDefaultBundleAccess `json:"defaultBundleAccess"`
+}
+
+// GetDefaultBundleAccess returns GetOrganizationSettingsOrganizationSettings.DefaultBundleAccess, and is useful for accessing the field via an interface.
+func (v *GetOrganizationSettingsOrganizationSettings) GetDefaultBundleAccess() OrganizationDefaultBundleAccess {
+	return v.DefaultBundleAccess
+}
+
+// GetOrganizationSettingsResponse is returned by GetOrganizationSettings on success.
+type GetOrganizationSettingsResponse struct {
+	// Fetch your organization's details, including custom attributes and logo.
+	//
+	// ```graphql
+	// query {
+	// organization(organizationId: "my-org") {
+	// id
+	// name
+	// subscriptionStatus
+	// customAttributes { items { key scope required } }
+	// }
+	// }
+	// ```
+	Organization GetOrganizationSettingsOrganization `json:"organization"`
+}
+
+// GetOrganization returns GetOrganizationSettingsResponse.Organization, and is useful for accessing the field via an interface.
+func (v *GetOrganizationSettingsResponse) GetOrganization() GetOrganizationSettingsOrganization {
 	return v.Organization
 }
 
@@ -16579,6 +16885,284 @@ type GetResourceResponse struct {
 // GetResource returns GetResourceResponse.Resource, and is useful for accessing the field via an interface.
 func (v *GetResourceResponse) GetResource() GetResourceResource { return v.Resource }
 
+// GetResourceTypeResourceType includes the requested fields of the GraphQL type ResourceType.
+// The GraphQL type's documentation follows.
+//
+// A resource type that defines what kind of infrastructure a resource represents.
+//
+// Resource types are the schema layer for Massdriver's connection system. Every
+// dependency a bundle declares and every resource a bundle produces references a
+// resource type. This is what makes bundles composable -- a database bundle that
+// produces an `aws-rds-instance` resource can be connected to any application
+// bundle that declares an `aws-rds-instance` dependency.
+//
+// Resource types include both public types provided by Massdriver (e.g.,
+// `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
+// organization for custom infrastructure.
+type GetResourceTypeResourceType struct {
+	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	Id string `json:"id"`
+	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
+	Name string `json:"name"`
+	// URL to the icon representing this resource type, if available.
+	Icon string `json:"icon"`
+	// How instances receive a dependency of this resource type. Determines whether connections are explicit links on the canvas or automatic environment-level defaults.
+	ConnectionOrientation ConnectionOrientation `json:"connectionOrientation"`
+	// The full JSON Schema describing the shape of data this resource type exposes to dependents.
+	//
+	// Use this to generate forms, validate inputs, or inspect the fields available on a connection
+	// of this resource type. The schema is returned verbatim, including Massdriver's `$md` extensions
+	// (e.g., `icon`, `ui`). Callers that only want the data contract can read `properties.data` or
+	// strip `$md` themselves.
+	Schema map[string]any `json:"-"`
+	// UI hints describing how to render the import form for this resource type.
+	//
+	// Follows [react-jsonschema-form](https://rjsf-team.github.io/react-jsonschema-form/)'s
+	// `uiSchema` conventions: keys mirror the `data` schema's structure and values contain
+	// rendering directives (e.g., `ui:widget`, `ui:order`, `ui:help`). Returns an empty
+	// object when the resource type does not provide UI hints.
+	UiSchema map[string]any `json:"-"`
+	// Step-by-step import instructions, typically one entry per workflow (CLI, console, etc.).
+	//
+	// Each entry is rendered as its own tab or section so users can pick the workflow they
+	// prefer when importing an existing resource. Returns an empty list when the resource
+	// type does not provide instructions.
+	Instructions []GetResourceTypeResourceTypeInstructionsImportInstruction `json:"instructions"`
+	// The auto-injected `md-*` system attributes for this resource type
+	// (today: `md-id`). Resource types do not yet carry user-settable
+	// attributes; user attributes will arrive when resource types move to
+	// OCI-hosted distribution.
+	EffectiveAttributes map[string]any `json:"-"`
+	// Timestamp when this resource type was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// Timestamp when this resource type was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns GetResourceTypeResourceType.Id, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetId() string { return v.Id }
+
+// GetName returns GetResourceTypeResourceType.Name, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetName() string { return v.Name }
+
+// GetIcon returns GetResourceTypeResourceType.Icon, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetIcon() string { return v.Icon }
+
+// GetConnectionOrientation returns GetResourceTypeResourceType.ConnectionOrientation, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetConnectionOrientation() ConnectionOrientation {
+	return v.ConnectionOrientation
+}
+
+// GetSchema returns GetResourceTypeResourceType.Schema, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetSchema() map[string]any { return v.Schema }
+
+// GetUiSchema returns GetResourceTypeResourceType.UiSchema, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetUiSchema() map[string]any { return v.UiSchema }
+
+// GetInstructions returns GetResourceTypeResourceType.Instructions, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetInstructions() []GetResourceTypeResourceTypeInstructionsImportInstruction {
+	return v.Instructions
+}
+
+// GetEffectiveAttributes returns GetResourceTypeResourceType.EffectiveAttributes, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetEffectiveAttributes() map[string]any {
+	return v.EffectiveAttributes
+}
+
+// GetCreatedAt returns GetResourceTypeResourceType.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetCreatedAt() time.Time { return v.CreatedAt }
+
+// GetUpdatedAt returns GetResourceTypeResourceType.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+func (v *GetResourceTypeResourceType) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*GetResourceTypeResourceType
+		Schema              json.RawMessage `json:"schema"`
+		UiSchema            json.RawMessage `json:"uiSchema"`
+		EffectiveAttributes json.RawMessage `json:"effectiveAttributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.GetResourceTypeResourceType = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Schema
+		src := firstPass.Schema
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetResourceTypeResourceType.Schema: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.UiSchema
+		src := firstPass.UiSchema
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetResourceTypeResourceType.UiSchema: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.EffectiveAttributes
+		src := firstPass.EffectiveAttributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetResourceTypeResourceType.EffectiveAttributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalGetResourceTypeResourceType struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Icon string `json:"icon"`
+
+	ConnectionOrientation ConnectionOrientation `json:"connectionOrientation"`
+
+	Schema json.RawMessage `json:"schema"`
+
+	UiSchema json.RawMessage `json:"uiSchema"`
+
+	Instructions []GetResourceTypeResourceTypeInstructionsImportInstruction `json:"instructions"`
+
+	EffectiveAttributes json.RawMessage `json:"effectiveAttributes"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *GetResourceTypeResourceType) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *GetResourceTypeResourceType) __premarshalJSON() (*__premarshalGetResourceTypeResourceType, error) {
+	var retval __premarshalGetResourceTypeResourceType
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Icon = v.Icon
+	retval.ConnectionOrientation = v.ConnectionOrientation
+	{
+
+		dst := &retval.Schema
+		src := v.Schema
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetResourceTypeResourceType.Schema: %w", err)
+		}
+	}
+	{
+
+		dst := &retval.UiSchema
+		src := v.UiSchema
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetResourceTypeResourceType.UiSchema: %w", err)
+		}
+	}
+	retval.Instructions = v.Instructions
+	{
+
+		dst := &retval.EffectiveAttributes
+		src := v.EffectiveAttributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetResourceTypeResourceType.EffectiveAttributes: %w", err)
+		}
+	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// GetResourceTypeResourceTypeInstructionsImportInstruction includes the requested fields of the GraphQL type ImportInstruction.
+// The GraphQL type's documentation follows.
+//
+// A single set of import instructions for a resource type, typically rendered as a tab.
+//
+// Resource types may ship multiple instruction variants (e.g., one for the CLI and one
+// for the cloud console) so users can pick the workflow they prefer when importing an
+// existing resource. The `label` is the tab heading; the `content` is the markdown body.
+type GetResourceTypeResourceTypeInstructionsImportInstruction struct {
+	// Short heading shown above this instruction set (e.g., "AWS CLI", "AWS Console").
+	Label string `json:"label"`
+	// Markdown body of the instructions. Already decoded from any base64 transport encoding.
+	Content string `json:"content"`
+}
+
+// GetLabel returns GetResourceTypeResourceTypeInstructionsImportInstruction.Label, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceTypeInstructionsImportInstruction) GetLabel() string { return v.Label }
+
+// GetContent returns GetResourceTypeResourceTypeInstructionsImportInstruction.Content, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceTypeInstructionsImportInstruction) GetContent() string {
+	return v.Content
+}
+
+// GetResourceTypeResponse is returned by GetResourceType on success.
+type GetResourceTypeResponse struct {
+	// Fetch a single resource type by its identifier.
+	//
+	// Returns `null` with a `NOT_FOUND` error if the resource type does not exist
+	// or is not accessible to your organization.
+	//
+	// ```graphql
+	// query {
+	// resourceType(organizationId: "your-org-id", id: "aws-iam-role") {
+	// id
+	// name
+	// connectionOrientation
+	// icon
+	// }
+	// }
+	// ```
+	ResourceType GetResourceTypeResourceType `json:"resourceType"`
+}
+
+// GetResourceType returns GetResourceTypeResponse.ResourceType, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResponse) GetResourceType() GetResourceTypeResourceType {
+	return v.ResourceType
+}
+
 // GetServerResponse is returned by GetServer on success.
 type GetServerResponse struct {
 	// Get server metadata and available authentication methods.
@@ -16714,7 +17298,7 @@ func (v *GetServiceAccountResponse) GetServiceAccount() GetServiceAccountService
 // A non-human identity for programmatic API access.
 //
 // Service accounts let you integrate CI/CD pipelines, scripts, and external tools with the
-// Massdriver API. They authenticate using access tokens — issue one with `createAccessToken`
+// Massdriver API. They authenticate using access tokens — issue one with `createServiceAccountAccessToken`
 // and pass it as a bearer token on API requests.
 //
 // **Permissions** — Service accounts have no inherent permissions. Add them to groups to grant
@@ -16724,7 +17308,7 @@ func (v *GetServiceAccountResponse) GetServiceAccount() GetServiceAccountService
 // **Lifecycle:**
 // 1. Create the service account.
 // 2. Add the service account to one or more groups to grant access.
-// 3. Issue one or more access tokens for the service account via `createAccessToken`. The raw
+// 3. Issue one or more access tokens for the service account via `createServiceAccountAccessToken`. The raw
 // token value is only shown once at creation — store it securely before navigating away.
 // 4. Delete the service account when it is no longer needed. This immediately revokes all access,
 // including any active access tokens.
@@ -17031,9 +17615,9 @@ func (v *GetViewerViewerServiceAccountViewer) GetOrganization() GetViewerViewerS
 // Members access resources through **group memberships** with role-based permissions.
 // Custom attributes defined at the organization level govern attribute metadata across all child resources.
 //
-// Administrative fields (`billing`, `members`, `customAttributes`) resolve to `null` for
-// callers who lack the corresponding ABAC action; in that case a top-level `FORBIDDEN`
-// error is added to the response while the rest of the organization still resolves.
+// Administrative fields (`billing`, `members`, `customAttributes`, `settings`) resolve to
+// `null` for callers who lack the corresponding ABAC action; in that case a top-level
+// `FORBIDDEN` error is added to the response while the rest of the organization still resolves.
 type GetViewerViewerServiceAccountViewerOrganization struct {
 	Id string `json:"id"`
 	// Display name shown in the UI and CLI.
@@ -19595,7 +20179,7 @@ func (v *ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageCursorPa
 // A non-human identity for programmatic API access.
 //
 // Service accounts let you integrate CI/CD pipelines, scripts, and external tools with the
-// Massdriver API. They authenticate using access tokens — issue one with `createAccessToken`
+// Massdriver API. They authenticate using access tokens — issue one with `createServiceAccountAccessToken`
 // and pass it as a bearer token on API requests.
 //
 // **Permissions** — Service accounts have no inherent permissions. Add them to groups to grant
@@ -19605,7 +20189,7 @@ func (v *ListGroupServiceAccountsGroupServiceAccountsServiceAccountsPageCursorPa
 // **Lifecycle:**
 // 1. Create the service account.
 // 2. Add the service account to one or more groups to grant access.
-// 3. Issue one or more access tokens for the service account via `createAccessToken`. The raw
+// 3. Issue one or more access tokens for the service account via `createServiceAccountAccessToken`. The raw
 // token value is only shown once at creation — store it securely before navigating away.
 // 4. Delete the service account when it is no longer needed. This immediately revokes all access,
 // including any active access tokens.
@@ -21083,9 +21667,10 @@ func (v *ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoRelea
 type ListOciReposResponse struct {
 	// List OCI repositories in your organization's bundle catalog.
 	//
-	// Returns a paginated list of repositories. Each repository is the container
-	// for all published versions of a bundle. Use `filter` to narrow by name,
-	// artifact type, or full-text search.
+	// Returns a paginated list of repositories of every artifact type (bundles
+	// and resource types). Each repository is the container for all published
+	// versions of its artifact. Use `filter` to narrow by name, artifact type,
+	// or full-text search.
 	//
 	// ```graphql
 	// query {
@@ -21130,9 +21715,9 @@ func (v *ListOciReposResponse) GetOciRepos() ListOciReposOciReposOciReposPage { 
 // Members access resources through **group memberships** with role-based permissions.
 // Custom attributes defined at the organization level govern attribute metadata across all child resources.
 //
-// Administrative fields (`billing`, `members`, `customAttributes`) resolve to `null` for
-// callers who lack the corresponding ABAC action; in that case a top-level `FORBIDDEN`
-// error is added to the response while the rest of the organization still resolves.
+// Administrative fields (`billing`, `members`, `customAttributes`, `settings`) resolve to
+// `null` for callers who lack the corresponding ABAC action; in that case a top-level
+// `FORBIDDEN` error is added to the response while the rest of the organization still resolves.
 type ListOrganizationCustomAttributesOrganization struct {
 	Id string `json:"id"`
 	// Paginated list of custom attributes that govern attribute metadata across this organization.
@@ -21309,9 +21894,9 @@ func (v *ListOrganizationCustomAttributesResponse) GetOrganization() ListOrganiz
 // Members access resources through **group memberships** with role-based permissions.
 // Custom attributes defined at the organization level govern attribute metadata across all child resources.
 //
-// Administrative fields (`billing`, `members`, `customAttributes`) resolve to `null` for
-// callers who lack the corresponding ABAC action; in that case a top-level `FORBIDDEN`
-// error is added to the response while the rest of the organization still resolves.
+// Administrative fields (`billing`, `members`, `customAttributes`, `settings`) resolve to
+// `null` for callers who lack the corresponding ABAC action; in that case a top-level
+// `FORBIDDEN` error is added to the response while the rest of the organization still resolves.
 type ListOrganizationMembersOrganization struct {
 	Id string `json:"id"`
 	// Paginated list of every human account in this organization, whether or not they belong to a group.
@@ -23003,7 +23588,7 @@ func (v *ListServiceAccountsServiceAccountsServiceAccountsPageCursorPaginationCu
 // A non-human identity for programmatic API access.
 //
 // Service accounts let you integrate CI/CD pipelines, scripts, and external tools with the
-// Massdriver API. They authenticate using access tokens — issue one with `createAccessToken`
+// Massdriver API. They authenticate using access tokens — issue one with `createServiceAccountAccessToken`
 // and pass it as a bearer token on API requests.
 //
 // **Permissions** — Service accounts have no inherent permissions. Add them to groups to grant
@@ -23013,7 +23598,7 @@ func (v *ListServiceAccountsServiceAccountsServiceAccountsPageCursorPaginationCu
 // **Lifecycle:**
 // 1. Create the service account.
 // 2. Add the service account to one or more groups to grant access.
-// 3. Issue one or more access tokens for the service account via `createAccessToken`. The raw
+// 3. Issue one or more access tokens for the service account via `createServiceAccountAccessToken`. The raw
 // token value is only shown once at creation — store it securely before navigating away.
 // 4. Delete the service account when it is no longer needed. This immediately revokes all access,
 // including any active access tokens.
@@ -23107,10 +23692,14 @@ func (v *OciRepoNameFilter) GetStartsWith() string { return v.StartsWith }
 //
 // All filters are combined with AND logic.
 type OciReposFilter struct {
-	// Filter by OCI artifact media type. Supported types are `application/vnd.massdriver.bundle.v1+json` and `application/vnd.massdriver.resource-type.v1+json`. Passing an unsupported type returns an empty list.
+	// Filter by OCI artifact media type. Supported types are `application/vnd.massdriver.bundle.v1+json` and `application/vnd.massdriver.resource-type.v1+json`. When omitted, repositories of every artifact type are returned. Passing an unsupported type returns an empty list.
 	ArtifactType string `json:"artifactType,omitempty"`
 	// Filter repositories by name using exact match, prefix, or set membership.
 	Name *OciRepoNameFilter `json:"name,omitempty"`
+	// Match by when the repository was created. Combine `gte` and `lte` to select a date range.
+	CreatedAt *DatetimeFilter `json:"createdAt,omitempty"`
+	// Match by the repository's attributes. Repositories are organization-level, so there is no inheritance — only attributes set on the repository itself match, plus `md-repo` and `md-id`, which both resolve to the repository name. Each entry targets one attribute key; multiple entries are combined with AND.
+	Attributes []AttributeFilter `json:"attributes,omitempty"`
 	// Full-text search across the repository name, readme, and changelog. Results are ranked by relevance unless you provide an explicit `sort`. For terms longer than 3 characters, name-prefix matches are also included. **Note:** pagination cursors returned by search results use offset-based pagination and are not interchangeable with cursors from non-search queries.
 	Search string `json:"search,omitempty"`
 }
@@ -23120,6 +23709,12 @@ func (v *OciReposFilter) GetArtifactType() string { return v.ArtifactType }
 
 // GetName returns OciReposFilter.Name, and is useful for accessing the field via an interface.
 func (v *OciReposFilter) GetName() *OciRepoNameFilter { return v.Name }
+
+// GetCreatedAt returns OciReposFilter.CreatedAt, and is useful for accessing the field via an interface.
+func (v *OciReposFilter) GetCreatedAt() *DatetimeFilter { return v.CreatedAt }
+
+// GetAttributes returns OciReposFilter.Attributes, and is useful for accessing the field via an interface.
+func (v *OciReposFilter) GetAttributes() []AttributeFilter { return v.Attributes }
 
 // GetSearch returns OciReposFilter.Search, and is useful for accessing the field via an interface.
 func (v *OciReposFilter) GetSearch() string { return v.Search }
@@ -23157,6 +23752,24 @@ const (
 var AllOciReposSortField = []OciReposSortField{
 	OciReposSortFieldName,
 	OciReposSortFieldCreatedAt,
+}
+
+// Access granted to new bundle repositories at creation.
+//
+// Changing this setting only affects repositories created afterwards — access
+// to existing repositories is managed through their grants.
+type OrganizationDefaultBundleAccess string
+
+const (
+	// New bundle repositories are restricted until a grant is authored for them.
+	OrganizationDefaultBundleAccessNone OrganizationDefaultBundleAccess = "NONE"
+	// Every new bundle repository automatically receives an org-wide `repo:pull` grant, making its bundles usable by every project. The grant is a normal grant row: it is listed on the repository and can be revoked with `deleteGrant`.
+	OrganizationDefaultBundleAccessAllProjects OrganizationDefaultBundleAccess = "ALL_PROJECTS"
+)
+
+var AllOrganizationDefaultBundleAccess = []OrganizationDefaultBundleAccess{
+	OrganizationDefaultBundleAccessNone,
+	OrganizationDefaultBundleAccessAllProjects,
 }
 
 // Subscription status for an organization.
@@ -23668,6 +24281,8 @@ var AllPolicyEffect = []PolicyEffect{
 type ProjectsFilter struct {
 	// Match by the project's exact display name (`eq`) or a set of names (`in`). For partial or approximate matching, use `search` instead.
 	Name *StringFilter `json:"name,omitempty"`
+	// Match by when the project was created. Combine `gte` and `lte` to select a date range.
+	CreatedAt *DatetimeFilter `json:"createdAt,omitempty"`
 	// Free-text search across the project's name and description. Matches whole words anywhere in the text, so it is forgiving of partial or out-of-order terms. When `search` is active and no explicit `sort` is provided, results are ranked by relevance.
 	Search string `json:"search,omitempty"`
 	// Match by the project's effective attributes. Each entry targets one attribute key; multiple entries are combined with AND.
@@ -23676,6 +24291,9 @@ type ProjectsFilter struct {
 
 // GetName returns ProjectsFilter.Name, and is useful for accessing the field via an interface.
 func (v *ProjectsFilter) GetName() *StringFilter { return v.Name }
+
+// GetCreatedAt returns ProjectsFilter.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ProjectsFilter) GetCreatedAt() *DatetimeFilter { return v.CreatedAt }
 
 // GetSearch returns ProjectsFilter.Search, and is useful for accessing the field via an interface.
 func (v *ProjectsFilter) GetSearch() string { return v.Search }
@@ -24919,7 +25537,7 @@ func (v *RemoveServiceAccountFromGroupRemoveServiceAccountFromGroupServiceAccoun
 // A non-human identity for programmatic API access.
 //
 // Service accounts let you integrate CI/CD pipelines, scripts, and external tools with the
-// Massdriver API. They authenticate using access tokens — issue one with `createAccessToken`
+// Massdriver API. They authenticate using access tokens — issue one with `createServiceAccountAccessToken`
 // and pass it as a bearer token on API requests.
 //
 // **Permissions** — Service accounts have no inherent permissions. Add them to groups to grant
@@ -24929,7 +25547,7 @@ func (v *RemoveServiceAccountFromGroupRemoveServiceAccountFromGroupServiceAccoun
 // **Lifecycle:**
 // 1. Create the service account.
 // 2. Add the service account to one or more groups to grant access.
-// 3. Issue one or more access tokens for the service account via `createAccessToken`. The raw
+// 3. Issue one or more access tokens for the service account via `createServiceAccountAccessToken`. The raw
 // token value is only shown once at creation — store it securely before navigating away.
 // 4. Delete the service account when it is no longer needed. This immediately revokes all access,
 // including any active access tokens.
@@ -25007,7 +25625,11 @@ func (v *ResourceOriginFilter) GetIn() []ResourceOrigin { return v.In }
 type ResourcesFilter struct {
 	// Return only resources with the specified origin (IMPORTED or PROVISIONED).
 	Origin *ResourceOriginFilter `json:"origin,omitempty"`
-	// Return only resources of the given resource type, matched by the type's identifier (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Match by when the resource was created. Combine `gte` and `lte` to select a date range.
+	CreatedAt *DatetimeFilter `json:"createdAt,omitempty"`
+	// Match by the resource's effective attributes. A provisioned resource matches attributes set anywhere on its instance chain (project, environment, component, instance) as well as `md-resource-type` and `md-id`. An imported resource has no instance chain, so only `md-resource-type` and `md-id` can match it. Each entry targets one attribute key; multiple entries are combined with AND.
+	Attributes []AttributeFilter `json:"attributes,omitempty"`
+	// Return only resources of the given resource type, matched by the type's identifier (e.g., `aws-iam-role`, `kubernetes-cluster`). Append `@<version>` (e.g., `aws-iam-role@1.2.3`) to match a specific published version; a bare identifier matches the type's `0.0.0` document.
 	ResourceType *StringFilter `json:"resourceType,omitempty"`
 	// Return only resources provisioned into the specified environment(s). Imported resources have no environment and are excluded when this filter is set.
 	EnvironmentId *IdFilter `json:"environmentId,omitempty"`
@@ -25017,6 +25639,12 @@ type ResourcesFilter struct {
 
 // GetOrigin returns ResourcesFilter.Origin, and is useful for accessing the field via an interface.
 func (v *ResourcesFilter) GetOrigin() *ResourceOriginFilter { return v.Origin }
+
+// GetCreatedAt returns ResourcesFilter.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ResourcesFilter) GetCreatedAt() *DatetimeFilter { return v.CreatedAt }
+
+// GetAttributes returns ResourcesFilter.Attributes, and is useful for accessing the field via an interface.
+func (v *ResourcesFilter) GetAttributes() []AttributeFilter { return v.Attributes }
 
 // GetResourceType returns ResourcesFilter.ResourceType, and is useful for accessing the field via an interface.
 func (v *ResourcesFilter) GetResourceType() *StringFilter { return v.ResourceType }
@@ -28430,6 +29058,175 @@ func (v *UpdateOrganizationResponse) GetUpdateOrganization() UpdateOrganizationU
 	return v.UpdateOrganization
 }
 
+// Change organization-wide behavior settings. Only the settings you provide are changed; omitted settings keep their current values.
+type UpdateOrganizationSettingsInput struct {
+	// Access granted to new bundle repositories at creation. NONE keeps each new repository restricted until a grant is authored for it. ALL_PROJECTS automatically creates an org-wide repo:pull grant on each new bundle repository, making its bundles usable by every project. Changing this setting only affects repositories created afterwards.
+	DefaultBundleAccess OrganizationDefaultBundleAccess `json:"defaultBundleAccess,omitempty"`
+}
+
+// GetDefaultBundleAccess returns UpdateOrganizationSettingsInput.DefaultBundleAccess, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsInput) GetDefaultBundleAccess() OrganizationDefaultBundleAccess {
+	return v.DefaultBundleAccess
+}
+
+// UpdateOrganizationSettingsResponse is returned by UpdateOrganizationSettings on success.
+type UpdateOrganizationSettingsResponse struct {
+	// Change organization-wide behavior settings.
+	//
+	// Only the settings you provide are changed; omitted settings keep their
+	// current values. Requires the `organization:manageSettings` action.
+	UpdateOrganizationSettings UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayload `json:"updateOrganizationSettings"`
+}
+
+// GetUpdateOrganizationSettings returns UpdateOrganizationSettingsResponse.UpdateOrganizationSettings, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsResponse) GetUpdateOrganizationSettings() UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayload {
+	return v.UpdateOrganizationSettings
+}
+
+// UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayload includes the requested fields of the GraphQL type OrganizationPayload.
+type UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganization `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayload.Result, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayload) GetResult() UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganization {
+	return v.Result
+}
+
+// GetSuccessful returns UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayload.Successful, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayload.Messages, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayload) GetMessages() []UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganization includes the requested fields of the GraphQL type Organization.
+// The GraphQL type's documentation follows.
+//
+// The top-level account that owns all your infrastructure, projects, and team members.
+//
+// An organization is the root of the Massdriver resource hierarchy. Everything you build
+// and deploy lives under an organization: **Projects** contain your infrastructure designs,
+// **Environments** (like staging and production) are where those designs come to life, and
+// **Instances** are the actual running cloud resources.
+//
+// ```mermaid
+// graph TD
+// O["Organization"] --> P1["Project"]
+// O --> P2["Project"]
+// P1 --> E1["Environment: staging"]
+// P1 --> E2["Environment: production"]
+// E1 --> I1["Instance"]
+// E1 --> I2["Instance"]
+// ```
+//
+// Members access resources through **group memberships** with role-based permissions.
+// Custom attributes defined at the organization level govern attribute metadata across all child resources.
+//
+// Administrative fields (`billing`, `members`, `customAttributes`, `settings`) resolve to
+// `null` for callers who lack the corresponding ABAC action; in that case a top-level
+// `FORBIDDEN` error is added to the response while the rest of the organization still resolves.
+type UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganization struct {
+	Id string `json:"id"`
+	// Organization-wide behavior settings.
+	//
+	// Requires the `organization:manageSettings` action. Change settings with the
+	// `updateOrganizationSettings` mutation.
+	Settings *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings `json:"settings"`
+}
+
+// GetId returns UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganization.Id, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganization) GetId() string {
+	return v.Id
+}
+
+// GetSettings returns UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganization.Settings, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganization) GetSettings() *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings {
+	return v.Settings
+}
+
+// UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings includes the requested fields of the GraphQL type OrganizationSettings.
+// The GraphQL type's documentation follows.
+//
+// Organization-wide behavior settings.
+//
+// Settings apply to the whole organization and shape platform behavior — for
+// example, the access new bundle repositories receive at creation. Each setting
+// has a default, so organizations created before a setting existed read it as
+// the default. Change settings with the `updateOrganizationSettings` mutation.
+type UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings struct {
+	// Access granted to new bundle repositories at creation. Defaults to `NONE` — new repositories are restricted until a grant is authored for them.
+	DefaultBundleAccess OrganizationDefaultBundleAccess `json:"defaultBundleAccess"`
+}
+
+// GetDefaultBundleAccess returns UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings.DefaultBundleAccess, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings) GetDefaultBundleAccess() OrganizationDefaultBundleAccess {
+	return v.DefaultBundleAccess
+}
+
 // UpdateOrganizationUpdateOrganizationOrganizationPayload includes the requested fields of the GraphQL type OrganizationPayload.
 type UpdateOrganizationUpdateOrganizationOrganizationPayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -28533,9 +29330,9 @@ func (v *UpdateOrganizationUpdateOrganizationOrganizationPayloadMessagesValidati
 // Members access resources through **group memberships** with role-based permissions.
 // Custom attributes defined at the organization level govern attribute metadata across all child resources.
 //
-// Administrative fields (`billing`, `members`, `customAttributes`) resolve to `null` for
-// callers who lack the corresponding ABAC action; in that case a top-level `FORBIDDEN`
-// error is added to the response while the rest of the organization still resolves.
+// Administrative fields (`billing`, `members`, `customAttributes`, `settings`) resolve to
+// `null` for callers who lack the corresponding ABAC action; in that case a top-level
+// `FORBIDDEN` error is added to the response while the rest of the organization still resolves.
 type UpdateOrganizationUpdateOrganizationOrganizationPayloadResultOrganization struct {
 	Id string `json:"id"`
 	// Display name shown in the UI and CLI.
@@ -29726,7 +30523,7 @@ func (v *UpdateServiceAccountUpdateServiceAccountServiceAccountPayloadMessagesVa
 // A non-human identity for programmatic API access.
 //
 // Service accounts let you integrate CI/CD pipelines, scripts, and external tools with the
-// Massdriver API. They authenticate using access tokens — issue one with `createAccessToken`
+// Massdriver API. They authenticate using access tokens — issue one with `createServiceAccountAccessToken`
 // and pass it as a bearer token on API requests.
 //
 // **Permissions** — Service accounts have no inherent permissions. Add them to groups to grant
@@ -29736,7 +30533,7 @@ func (v *UpdateServiceAccountUpdateServiceAccountServiceAccountPayloadMessagesVa
 // **Lifecycle:**
 // 1. Create the service account.
 // 2. Add the service account to one or more groups to grant access.
-// 3. Issue one or more access tokens for the service account via `createAccessToken`. The raw
+// 3. Issue one or more access tokens for the service account via `createServiceAccountAccessToken`. The raw
 // token value is only shown once at creation — store it securely before navigating away.
 // 4. Delete the service account when it is no longer needed. This immediately revokes all access,
 // including any active access tokens.
@@ -29922,18 +30719,6 @@ func (v *__CopyInstanceInput) GetDestinationId() string { return v.DestinationId
 // GetInput returns __CopyInstanceInput.Input, and is useful for accessing the field via an interface.
 func (v *__CopyInstanceInput) GetInput() CopyInstanceInput { return v.Input }
 
-// __CreateAccessTokenInput is used internally by genqlient
-type __CreateAccessTokenInput struct {
-	OrganizationId string                 `json:"organizationId"`
-	Input          CreateAccessTokenInput `json:"input"`
-}
-
-// GetOrganizationId returns __CreateAccessTokenInput.OrganizationId, and is useful for accessing the field via an interface.
-func (v *__CreateAccessTokenInput) GetOrganizationId() string { return v.OrganizationId }
-
-// GetInput returns __CreateAccessTokenInput.Input, and is useful for accessing the field via an interface.
-func (v *__CreateAccessTokenInput) GetInput() CreateAccessTokenInput { return v.Input }
-
 // __CreateCustomAttributeInput is used internally by genqlient
 type __CreateCustomAttributeInput struct {
 	OrganizationId string                     `json:"organizationId"`
@@ -30042,6 +30827,18 @@ type __CreateOrganizationInput struct {
 // GetInput returns __CreateOrganizationInput.Input, and is useful for accessing the field via an interface.
 func (v *__CreateOrganizationInput) GetInput() CreateOrganizationInput { return v.Input }
 
+// __CreatePersonalAccessTokenInput is used internally by genqlient
+type __CreatePersonalAccessTokenInput struct {
+	OrganizationId string                         `json:"organizationId"`
+	Input          CreatePersonalAccessTokenInput `json:"input"`
+}
+
+// GetOrganizationId returns __CreatePersonalAccessTokenInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__CreatePersonalAccessTokenInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetInput returns __CreatePersonalAccessTokenInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreatePersonalAccessTokenInput) GetInput() CreatePersonalAccessTokenInput { return v.Input }
+
 // __CreateProjectInput is used internally by genqlient
 type __CreateProjectInput struct {
 	OrganizationId string             `json:"organizationId"`
@@ -30101,6 +30898,20 @@ func (v *__CreateResourceInput) GetResourceTypeId() string { return v.ResourceTy
 
 // GetInput returns __CreateResourceInput.Input, and is useful for accessing the field via an interface.
 func (v *__CreateResourceInput) GetInput() CreateResourceInput { return v.Input }
+
+// __CreateServiceAccountAccessTokenInput is used internally by genqlient
+type __CreateServiceAccountAccessTokenInput struct {
+	OrganizationId string                               `json:"organizationId"`
+	Input          CreateServiceAccountAccessTokenInput `json:"input"`
+}
+
+// GetOrganizationId returns __CreateServiceAccountAccessTokenInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__CreateServiceAccountAccessTokenInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetInput returns __CreateServiceAccountAccessTokenInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreateServiceAccountAccessTokenInput) GetInput() CreateServiceAccountAccessTokenInput {
+	return v.Input
+}
 
 // __CreateServiceAccountInput is used internally by genqlient
 type __CreateServiceAccountInput struct {
@@ -30542,6 +31353,14 @@ type __GetOrganizationInput struct {
 // GetOrganizationId returns __GetOrganizationInput.OrganizationId, and is useful for accessing the field via an interface.
 func (v *__GetOrganizationInput) GetOrganizationId() string { return v.OrganizationId }
 
+// __GetOrganizationSettingsInput is used internally by genqlient
+type __GetOrganizationSettingsInput struct {
+	OrganizationId string `json:"organizationId"`
+}
+
+// GetOrganizationId returns __GetOrganizationSettingsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__GetOrganizationSettingsInput) GetOrganizationId() string { return v.OrganizationId }
+
 // __GetProjectInput is used internally by genqlient
 type __GetProjectInput struct {
 	OrganizationId string `json:"organizationId"`
@@ -30565,6 +31384,18 @@ func (v *__GetResourceInput) GetOrganizationId() string { return v.OrganizationI
 
 // GetId returns __GetResourceInput.Id, and is useful for accessing the field via an interface.
 func (v *__GetResourceInput) GetId() string { return v.Id }
+
+// __GetResourceTypeInput is used internally by genqlient
+type __GetResourceTypeInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __GetResourceTypeInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__GetResourceTypeInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __GetResourceTypeInput.Id, and is useful for accessing the field via an interface.
+func (v *__GetResourceTypeInput) GetId() string { return v.Id }
 
 // __GetServiceAccountInput is used internally by genqlient
 type __GetServiceAccountInput struct {
@@ -31320,6 +32151,20 @@ func (v *__UpdateOrganizationInput) GetOrganizationId() string { return v.Organi
 // GetInput returns __UpdateOrganizationInput.Input, and is useful for accessing the field via an interface.
 func (v *__UpdateOrganizationInput) GetInput() UpdateOrganizationInput { return v.Input }
 
+// __UpdateOrganizationSettingsInput is used internally by genqlient
+type __UpdateOrganizationSettingsInput struct {
+	OrganizationId string                          `json:"organizationId"`
+	Input          UpdateOrganizationSettingsInput `json:"input"`
+}
+
+// GetOrganizationId returns __UpdateOrganizationSettingsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__UpdateOrganizationSettingsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetInput returns __UpdateOrganizationSettingsInput.Input, and is useful for accessing the field via an interface.
+func (v *__UpdateOrganizationSettingsInput) GetInput() UpdateOrganizationSettingsInput {
+	return v.Input
+}
+
 // __UpdatePolicyInput is used internally by genqlient
 type __UpdatePolicyInput struct {
 	OrganizationId string            `json:"organizationId"`
@@ -31941,56 +32786,6 @@ func CopyInstance(
 	return data_, err_
 }
 
-// The mutation executed by CreateAccessToken.
-const CreateAccessToken_Operation = `
-mutation CreateAccessToken ($organizationId: ID!, $input: CreateAccessTokenInput!) {
-	createAccessToken(organizationId: $organizationId, input: $input) {
-		result {
-			id
-			name
-			token
-			prefix
-			scopes
-			expiresAt
-			createdAt
-		}
-		successful
-		messages {
-			code
-			field
-			message
-		}
-	}
-}
-`
-
-func CreateAccessToken(
-	ctx_ context.Context,
-	client_ graphql.Client,
-	organizationId string,
-	input CreateAccessTokenInput,
-) (data_ *CreateAccessTokenResponse, err_ error) {
-	req_ := &graphql.Request{
-		OpName: "CreateAccessToken",
-		Query:  CreateAccessToken_Operation,
-		Variables: &__CreateAccessTokenInput{
-			OrganizationId: organizationId,
-			Input:          input,
-		},
-	}
-
-	data_ = &CreateAccessTokenResponse{}
-	resp_ := &graphql.Response{Data: data_}
-
-	err_ = client_.MakeRequest(
-		ctx_,
-		req_,
-		resp_,
-	)
-
-	return data_, err_
-}
-
 // The mutation executed by CreateCustomAttribute.
 const CreateCustomAttribute_Operation = `
 mutation CreateCustomAttribute ($organizationId: ID!, $input: CreateCustomAttributeInput!) {
@@ -32416,6 +33211,56 @@ func CreateOrganization(
 	return data_, err_
 }
 
+// The mutation executed by CreatePersonalAccessToken.
+const CreatePersonalAccessToken_Operation = `
+mutation CreatePersonalAccessToken ($organizationId: ID!, $input: CreatePersonalAccessTokenInput!) {
+	createPersonalAccessToken(organizationId: $organizationId, input: $input) {
+		result {
+			id
+			name
+			token
+			prefix
+			scopes
+			expiresAt
+			createdAt
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func CreatePersonalAccessToken(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	input CreatePersonalAccessTokenInput,
+) (data_ *CreatePersonalAccessTokenResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "CreatePersonalAccessToken",
+		Query:  CreatePersonalAccessToken_Operation,
+		Variables: &__CreatePersonalAccessTokenInput{
+			OrganizationId: organizationId,
+			Input:          input,
+		},
+	}
+
+	data_ = &CreatePersonalAccessTokenResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The mutation executed by CreateProject.
 const CreateProject_Operation = `
 mutation CreateProject ($organizationId: ID!, $input: CreateProjectInput!) {
@@ -32666,6 +33511,56 @@ func CreateServiceAccount(
 	}
 
 	data_ = &CreateServiceAccountResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by CreateServiceAccountAccessToken.
+const CreateServiceAccountAccessToken_Operation = `
+mutation CreateServiceAccountAccessToken ($organizationId: ID!, $input: CreateServiceAccountAccessTokenInput!) {
+	createServiceAccountAccessToken(organizationId: $organizationId, input: $input) {
+		result {
+			id
+			name
+			token
+			prefix
+			scopes
+			expiresAt
+			createdAt
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func CreateServiceAccountAccessToken(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	input CreateServiceAccountAccessTokenInput,
+) (data_ *CreateServiceAccountAccessTokenResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "CreateServiceAccountAccessToken",
+		Query:  CreateServiceAccountAccessToken_Operation,
+		Variables: &__CreateServiceAccountAccessTokenInput{
+			OrganizationId: organizationId,
+			Input:          input,
+		},
+	}
+
+	data_ = &CreateServiceAccountAccessTokenResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -34435,6 +35330,45 @@ func GetOrganization(
 	return data_, err_
 }
 
+// The query executed by GetOrganizationSettings.
+const GetOrganizationSettings_Operation = `
+query GetOrganizationSettings ($organizationId: ID!) {
+	organization(organizationId: $organizationId) {
+		id
+		settings {
+			defaultBundleAccess
+		}
+	}
+}
+`
+
+// Requires organization:manageSettings; non-admin callers get a top-level
+// forbidden error and a null settings field.
+func GetOrganizationSettings(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+) (data_ *GetOrganizationSettingsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetOrganizationSettings",
+		Query:  GetOrganizationSettings_Operation,
+		Variables: &__GetOrganizationSettingsInput{
+			OrganizationId: organizationId,
+		},
+	}
+
+	data_ = &GetOrganizationSettingsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The query executed by GetProject.
 const GetProject_Operation = `
 query GetProject ($organizationId: ID!, $id: ID!) {
@@ -34573,6 +35507,54 @@ func GetResource(
 	}
 
 	data_ = &GetResourceResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by GetResourceType.
+const GetResourceType_Operation = `
+query GetResourceType ($organizationId: ID!, $id: ID!) {
+	resourceType(organizationId: $organizationId, id: $id) {
+		id
+		name
+		icon
+		connectionOrientation
+		schema
+		uiSchema
+		instructions {
+			label
+			content
+		}
+		effectiveAttributes
+		createdAt
+		updatedAt
+	}
+}
+`
+
+func GetResourceType(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *GetResourceTypeResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetResourceType",
+		Query:  GetResourceType_Operation,
+		Variables: &__GetResourceTypeInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &GetResourceTypeResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -37291,6 +38273,55 @@ func UpdateOrganization(
 	}
 
 	data_ = &UpdateOrganizationResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by UpdateOrganizationSettings.
+const UpdateOrganizationSettings_Operation = `
+mutation UpdateOrganizationSettings ($organizationId: ID!, $input: UpdateOrganizationSettingsInput!) {
+	updateOrganizationSettings(organizationId: $organizationId, input: $input) {
+		result {
+			id
+			settings {
+				defaultBundleAccess
+			}
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+// Omitted settings keep their current values, so unset fields must stay off
+// the wire — see UpdateComponent.
+func UpdateOrganizationSettings(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	input UpdateOrganizationSettingsInput,
+) (data_ *UpdateOrganizationSettingsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "UpdateOrganizationSettings",
+		Query:  UpdateOrganizationSettings_Operation,
+		Variables: &__UpdateOrganizationSettingsInput{
+			OrganizationId: organizationId,
+			Input:          input,
+		},
+	}
+
+	data_ = &UpdateOrganizationSettingsResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

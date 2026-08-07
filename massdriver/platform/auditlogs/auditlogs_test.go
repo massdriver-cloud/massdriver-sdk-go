@@ -111,6 +111,36 @@ func TestList_FilterByTypeAndTimeRange(t *testing.T) {
 	}
 }
 
+func TestList_TimeRangeOpenEndOmitsBound(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"auditLogs": map[string]any{
+				"cursor": map[string]any{},
+				"items":  []map[string]any{{"id": "evt-1", "type": "project.created", "occurredAt": "2026-05-08T10:00:00Z"}},
+			},
+		}),
+	)
+
+	_, err := types.Collect(newService(gqlClient).Iter(t.Context(), auditlogs.ListInput{
+		TimeRangeStart: time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC),
+	}))
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+
+	// Only the lower bound was given — the open upper bound must stay off the
+	// wire. A zero-time lte would filter out every event.
+	reqs := gqlClient.Requests()
+	filter, _ := reqs[0].Variables["filter"].(map[string]any)
+	occurred, _ := filter["occurredAt"].(map[string]any)
+	if occurred["gte"] == nil {
+		t.Errorf("occurredAt = %v, want gte set", occurred)
+	}
+	if _, present := occurred["lte"]; present {
+		t.Errorf("occurredAt.lte should be omitted when TimeRangeEnd is zero, got %v", occurred["lte"])
+	}
+}
+
 func TestList_FilterByActor(t *testing.T) {
 	gqlClient := gqltest.NewClient(
 		gqltest.RespondWithData(map[string]any{

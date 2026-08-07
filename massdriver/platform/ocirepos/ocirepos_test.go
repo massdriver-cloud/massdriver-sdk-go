@@ -3,6 +3,7 @@ package ocirepos_test
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"oras.land/oras-go/v2/registry/remote"
 
@@ -175,6 +176,40 @@ func TestList_WithArtifactTypeFilter(t *testing.T) {
 	}
 	if got[0].ArtifactType != ocirepos.ArtifactTypeResourceType {
 		t.Errorf("ArtifactType = %q, want %q", got[0].ArtifactType, ocirepos.ArtifactTypeResourceType)
+	}
+}
+
+func TestList_WithCreatedAtAndAttributesFilter(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"ociRepos": map[string]any{
+				"cursor": map[string]any{},
+				"items":  []map[string]any{{"id": "aws-vpc", "name": "aws-vpc"}},
+			},
+		}),
+	)
+
+	_, err := types.Collect(newService(gqlClient).Iter(t.Context(), ocirepos.ListInput{
+		CreatedAfter: time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC),
+		Attributes:   []types.AttributeFilter{{Key: "team", In: []string{"platform", "data"}}},
+	}))
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+
+	reqs := gqlClient.Requests()
+	filter, _ := reqs[0].Variables["filter"].(map[string]any)
+	created, _ := filter["createdAt"].(map[string]any)
+	if created["gte"] == nil {
+		t.Errorf("createdAt = %v, want gte set", created)
+	}
+	attrs, _ := filter["attributes"].([]any)
+	if len(attrs) != 1 {
+		t.Fatalf("attributes = %v, want 1 entry", attrs)
+	}
+	attr, _ := attrs[0].(map[string]any)
+	if attr["key"] != "team" {
+		t.Errorf("attributes[0].key = %v, want team", attr["key"])
 	}
 }
 

@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"time"
 
 	oras "oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/registry/remote"
@@ -33,6 +34,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/filters"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
@@ -102,8 +104,22 @@ type ListInput struct {
 	// rather than alphabetically.
 	Search string
 
-	// ArtifactType narrows to a single artifact type. Empty = any.
+	// ArtifactType narrows to a single artifact type. Empty = any (bundles
+	// and resource types).
 	ArtifactType ArtifactType
+
+	// CreatedAfter and CreatedBefore narrow results to repositories created
+	// in a time window. Both bounds are inclusive; either may be zero to
+	// leave that side open.
+	CreatedAfter  time.Time
+	CreatedBefore time.Time
+
+	// Attributes filters by the repository's attributes. Repositories are
+	// organization-level, so there is no inheritance — only attributes set
+	// on the repository itself match, plus `md-repo` and `md-id`, which
+	// both resolve to the repository name. Each entry targets one attribute
+	// key; multiple entries are AND'd together.
+	Attributes []types.AttributeFilter
 
 	// SortBy controls sort field. Empty = NAME.
 	SortBy SortField
@@ -122,7 +138,7 @@ type ListInput struct {
 // CreateInput is the input for [Service.Create].
 type CreateInput struct {
 	// ID is the unique repository name within the organization.
-	// Lowercase letters, numbers, dashes, underscores. Max 53 characters.
+	// Lowercase letters, numbers, dashes, underscores. Max 100 characters.
 	// Immutable after creation.
 	ID string
 	// ArtifactType is the OCI artifact type stored here
@@ -342,14 +358,20 @@ func buildListFilter(input ListInput) *gen.OciReposFilter {
 			StartsWith: input.NameStartsWith,
 		}
 	}
-	if nameFilter == nil && input.Search == "" && input.ArtifactType == "" {
+	if nameFilter == nil && input.Search == "" && input.ArtifactType == "" &&
+		input.CreatedAfter.IsZero() && input.CreatedBefore.IsZero() && len(input.Attributes) == 0 {
 		return nil
 	}
-	return &gen.OciReposFilter{
+	filter := &gen.OciReposFilter{
 		Name:         nameFilter,
 		Search:       input.Search,
 		ArtifactType: wireArtifactType(input.ArtifactType),
+		Attributes:   filters.Attributes(input.Attributes),
 	}
+	if !input.CreatedAfter.IsZero() || !input.CreatedBefore.IsZero() {
+		filter.CreatedAt = filters.Datetime(input.CreatedAfter, input.CreatedBefore)
+	}
+	return filter
 }
 
 // wireArtifactType maps the SDK's typed [ArtifactType] enum onto the OCI

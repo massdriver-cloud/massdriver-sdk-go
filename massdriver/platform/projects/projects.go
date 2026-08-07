@@ -12,11 +12,13 @@ import (
 	"context"
 	"fmt"
 	"iter"
+	"time"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/filters"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
@@ -119,6 +121,12 @@ type ListInput struct {
 	// targets one attribute key; multiple entries are AND'd together.
 	Attributes []types.AttributeFilter
 
+	// CreatedAfter and CreatedBefore narrow results to projects created in
+	// a time window. Both bounds are inclusive; either may be zero to leave
+	// that side open.
+	CreatedAfter  time.Time
+	CreatedBefore time.Time
+
 	// SortBy controls the sort field. Empty = NAME.
 	SortBy SortField
 	// SortOrder controls sort direction. Empty = ASC.
@@ -199,27 +207,21 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Project] {
 // buildListFilter compiles a ListInput's filter fields into the generated
 // input. Returns nil when no filter fields are set.
 func buildListFilter(input ListInput) *gen.ProjectsFilter {
-	if input.Name == "" && len(input.NameIn) == 0 && input.Search == "" && len(input.Attributes) == 0 {
+	if input.Name == "" && len(input.NameIn) == 0 && input.Search == "" && len(input.Attributes) == 0 &&
+		input.CreatedAfter.IsZero() && input.CreatedBefore.IsZero() {
 		return nil
 	}
 	filter := &gen.ProjectsFilter{
 		Search:     input.Search,
-		Attributes: toGenAttributeFilters(input.Attributes),
+		Attributes: filters.Attributes(input.Attributes),
 	}
 	if input.Name != "" || len(input.NameIn) > 0 {
 		filter.Name = &gen.StringFilter{Eq: input.Name, In: input.NameIn}
 	}
-	return filter
-}
-
-// toGenAttributeFilters maps the SDK's attribute filters onto the generated
-// input type.
-func toGenAttributeFilters(in []types.AttributeFilter) []gen.AttributeFilter {
-	out := make([]gen.AttributeFilter, 0, len(in))
-	for _, a := range in {
-		out = append(out, gen.AttributeFilter{Key: a.Key, Eq: a.Eq, In: a.In})
+	if !input.CreatedAfter.IsZero() || !input.CreatedBefore.IsZero() {
+		filter.CreatedAt = filters.Datetime(input.CreatedAfter, input.CreatedBefore)
 	}
-	return out
+	return filter
 }
 
 // buildListSort maps a ListInput's sort fields onto the generated sort input,

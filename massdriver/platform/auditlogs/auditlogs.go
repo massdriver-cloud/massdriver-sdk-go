@@ -27,6 +27,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/scalars"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/decode"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/filters"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/gen"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/paging"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
@@ -221,14 +222,7 @@ func buildListFilter(input ListInput) *gen.AuditLogsFilter {
 	set := false
 
 	if !input.TimeRangeStart.IsZero() || !input.TimeRangeEnd.IsZero() {
-		dt := &gen.DatetimeFilter{}
-		if !input.TimeRangeStart.IsZero() {
-			dt.Gte = input.TimeRangeStart
-		}
-		if !input.TimeRangeEnd.IsZero() {
-			dt.Lte = input.TimeRangeEnd
-		}
-		filter.OccurredAt = dt
+		filter.OccurredAt = filters.Datetime(input.TimeRangeStart, input.TimeRangeEnd)
 		set = true
 	}
 	if input.Type != "" {
