@@ -41,16 +41,25 @@ type Service struct {
 // need a single service in isolation or for tests with a custom client.
 func New(c *client.Client) *Service { return &Service{client: c} }
 
-// Get retrieves a single resource type by its identifier.
+// Get retrieves a single resource type by its `identifier@version` ID. The
+// version portion can be an exact semver, a release channel, or omitted
+// entirely; the server resolves it to the best matching published version:
 //
-// The ID accepts:
-//   - A bare identifier: `aws-iam-role` (resolves to the latest published
-//     version)
-//   - A specific published version: `aws-iam-role@1.2.3`
+//   - `aws-iam-role@1.2.3` — that exact version
+//   - `aws-iam-role@~1.2` — latest patch in 1.2.x
+//   - `aws-iam-role@~1` — latest minor in 1.x.x
+//   - `aws-iam-role@latest` — newest stable release
+//   - `aws-iam-role@latest+dev` — newest release including dev builds
+//   - `aws-iam-role` — shorthand for `latest` (falls back to `latest+dev`
+//     if no stable release exists)
+//
+// The returned [ResourceType.ID] always carries the fully resolved version
+// (e.g. `aws-iam-role@1.2.3`), also available separately as
+// [ResourceType.Version].
 //
 // Returns [gql.ErrNotFound] (wrapped, match with [errors.Is]) when no
-// resource type with the given ID exists or is accessible to the configured
-// organization.
+// matching version exists or the resource type is not accessible to the
+// configured organization.
 func (s *Service) Get(ctx context.Context, id string) (*ResourceType, error) {
 	resp, err := gen.GetResourceType(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id)
 	if err != nil {
@@ -60,6 +69,34 @@ func (s *Service) Get(ctx context.Context, id string) (*ResourceType, error) {
 		return nil, fmt.Errorf("get resource type %s: %w", id, gql.ErrNotFound)
 	}
 	return toResourceType(resp.ResourceType)
+}
+
+// Dependent is one (instance, dependency field) pair depending on a
+// resource type — alias of [types.ResourceTypeDependent].
+type Dependent = types.ResourceTypeDependent
+
+// Dependents lists the instances in an environment that depend on the given
+// resource type, one entry per (instance, dependency field) pair. Use it to
+// see what a resource type is used by before changing or removing it.
+//
+// The resourceTypeID accepts a bare identifier (`aws-vpc`) or a versioned
+// one (`aws-vpc@1.0.0`); a version suffix is accepted but matching currently
+// resolves at the type level, since bundles reference resource types without
+// a version.
+func (s *Service) Dependents(ctx context.Context, environmentID, resourceTypeID string) ([]Dependent, error) {
+	resp, err := gen.ListResourceTypeDependents(ctx, s.client.GQLv2, s.client.Config.OrganizationID, environmentID, resourceTypeID)
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("list dependents of resource type %s in environment %s: %w", resourceTypeID, environmentID, err))
+	}
+	deps := make([]Dependent, 0, len(resp.ResourceTypeDependents))
+	for _, item := range resp.ResourceTypeDependents {
+		d := Dependent{}
+		if derr := decode.Decode(item, &d); derr != nil {
+			return nil, fmt.Errorf("decode resource type dependent: %w", derr)
+		}
+		deps = append(deps, d)
+	}
+	return deps, nil
 }
 
 func toResourceType(v any) (*ResourceType, error) {

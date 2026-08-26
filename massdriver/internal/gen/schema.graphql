@@ -717,18 +717,31 @@ type RootQueryType {
 
     "Cursor from a previous page's `cursor.next` or `cursor.previous`."
     cursor: Cursor
-  ): ResourceTypesPage
+  ): ResourceTypesPage @deprecated(reason: "Version-blind: returns only the current (0.0.0) version of each resource type. Use the versioned resourceType(id: \"identifier@version\") query for version-aware reads as resource types move to the repo\/version model.")
 
   """
-  Fetch a single resource type by its identifier.
+  Fetch a single resource type by its composite identifier.
 
-  Returns `null` with a `NOT_FOUND` error if the resource type does not exist
-  or is not accessible to your organization.
+  The `id` accepts an `identifier@version` string where the version portion can
+  be an exact semver, a release channel, or omitted entirely:
+
+  | Input | Resolves to |
+  |-------|-------------|
+  | `aws-iam-role@1.2.3` | Exact version `1.2.3` |
+  | `aws-iam-role@~1.2` | Latest patch in `1.2.x` |
+  | `aws-iam-role@~1` | Latest minor in `1.x.x` |
+  | `aws-iam-role@latest` | Newest stable release |
+  | `aws-iam-role@latest+dev` | Newest release including dev builds |
+  | `aws-iam-role` | Shorthand for `latest` (falls back to `latest+dev` if no stable exists) |
+
+  Returns `null` with a `NOT_FOUND` error if no matching version exists or the
+  resource type is not accessible to your organization.
 
   ```graphql
   query {
-    resourceType(organizationId: "your-org-id", id: "aws-iam-role") {
+    resourceType(organizationId: "your-org-id", id: "aws-iam-role@~1") {
       id
+      version
       name
       connectionOrientation
       icon
@@ -740,9 +753,49 @@ type RootQueryType {
     "Your organization's unique identifier."
     organizationId: ID!
 
-    "The resource type identifier (e.g., `aws-iam-role`). Append `@<version>` (e.g., `aws-iam-role@1.2.3`) to fetch a specific published version; a bare identifier fetches the type's `0.0.0` document."
-    id: ID!
+    "Resource type identifier in `identifier@version` format. The version can be an exact semver, a release channel, or omitted to resolve `latest`."
+    id: ResourceTypeId!
   ): ResourceType
+
+  """
+  List the instances in an environment that depend on a resource type.
+
+  Returns one entry per (instance, dependency field) pair: an instance whose
+  bundle declares a dependency slot referencing the resource type, plus the
+  field name that receives it. Use this to see what a resource type is used by
+  before changing or removing it.
+
+  The `resourceTypeId` accepts a bare identifier (`aws-vpc`) or a versioned one
+  (`aws-vpc@latest`, `aws-vpc@1.0.0`). The version portion is accepted for a
+  stable contract but is not yet used to match: bundles reference resource
+  types without a version, so matching is resolved at the type level (the
+  type's current `0.0.0` document). Version-specific matching becomes possible
+  once bundles carry versioned resource-type references.
+
+  ```graphql
+  query {
+    resourceTypeDependents(
+      organizationId: "your-org-id"
+      environmentId: "ecomm-production"
+      resourceTypeId: "aws-vpc"
+    ) {
+      instance { id name }
+      field
+      resourceType { id name }
+    }
+  }
+  ```
+  """
+  resourceTypeDependents(
+    "Your organization's unique identifier."
+    organizationId: ID!
+
+    "The environment (identifier) to look for dependents in."
+    environmentId: ID!
+
+    "The resource type identifier (e.g., `aws-vpc`). A `@<version>` suffix (e.g., `aws-vpc@1.0.0`) is accepted but matching resolves at the type level."
+    resourceTypeId: ID!
+  ): [ResourceTypeDependent!]!
 
   """
   List all resources in your organization.
@@ -2032,31 +2085,6 @@ type RootMutationType {
     "The integration type identifier to delete."
     id: ID!
   ): IntegrationPayload
-
-  """
-  Create a scoped, time-limited access token for the authenticated identity.
-
-  **Deprecated** — use `createPersonalAccessToken` (accounts) or
-  `createServiceAccountAccessToken` (service accounts) instead. Each replacement documents
-  its own expiration cap: 1 year for personal access tokens, 10 years for service account
-  tokens.
-
-  Accounts create personal access tokens for themselves; service accounts create tokens for
-  their own identity.
-
-  The `token` field in the response contains the full bearer token value — **it is only
-  shown once**. Store it securely before navigating away. If you lose it, revoke the
-  token and create a new one.
-
-  Defaults to a 60-minute expiration if `expiresInMinutes` is not specified.
-  """
-  createAccessToken(
-    "Your organization's unique identifier."
-    organizationId: ID!
-
-    "Create a scoped, time-limited access token for the authenticated identity."
-    input: CreateAccessTokenInput!
-  ): AccessTokenWithValuePayload @inputs(name: "createAccessToken", schema: "\/graphql\/v2\/inputs\/createAccessToken.json", ui: "\/graphql\/v2\/inputs\/createAccessToken.ui.json") @deprecated(reason: "Use `createPersonalAccessToken` (accounts) or `createServiceAccountAccessToken` (service accounts).")
 
   """
   Create a scoped, time-limited personal access token for the authenticated account.
@@ -3906,6 +3934,50 @@ type ResourceWithSensitiveValuesPayload {
   result: ResourceWithSensitiveValues
 }
 
+"""
+An instance that depends on a resource type, paired with the dependency field
+on its bundle that receives it.
+
+An instance appears once per dependency field that references the resource
+type, so a bundle that depends on the same type through two fields yields two
+entries for that instance.
+"""
+type ResourceTypeDependent {
+  "The instance whose bundle depends on the resource type."
+  instance: Instance!
+
+  "The dependency field on the instance's bundle that receives this resource type (e.g., `network`)."
+  field: String!
+
+  "The resource type these instances depend on."
+  resourceType: ResourceType!
+}
+
+"""
+A composite resource type identifier in **`identifier@version`** format.
+
+This scalar uniquely identifies a resource type by combining its kebab-case
+identifier with a version specifier. As an **output** the version portion is
+always a fully resolved semver string:
+
+    aws-iam-role@1.2.3
+    aws-iam-role@0.0.0
+
+As an **input** (e.g., in the `resourceType` query), you can use any of the
+following formats and the server will resolve to the best matching published
+version:
+
+| Format | Example | Resolves to |
+|--------|---------|-------------|
+| Bare identifier | `aws-iam-role` | Latest stable (or latest dev if no stable exists) |
+| Exact version | `aws-iam-role@1.2.3` | That exact version |
+| Major channel | `aws-iam-role@~1` | Latest `1.x.x` stable |
+| Minor channel | `aws-iam-role@~1.2` | Latest `1.2.x` stable |
+| Latest stable | `aws-iam-role@latest` | Newest stable release |
+| Latest + dev | `aws-iam-role@latest+dev` | Newest release including dev builds |
+"""
+scalar ResourceTypeId
+
 "Fields available for ordering the resource types list."
 enum ResourceTypesSortField {
   "Alphabetical order by the resource type's display name."
@@ -3982,11 +4054,14 @@ Resource types include both public types provided by Massdriver (e.g.,
 organization for custom infrastructure.
 """
 type ResourceType {
-  "Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`)."
-  id: ID!
+  "Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version."
+  id: ResourceTypeId!
 
   "Human-readable display name (e.g., \"AWS IAM Role\", \"Kubernetes Cluster\")."
   name: String!
+
+  "Fully resolved semantic version of this resource type (e.g., `1.2.3`)."
+  version: Semver!
 
   "URL to the icon representing this resource type, if available."
   icon: String
@@ -4295,10 +4370,10 @@ input UpdateServiceAccountInput {
 """
 An access token with the raw token value included.
 
-This type is only returned by token-creating mutations (`createPersonalAccessToken`,
-`createServiceAccountAccessToken`, and the deprecated `createAccessToken`). The `token`
-field contains the full credential needed for API authentication and **cannot be retrieved
-again** after this response. Store it securely before navigating away.
+This type is only returned by token-creating mutations (`createPersonalAccessToken` and
+`createServiceAccountAccessToken`). The `token` field contains the full credential needed
+for API authentication and **cannot be retrieved again** after this response. Store it
+securely before navigating away.
 """
 type AccessTokenWithValue {
   "Unique identifier for this access token."
@@ -4427,18 +4502,6 @@ Combine filters with AND logic. Omit a filter to not restrict on that dimension.
 input AccessTokensFilter {
   "Narrow by status. `true` returns only revoked tokens, `false` returns only active tokens (not revoked and not expired), omit the field to return all tokens."
   revoked: Boolean
-}
-
-"Create a scoped, time-limited access token for the authenticated identity."
-input CreateAccessTokenInput {
-  "How many minutes until this token expires. Defaults to 60 (1 hour). Capped at 1 year (525,600 minutes) for personal access tokens and 10 years (5,256,000) for service account tokens."
-  expiresInMinutes: Int
-
-  "A label to identify this token (e.g., 'CI deploy key')"
-  name: String!
-
-  "Permission scopes. At least one required. Currently only [\"*\"] (full access) is supported."
-  scopes: [String!]!
 }
 
 "Create a scoped, time-limited personal access token for the authenticated account."
@@ -6314,6 +6377,12 @@ type Link {
   "The input field name on the destination component (e.g., `database`)."
   toField: String!
 
+  "The version range of the source component this link routes from, as a tilde constraint (`~1` covers 1.x, `~0.4` covers 0.4.x). Null when the range has not been determined."
+  fromVersionConstraint: String
+
+  "The version range of the destination component this link routes to, as a tilde constraint (`~1` covers 1.x, `~0.4` covers 0.4.x). Null when the range has not been determined."
+  toVersionConstraint: String
+
   "When this link was created (UTC)."
   createdAt: DateTime!
 
@@ -7973,8 +8042,34 @@ type Environment {
   "Runtime wiring between deployed instances in this environment."
   connections: [Connection!]!
 
+  """
+  The links in effect in this environment given the versions its instances
+  actually run.
+
+  Where a project's `links` list every link in the architecture, this is the
+  subset that applies to this environment: a component can run different
+  versions in different environments, and a link applies only where the
+  versions at both ends fall inside its version range. A link split across
+  versions (`~0.2` in staging, `~0.3` in production) appears here as the single
+  row whose range matches the versions deployed in this environment. A link
+  whose source or destination has no instance here does not appear.
+  """
+  links: [Link!]!
+
   "The realized infrastructure for this environment showing deployed instances and their connections."
   blueprint: EnvironmentBlueprint @deprecated(reason: "Use the top-level `instances` and `connections` fields on `Environment` instead.")
+
+  """
+  Required dependency inputs across this environment's instances that nothing
+  fills — no blueprint link, no per-instance remote reference, and no
+  environment default of the matching resource type.
+
+  Each entry is one input a deploy would block on. Clear it by wiring a
+  resource into the slot (a link or a remote reference) or by setting an
+  environment default of the listed resource type. Optional inputs are never
+  included. The list is sorted by instance identifier, then input name.
+  """
+  unfulfilledDependencies: [UnfulfilledDependency!]!
 
   """
   Paginated list of default resources for this environment.
@@ -7987,6 +8082,25 @@ type Environment {
     "Cursor from a previous page to fetch the next set of results."
     cursor: Cursor
   ): EnvironmentDefaultsPage
+}
+
+"""
+A required dependency input on an instance that nothing in the environment
+fills.
+
+The instance's bundle marks this input as required, but no blueprint link,
+per-instance remote reference, or environment default provides a resource of
+the expected type. Deploying the instance blocks until the input is connected.
+"""
+type UnfulfilledDependency {
+  "The instance whose bundle requires this input."
+  instance: Instance!
+
+  "The input handle name that needs a resource wired into it (e.g., `database`)."
+  field: String!
+
+  "The resource type this input requires. Wire in a resource of this type to fulfill it."
+  resourceType: ResourceType!
 }
 
 """

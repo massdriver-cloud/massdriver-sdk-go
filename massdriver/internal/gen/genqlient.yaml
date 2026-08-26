@@ -35,6 +35,8 @@ bindings:
   # on the Go side — wrappers convert from a plain string at call time.
   VersionConstraint:
     type: string
+  ResourceTypeId:
+    type: string
   Semver:
     type: string
   BundleId:

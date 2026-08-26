@@ -743,6 +743,47 @@ query GetEnvironment($organizationId: ID!, $id: ID!) {
   }
 }
 
+query GetEnvironmentLinks($organizationId: ID!, $id: ID!) {
+  environment(organizationId: $organizationId, id: $id) {
+    id
+    links {
+      id
+      fromField
+      toField
+      fromVersionConstraint
+      toVersionConstraint
+      createdAt
+      updatedAt
+      fromComponent {
+        id
+        name
+      }
+      toComponent {
+        id
+        name
+      }
+    }
+  }
+}
+
+query GetEnvironmentUnfulfilledDependencies($organizationId: ID!, $id: ID!) {
+  environment(organizationId: $organizationId, id: $id) {
+    id
+    unfulfilledDependencies {
+      instance {
+        id
+        name
+      }
+      field
+      resourceType {
+        id
+        name
+        icon
+      }
+    }
+  }
+}
+
 # @genqlient(for: "EnvironmentsFilter.projectId", omitempty: true, pointer: true)
 # @genqlient(for: "EnvironmentsFilter.id", omitempty: true, pointer: true)
 # @genqlient(for: "EnvironmentsFilter.attributes", omitempty: true)
@@ -2429,6 +2470,8 @@ query GetProject($organizationId: ID!, $id: ID!) {
       id
       fromField
       toField
+      fromVersionConstraint
+      toVersionConstraint
       createdAt
       updatedAt
       fromComponent {
@@ -2510,6 +2553,8 @@ query ListProjects(
         id
         fromField
         toField
+        fromVersionConstraint
+        toVersionConstraint
         createdAt
         updatedAt
         fromComponent {
@@ -2614,6 +2659,8 @@ mutation CloneProject($organizationId: ID!, $sourceProjectId: ID!, $input: Clone
         id
         fromField
         toField
+        fromVersionConstraint
+        toVersionConstraint
         createdAt
         updatedAt
         fromComponent {
@@ -2883,10 +2930,11 @@ query ListResourceGrants(
 
 # RESOURCE TYPES
 
-query GetResourceType($organizationId: ID!, $id: ID!) {
+query GetResourceType($organizationId: ID!, $id: ResourceTypeId!) {
   resourceType(organizationId: $organizationId, id: $id) {
     id
     name
+    version
     icon
     connectionOrientation
     schema
@@ -2898,6 +2946,21 @@ query GetResourceType($organizationId: ID!, $id: ID!) {
     effectiveAttributes
     createdAt
     updatedAt
+  }
+}
+
+query ListResourceTypeDependents($organizationId: ID!, $environmentId: ID!, $resourceTypeId: ID!) {
+  resourceTypeDependents(organizationId: $organizationId, environmentId: $environmentId, resourceTypeId: $resourceTypeId) {
+    instance {
+      id
+      name
+    }
+    field
+    resourceType {
+      id
+      name
+      icon
+    }
   }
 }
 

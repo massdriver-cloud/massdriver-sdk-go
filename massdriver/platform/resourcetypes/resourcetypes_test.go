@@ -23,8 +23,9 @@ func TestGet(t *testing.T) {
 	gqlClient := gqltest.NewClient(
 		gqltest.RespondWithData(map[string]any{
 			"resourceType": map[string]any{
-				"id":                    "aws-iam-role",
+				"id":                    "aws-iam-role@1.2.3",
 				"name":                  "AWS IAM Role",
+				"version":               "1.2.3",
 				"icon":                  "https://cdn.example.com/aws-iam-role.svg",
 				"connectionOrientation": "LINK",
 				"schema": map[string]any{
@@ -48,8 +49,11 @@ func TestGet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
-	if got.ID != "aws-iam-role" {
-		t.Errorf("ID = %q, want aws-iam-role", got.ID)
+	if got.ID != "aws-iam-role@1.2.3" {
+		t.Errorf("ID = %q, want aws-iam-role@1.2.3", got.ID)
+	}
+	if got.Version != "1.2.3" {
+		t.Errorf("Version = %q, want 1.2.3", got.Version)
 	}
 	if got.ConnectionOrientation != types.ConnectionOrientationLink {
 		t.Errorf("ConnectionOrientation = %q, want LINK", got.ConnectionOrientation)
@@ -85,5 +89,69 @@ func TestGet_NotFound(t *testing.T) {
 	_, err := newService(gqlClient).Get(t.Context(), "missing")
 	if !errors.Is(err, gql.ErrNotFound) {
 		t.Errorf("err = %v, want it to wrap gql.ErrNotFound", err)
+	}
+}
+
+func TestDependents(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"resourceTypeDependents": []map[string]any{
+				{
+					"instance": map[string]any{"id": "ecomm-prod-api", "name": "api"},
+					"field":    "network",
+					"resourceType": map[string]any{
+						"id":   "aws-vpc@0.0.0",
+						"name": "AWS VPC",
+						"icon": "https://cdn.example.com/aws-vpc.svg",
+					},
+				},
+				{
+					"instance": map[string]any{"id": "ecomm-prod-db", "name": "db"},
+					"field":    "vpc",
+					"resourceType": map[string]any{
+						"id":   "aws-vpc@0.0.0",
+						"name": "AWS VPC",
+						"icon": "https://cdn.example.com/aws-vpc.svg",
+					},
+				},
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).Dependents(t.Context(), "ecomm-prod", "aws-vpc")
+	if err != nil {
+		t.Fatalf("Dependents: %v", err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("len = %d, want 2", len(got))
+	}
+	if got[0].Instance.ID != "ecomm-prod-api" || got[0].Field != "network" {
+		t.Errorf("got[0] = instance %q field %q, want ecomm-prod-api / network", got[0].Instance.ID, got[0].Field)
+	}
+	if got[1].ResourceType.ID != "aws-vpc@0.0.0" {
+		t.Errorf("got[1].ResourceType.ID = %q, want aws-vpc@0.0.0", got[1].ResourceType.ID)
+	}
+
+	reqs := gqlClient.Requests()
+	if reqs[0].OpName != "ListResourceTypeDependents" {
+		t.Errorf("OpName = %q, want ListResourceTypeDependents", reqs[0].OpName)
+	}
+	if reqs[0].Variables["environmentId"] != "ecomm-prod" || reqs[0].Variables["resourceTypeId"] != "aws-vpc" {
+		t.Errorf("variables = %v, want environmentId ecomm-prod and resourceTypeId aws-vpc", reqs[0].Variables)
+	}
+}
+
+func TestDependents_Empty(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"resourceTypeDependents": []map[string]any{},
+		}),
+	)
+	got, err := newService(gqlClient).Dependents(t.Context(), "ecomm-prod", "aws-vpc")
+	if err != nil {
+		t.Fatalf("Dependents: %v", err)
+	}
+	if len(got) != 0 {
+		t.Errorf("len = %d, want 0", len(got))
 	}
 }

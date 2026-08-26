@@ -33,8 +33,17 @@ type ImportInstruction struct {
 // is populated by resourcetypes.Get; slim refs embedded in other types
 // (e.g. Resource.ResourceType) carry only ID/Name/Icon.
 type ResourceType struct {
+	// ID is the composite identifier in `identifier@version` format
+	// (e.g. `aws-iam-role@1.2.3`), always carrying the fully resolved
+	// semver version.
 	ID   string `json:"id" mapstructure:"id"`
 	Name string `json:"name" mapstructure:"name"`
+
+	// Version is the fully resolved semantic version of this resource type
+	// (e.g. `1.2.3`). Populated by resourcetypes.Get; slim refs embedded in
+	// other types leave it empty (the version is still visible in ID).
+	Version string `json:"version,omitempty" mapstructure:"version"`
+
 	Icon string `json:"icon,omitempty" mapstructure:"icon,omitempty"`
 
 	// ConnectionOrientation is how instances receive a dependency of this
@@ -62,4 +71,19 @@ type ResourceType struct {
 
 	CreatedAt time.Time `json:"createdAt,omitzero" mapstructure:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
+}
+
+// ResourceTypeDependent is one (instance, dependency field) pair that
+// depends on a [ResourceType] within an environment: an instance whose
+// bundle declares a dependency slot referencing the resource type, plus the
+// field name that receives it. An instance appears once per dependency
+// field, so a bundle depending on the same type through two fields yields
+// two entries for that instance.
+//
+// Instance and ResourceType are slim refs (id/name) — fetch the full shapes
+// via platform/instances.Get and platform/resourcetypes.Get.
+type ResourceTypeDependent struct {
+	Instance     Instance     `json:"instance" mapstructure:"instance"`
+	Field        string       `json:"field" mapstructure:"field"`
+	ResourceType ResourceType `json:"resourceType" mapstructure:"resourceType"`
 }
