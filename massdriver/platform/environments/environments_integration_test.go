@@ -191,3 +191,44 @@ func TestIntegration_Environments_NotFoundClassification(t *testing.T) {
 		t.Errorf("Get nonexistent: got %v, want errors.Is(err, gql.ErrNotFound)", err)
 	}
 }
+
+// TestIntegration_Environments_LinksAndUnfulfilledDependencies exercises
+// the two environment-scoped read queries end-to-end against a fresh,
+// empty environment: both must be accepted by the server and decode to
+// empty (not error) results when nothing is deployed.
+func TestIntegration_Environments_LinksAndUnfulfilledDependencies(t *testing.T) {
+	c := inttest.Client(t)
+	ctx := context.Background()
+
+	projectID := newProjectFixture(t, ctx)
+	created, err := c.Environments.Create(ctx, projectID, environments.CreateInput{
+		ID:   "inttestlinks",
+		Name: "Integration test links env",
+	})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = c.Environments.Delete(ctx, created.ID)
+	})
+
+	links, err := c.Environments.Links(ctx, created.ID)
+	if err != nil {
+		t.Fatalf("Links: %v", err)
+	}
+	if len(links) != 0 {
+		t.Errorf("Links on empty environment = %d entries, want 0", len(links))
+	}
+
+	deps, err := c.Environments.UnfulfilledDependencies(ctx, created.ID)
+	if err != nil {
+		t.Fatalf("UnfulfilledDependencies: %v", err)
+	}
+	if len(deps) != 0 {
+		t.Errorf("UnfulfilledDependencies on empty environment = %d entries, want 0", len(deps))
+	}
+
+	if _, err := c.Environments.Links(ctx, "definitely-not-real-env"); !errors.Is(err, gql.ErrNotFound) {
+		t.Errorf("Links on missing environment: got %v, want errors.Is(err, gql.ErrNotFound)", err)
+	}
+}

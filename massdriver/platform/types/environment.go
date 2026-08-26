@@ -47,3 +47,18 @@ type EnvironmentDefaultResource struct {
 	Name         string        `json:"name" mapstructure:"name"`
 	ResourceType *ResourceType `json:"resourceType,omitempty" mapstructure:"resourceType,omitempty"`
 }
+
+// UnfulfilledDependency is a required dependency input on an instance that
+// nothing in the environment fills — no blueprint link, no per-instance
+// remote reference, and no environment default of the matching resource
+// type. Deploying the instance blocks until the input is connected: wire a
+// resource into the slot (a link or a remote reference) or set an
+// environment default of the listed resource type.
+//
+// Instance and ResourceType are slim refs (id/name) — fetch the full shapes
+// via platform/instances.Get and platform/resourcetypes.Get.
+type UnfulfilledDependency struct {
+	Instance     Instance     `json:"instance" mapstructure:"instance"`
+	Field        string       `json:"field" mapstructure:"field"`
+	ResourceType ResourceType `json:"resourceType" mapstructure:"resourceType"`
+}

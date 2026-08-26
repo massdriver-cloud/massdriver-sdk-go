@@ -1945,6 +1945,10 @@ type CloneProjectCloneProjectProjectPayloadResultProjectLinksLink struct {
 	FromField string `json:"fromField"`
 	// The input field name on the destination component (e.g., `database`).
 	ToField string `json:"toField"`
+	// The version range of the source component this link routes from, as a tilde constraint (`~1` covers 1.x, `~0.4` covers 0.4.x). Null when the range has not been determined.
+	FromVersionConstraint string `json:"fromVersionConstraint"`
+	// The version range of the destination component this link routes to, as a tilde constraint (`~1` covers 1.x, `~0.4` covers 0.4.x). Null when the range has not been determined.
+	ToVersionConstraint string `json:"toVersionConstraint"`
 	// When this link was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this link was last modified (UTC).
@@ -1966,6 +1970,16 @@ func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLink) GetFromFi
 // GetToField returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLink.ToField, and is useful for accessing the field via an interface.
 func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLink) GetToField() string {
 	return v.ToField
+}
+
+// GetFromVersionConstraint returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLink.FromVersionConstraint, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLink) GetFromVersionConstraint() string {
+	return v.FromVersionConstraint
+}
+
+// GetToVersionConstraint returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLink.ToVersionConstraint, and is useful for accessing the field via an interface.
+func (v *CloneProjectCloneProjectProjectPayloadResultProjectLinksLink) GetToVersionConstraint() string {
+	return v.ToVersionConstraint
 }
 
 // GetCreatedAt returns CloneProjectCloneProjectProjectPayloadResultProjectLinksLink.CreatedAt, and is useful for accessing the field via an interface.
@@ -5891,10 +5905,10 @@ func (v *CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValueP
 //
 // An access token with the raw token value included.
 //
-// This type is only returned by token-creating mutations (`createPersonalAccessToken`,
-// `createServiceAccountAccessToken`, and the deprecated `createAccessToken`). The `token`
-// field contains the full credential needed for API authentication and **cannot be retrieved
-// again** after this response. Store it securely before navigating away.
+// This type is only returned by token-creating mutations (`createPersonalAccessToken` and
+// `createServiceAccountAccessToken`). The `token` field contains the full credential needed
+// for API authentication and **cannot be retrieved again** after this response. Store it
+// securely before navigating away.
 type CreatePersonalAccessTokenCreatePersonalAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue struct {
 	// Unique identifier for this access token.
 	Id string `json:"id"`
@@ -6860,7 +6874,7 @@ func (v *CreateResourceCreateResourceResourcePayloadResultResource) __premarshal
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type CreateResourceCreateResourceResourcePayloadResultResourceResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -7362,10 +7376,10 @@ func (v *CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTok
 //
 // An access token with the raw token value included.
 //
-// This type is only returned by token-creating mutations (`createPersonalAccessToken`,
-// `createServiceAccountAccessToken`, and the deprecated `createAccessToken`). The `token`
-// field contains the full credential needed for API authentication and **cannot be retrieved
-// again** after this response. Store it securely before navigating away.
+// This type is only returned by token-creating mutations (`createPersonalAccessToken` and
+// `createServiceAccountAccessToken`). The `token` field contains the full credential needed
+// for API authentication and **cannot be retrieved again** after this response. Store it
+// securely before navigating away.
 type CreateServiceAccountAccessTokenCreateServiceAccountAccessTokenAccessTokenWithValuePayloadResultAccessTokenWithValue struct {
 	// Unique identifier for this access token.
 	Id string `json:"id"`
@@ -7616,10 +7630,10 @@ func (v *CreateServiceAccountCreateServiceAccountServiceAccountWithDefaultAccess
 //
 // An access token with the raw token value included.
 //
-// This type is only returned by token-creating mutations (`createPersonalAccessToken`,
-// `createServiceAccountAccessToken`, and the deprecated `createAccessToken`). The `token`
-// field contains the full credential needed for API authentication and **cannot be retrieved
-// again** after this response. Store it securely before navigating away.
+// This type is only returned by token-creating mutations (`createPersonalAccessToken` and
+// `createServiceAccountAccessToken`). The `token` field contains the full credential needed
+// for API authentication and **cannot be retrieved again** after this response. Store it
+// securely before navigating away.
 type CreateServiceAccountCreateServiceAccountServiceAccountWithDefaultAccessTokenPayloadResultServiceAccountWithDefaultAccessTokenDefaultAccessTokenAccessTokenWithValue struct {
 	// Unique identifier for this access token.
 	Id string `json:"id"`
@@ -10636,7 +10650,7 @@ func (v *ExportResourceExportResourceResourceWithSensitiveValuesPayloadResultRes
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type ExportResourceExportResourceResourceWithSensitiveValuesPayloadResultResourceWithSensitiveValuesResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -11658,7 +11672,7 @@ func (v *GetBundleBundleDependenciesBundleDependency) GetResourceType() GetBundl
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type GetBundleBundleDependenciesBundleDependencyResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -11714,7 +11728,7 @@ func (v *GetBundleBundleResourcesBundleResource) GetResourceType() GetBundleBund
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type GetBundleBundleResourcesBundleResourceResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -13076,7 +13090,7 @@ func (v *GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmen
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type GetEnvironmentEnvironmentDefaultsEnvironmentDefaultsPageItemsEnvironmentDefaultResourceResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -13229,6 +13243,173 @@ func (v *GetEnvironmentEnvironmentProject) __premarshalJSON() (*__premarshalGetE
 	return &retval, nil
 }
 
+// GetEnvironmentLinksEnvironment includes the requested fields of the GraphQL type Environment.
+// The GraphQL type's documentation follows.
+//
+// A deployment target within a project where blueprint components become live infrastructure.
+//
+// Each project can have multiple environments (e.g., `staging`, `production`). When you deploy
+// to an environment, every component in the project's blueprint is realized as an **Instance** --
+// a running piece of cloud infrastructure with its own configuration, state, and cost data.
+//
+// Environments inherit attributes from their parent project. You can also set environment-scoped attributes
+// that cascade down to all instances within the environment. **Defaults** let you pre-assign
+// resources (like a shared VPC or DNS zone) so that new instances automatically receive them.
+//
+// Before deleting an environment, all instances must be decommissioned. Use the `deletable`
+// field to check for blocking constraints.
+type GetEnvironmentLinksEnvironment struct {
+	Id string `json:"id"`
+	// The links in effect in this environment given the versions its instances
+	// actually run.
+	//
+	// Where a project's `links` list every link in the architecture, this is the
+	// subset that applies to this environment: a component can run different
+	// versions in different environments, and a link applies only where the
+	// versions at both ends fall inside its version range. A link split across
+	// versions (`~0.2` in staging, `~0.3` in production) appears here as the single
+	// row whose range matches the versions deployed in this environment. A link
+	// whose source or destination has no instance here does not appear.
+	Links []GetEnvironmentLinksEnvironmentLinksLink `json:"links"`
+}
+
+// GetId returns GetEnvironmentLinksEnvironment.Id, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironment) GetId() string { return v.Id }
+
+// GetLinks returns GetEnvironmentLinksEnvironment.Links, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironment) GetLinks() []GetEnvironmentLinksEnvironmentLinksLink {
+	return v.Links
+}
+
+// GetEnvironmentLinksEnvironmentLinksLink includes the requested fields of the GraphQL type Link.
+// The GraphQL type's documentation follows.
+//
+// A design-time dependency between two components in a blueprint.
+//
+// A link declares that one component's output should be wired into another
+// component's input. For example, a link from a database component's
+// `authentication` output to an application component's `database` input
+// ensures the app receives the database connection string.
+//
+// At deploy time, each link is realized as a **connection** in the environment,
+// wiring the actual instance outputs to instance inputs.
+type GetEnvironmentLinksEnvironmentLinksLink struct {
+	// Unique identifier for this link.
+	Id string `json:"id"`
+	// The output field name on the source component (e.g., `authentication`).
+	FromField string `json:"fromField"`
+	// The input field name on the destination component (e.g., `database`).
+	ToField string `json:"toField"`
+	// The version range of the source component this link routes from, as a tilde constraint (`~1` covers 1.x, `~0.4` covers 0.4.x). Null when the range has not been determined.
+	FromVersionConstraint string `json:"fromVersionConstraint"`
+	// The version range of the destination component this link routes to, as a tilde constraint (`~1` covers 1.x, `~0.4` covers 0.4.x). Null when the range has not been determined.
+	ToVersionConstraint string `json:"toVersionConstraint"`
+	// When this link was created (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When this link was last modified (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The source component that produces the output.
+	FromComponent GetEnvironmentLinksEnvironmentLinksLinkFromComponent `json:"fromComponent"`
+	// The destination component that consumes the input.
+	ToComponent GetEnvironmentLinksEnvironmentLinksLinkToComponent `json:"toComponent"`
+}
+
+// GetId returns GetEnvironmentLinksEnvironmentLinksLink.Id, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLink) GetId() string { return v.Id }
+
+// GetFromField returns GetEnvironmentLinksEnvironmentLinksLink.FromField, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLink) GetFromField() string { return v.FromField }
+
+// GetToField returns GetEnvironmentLinksEnvironmentLinksLink.ToField, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLink) GetToField() string { return v.ToField }
+
+// GetFromVersionConstraint returns GetEnvironmentLinksEnvironmentLinksLink.FromVersionConstraint, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLink) GetFromVersionConstraint() string {
+	return v.FromVersionConstraint
+}
+
+// GetToVersionConstraint returns GetEnvironmentLinksEnvironmentLinksLink.ToVersionConstraint, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLink) GetToVersionConstraint() string {
+	return v.ToVersionConstraint
+}
+
+// GetCreatedAt returns GetEnvironmentLinksEnvironmentLinksLink.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLink) GetCreatedAt() time.Time { return v.CreatedAt }
+
+// GetUpdatedAt returns GetEnvironmentLinksEnvironmentLinksLink.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLink) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+// GetFromComponent returns GetEnvironmentLinksEnvironmentLinksLink.FromComponent, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLink) GetFromComponent() GetEnvironmentLinksEnvironmentLinksLinkFromComponent {
+	return v.FromComponent
+}
+
+// GetToComponent returns GetEnvironmentLinksEnvironmentLinksLink.ToComponent, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLink) GetToComponent() GetEnvironmentLinksEnvironmentLinksLinkToComponent {
+	return v.ToComponent
+}
+
+// GetEnvironmentLinksEnvironmentLinksLinkFromComponent includes the requested fields of the GraphQL type Component.
+// The GraphQL type's documentation follows.
+//
+// A bundle placed in a project's blueprint, representing a slot for deployable infrastructure.
+//
+// A component is the **design-time** building block of your architecture. It says
+// "I want a database here" or "I need a Kubernetes cluster there." The component
+// defines *what* to deploy; the actual running infrastructure lives in **instances**
+// -- one per environment the component is deployed to.
+//
+// Components are connected to each other via **links**, which declare that one
+// component's output (e.g., a connection string) should be wired into another
+// component's input.
+type GetEnvironmentLinksEnvironmentLinksLinkFromComponent struct {
+	Id string `json:"id"`
+	// Human-readable display name shown in the UI.
+	Name string `json:"name"`
+}
+
+// GetId returns GetEnvironmentLinksEnvironmentLinksLinkFromComponent.Id, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLinkFromComponent) GetId() string { return v.Id }
+
+// GetName returns GetEnvironmentLinksEnvironmentLinksLinkFromComponent.Name, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLinkFromComponent) GetName() string { return v.Name }
+
+// GetEnvironmentLinksEnvironmentLinksLinkToComponent includes the requested fields of the GraphQL type Component.
+// The GraphQL type's documentation follows.
+//
+// A bundle placed in a project's blueprint, representing a slot for deployable infrastructure.
+//
+// A component is the **design-time** building block of your architecture. It says
+// "I want a database here" or "I need a Kubernetes cluster there." The component
+// defines *what* to deploy; the actual running infrastructure lives in **instances**
+// -- one per environment the component is deployed to.
+//
+// Components are connected to each other via **links**, which declare that one
+// component's output (e.g., a connection string) should be wired into another
+// component's input.
+type GetEnvironmentLinksEnvironmentLinksLinkToComponent struct {
+	Id string `json:"id"`
+	// Human-readable display name shown in the UI.
+	Name string `json:"name"`
+}
+
+// GetId returns GetEnvironmentLinksEnvironmentLinksLinkToComponent.Id, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLinkToComponent) GetId() string { return v.Id }
+
+// GetName returns GetEnvironmentLinksEnvironmentLinksLinkToComponent.Name, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksEnvironmentLinksLinkToComponent) GetName() string { return v.Name }
+
+// GetEnvironmentLinksResponse is returned by GetEnvironmentLinks on success.
+type GetEnvironmentLinksResponse struct {
+	// Fetch a single environment by its identifier.
+	Environment GetEnvironmentLinksEnvironment `json:"environment"`
+}
+
+// GetEnvironment returns GetEnvironmentLinksResponse.Environment, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentLinksResponse) GetEnvironment() GetEnvironmentLinksEnvironment {
+	return v.Environment
+}
+
 // GetEnvironmentResponse is returned by GetEnvironment on success.
 type GetEnvironmentResponse struct {
 	// Fetch a single environment by its identifier.
@@ -13237,6 +13418,169 @@ type GetEnvironmentResponse struct {
 
 // GetEnvironment returns GetEnvironmentResponse.Environment, and is useful for accessing the field via an interface.
 func (v *GetEnvironmentResponse) GetEnvironment() GetEnvironmentEnvironment { return v.Environment }
+
+// GetEnvironmentUnfulfilledDependenciesEnvironment includes the requested fields of the GraphQL type Environment.
+// The GraphQL type's documentation follows.
+//
+// A deployment target within a project where blueprint components become live infrastructure.
+//
+// Each project can have multiple environments (e.g., `staging`, `production`). When you deploy
+// to an environment, every component in the project's blueprint is realized as an **Instance** --
+// a running piece of cloud infrastructure with its own configuration, state, and cost data.
+//
+// Environments inherit attributes from their parent project. You can also set environment-scoped attributes
+// that cascade down to all instances within the environment. **Defaults** let you pre-assign
+// resources (like a shared VPC or DNS zone) so that new instances automatically receive them.
+//
+// Before deleting an environment, all instances must be decommissioned. Use the `deletable`
+// field to check for blocking constraints.
+type GetEnvironmentUnfulfilledDependenciesEnvironment struct {
+	Id string `json:"id"`
+	// Required dependency inputs across this environment's instances that nothing
+	// fills — no blueprint link, no per-instance remote reference, and no
+	// environment default of the matching resource type.
+	//
+	// Each entry is one input a deploy would block on. Clear it by wiring a
+	// resource into the slot (a link or a remote reference) or by setting an
+	// environment default of the listed resource type. Optional inputs are never
+	// included. The list is sorted by instance identifier, then input name.
+	UnfulfilledDependencies []GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependency `json:"unfulfilledDependencies"`
+}
+
+// GetId returns GetEnvironmentUnfulfilledDependenciesEnvironment.Id, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentUnfulfilledDependenciesEnvironment) GetId() string { return v.Id }
+
+// GetUnfulfilledDependencies returns GetEnvironmentUnfulfilledDependenciesEnvironment.UnfulfilledDependencies, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentUnfulfilledDependenciesEnvironment) GetUnfulfilledDependencies() []GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependency {
+	return v.UnfulfilledDependencies
+}
+
+// GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependency includes the requested fields of the GraphQL type UnfulfilledDependency.
+// The GraphQL type's documentation follows.
+//
+// A required dependency input on an instance that nothing in the environment
+// fills.
+//
+// The instance's bundle marks this input as required, but no blueprint link,
+// per-instance remote reference, or environment default provides a resource of
+// the expected type. Deploying the instance blocks until the input is connected.
+type GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependency struct {
+	// The instance whose bundle requires this input.
+	Instance GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyInstance `json:"instance"`
+	// The input handle name that needs a resource wired into it (e.g., `database`).
+	Field string `json:"field"`
+	// The resource type this input requires. Wire in a resource of this type to fulfill it.
+	ResourceType GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyResourceType `json:"resourceType"`
+}
+
+// GetInstance returns GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependency.Instance, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependency) GetInstance() GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyInstance {
+	return v.Instance
+}
+
+// GetField returns GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependency.Field, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependency) GetField() string {
+	return v.Field
+}
+
+// GetResourceType returns GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependency.ResourceType, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependency) GetResourceType() GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyResourceType {
+	return v.ResourceType
+}
+
+// GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyInstance includes the requested fields of the GraphQL type Instance.
+// The GraphQL type's documentation follows.
+//
+// A deployed piece of infrastructure in an environment.
+//
+// An instance is the **runtime representation** of a component. When you add a
+// "database" component to your blueprint and deploy it to the `staging`
+// environment, Massdriver creates an instance that tracks the database's
+// configuration, deployment state, costs, and produced resources.
+//
+// **Lifecycle:** Instances progress through a well-defined set of states:
+//
+// ```mermaid
+// stateDiagram-v2
+// [*] --> INITIALIZED: "Component added to environment"
+// INITIALIZED --> PROVISIONED: "Deployment succeeds"
+// INITIALIZED --> FAILED: "Deployment fails"
+// PROVISIONED --> PROVISIONED: "Redeploy / update"
+// PROVISIONED --> DECOMMISSIONED: "Decommission succeeds"
+// PROVISIONED --> FAILED: "Deployment fails"
+// FAILED --> PROVISIONED: "Retry succeeds"
+// FAILED --> DECOMMISSIONED: "Decommission"
+// ```
+//
+// **Version resolution:** Each instance has a `version` constraint (e.g., `~1.0`)
+// and a `releaseStrategy` (stable or development). Together these determine
+// the `resolvedVersion` that will be used on the next deployment. Compare
+// `resolvedVersion` with `deployedVersion` to see if a redeployment is needed,
+// or check `availableUpgrade` for newer matching releases.
+type GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyInstance struct {
+	Id string `json:"id"`
+	// Name of the instance.
+	Name string `json:"name"`
+}
+
+// GetId returns GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyInstance.Id, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyInstance) GetId() string {
+	return v.Id
+}
+
+// GetName returns GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyInstance.Name, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyInstance) GetName() string {
+	return v.Name
+}
+
+// GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyResourceType includes the requested fields of the GraphQL type ResourceType.
+// The GraphQL type's documentation follows.
+//
+// A resource type that defines what kind of infrastructure a resource represents.
+//
+// Resource types are the schema layer for Massdriver's connection system. Every
+// dependency a bundle declares and every resource a bundle produces references a
+// resource type. This is what makes bundles composable -- a database bundle that
+// produces an `aws-rds-instance` resource can be connected to any application
+// bundle that declares an `aws-rds-instance` dependency.
+//
+// Resource types include both public types provided by Massdriver (e.g.,
+// `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
+// organization for custom infrastructure.
+type GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyResourceType struct {
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
+	Id string `json:"id"`
+	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
+	Name string `json:"name"`
+	// URL to the icon representing this resource type, if available.
+	Icon string `json:"icon"`
+}
+
+// GetId returns GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyResourceType.Id, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyResourceType) GetId() string {
+	return v.Id
+}
+
+// GetName returns GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyResourceType.Name, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyResourceType) GetName() string {
+	return v.Name
+}
+
+// GetIcon returns GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyResourceType.Icon, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentUnfulfilledDependenciesEnvironmentUnfulfilledDependenciesUnfulfilledDependencyResourceType) GetIcon() string {
+	return v.Icon
+}
+
+// GetEnvironmentUnfulfilledDependenciesResponse is returned by GetEnvironmentUnfulfilledDependencies on success.
+type GetEnvironmentUnfulfilledDependenciesResponse struct {
+	// Fetch a single environment by its identifier.
+	Environment GetEnvironmentUnfulfilledDependenciesEnvironment `json:"environment"`
+}
+
+// GetEnvironment returns GetEnvironmentUnfulfilledDependenciesResponse.Environment, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentUnfulfilledDependenciesResponse) GetEnvironment() GetEnvironmentUnfulfilledDependenciesEnvironment {
+	return v.Environment
+}
 
 // GetGroupGroup includes the requested fields of the GraphQL type Group.
 // The GraphQL type's documentation follows.
@@ -14747,7 +15091,7 @@ func (v *GetInstanceInstanceDependenciesInstanceDependencyResourceInstance) GetN
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type GetInstanceInstanceDependenciesInstanceDependencyResourceResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -15328,7 +15672,7 @@ func (v *GetInstanceInstanceResourcesInstanceResourceResource) __premarshalJSON(
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type GetInstanceInstanceResourcesInstanceResourceResourceResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -16503,6 +16847,10 @@ type GetProjectProjectLinksLink struct {
 	FromField string `json:"fromField"`
 	// The input field name on the destination component (e.g., `database`).
 	ToField string `json:"toField"`
+	// The version range of the source component this link routes from, as a tilde constraint (`~1` covers 1.x, `~0.4` covers 0.4.x). Null when the range has not been determined.
+	FromVersionConstraint string `json:"fromVersionConstraint"`
+	// The version range of the destination component this link routes to, as a tilde constraint (`~1` covers 1.x, `~0.4` covers 0.4.x). Null when the range has not been determined.
+	ToVersionConstraint string `json:"toVersionConstraint"`
 	// When this link was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this link was last modified (UTC).
@@ -16521,6 +16869,14 @@ func (v *GetProjectProjectLinksLink) GetFromField() string { return v.FromField 
 
 // GetToField returns GetProjectProjectLinksLink.ToField, and is useful for accessing the field via an interface.
 func (v *GetProjectProjectLinksLink) GetToField() string { return v.ToField }
+
+// GetFromVersionConstraint returns GetProjectProjectLinksLink.FromVersionConstraint, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectLinksLink) GetFromVersionConstraint() string {
+	return v.FromVersionConstraint
+}
+
+// GetToVersionConstraint returns GetProjectProjectLinksLink.ToVersionConstraint, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectLinksLink) GetToVersionConstraint() string { return v.ToVersionConstraint }
 
 // GetCreatedAt returns GetProjectProjectLinksLink.CreatedAt, and is useful for accessing the field via an interface.
 func (v *GetProjectProjectLinksLink) GetCreatedAt() time.Time { return v.CreatedAt }
@@ -16862,7 +17218,7 @@ func (v *GetResourceResourceInstance) GetName() string { return v.Name }
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type GetResourceResourceResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -16900,10 +17256,12 @@ func (v *GetResourceResponse) GetResource() GetResourceResource { return v.Resou
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type GetResourceTypeResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
+	// Fully resolved semantic version of this resource type (e.g., `1.2.3`).
+	Version string `json:"version"`
 	// URL to the icon representing this resource type, if available.
 	Icon string `json:"icon"`
 	// How instances receive a dependency of this resource type. Determines whether connections are explicit links on the canvas or automatic environment-level defaults.
@@ -16944,6 +17302,9 @@ func (v *GetResourceTypeResourceType) GetId() string { return v.Id }
 
 // GetName returns GetResourceTypeResourceType.Name, and is useful for accessing the field via an interface.
 func (v *GetResourceTypeResourceType) GetName() string { return v.Name }
+
+// GetVersion returns GetResourceTypeResourceType.Version, and is useful for accessing the field via an interface.
+func (v *GetResourceTypeResourceType) GetVersion() string { return v.Version }
 
 // GetIcon returns GetResourceTypeResourceType.Icon, and is useful for accessing the field via an interface.
 func (v *GetResourceTypeResourceType) GetIcon() string { return v.Icon }
@@ -17041,6 +17402,8 @@ type __premarshalGetResourceTypeResourceType struct {
 
 	Name string `json:"name"`
 
+	Version string `json:"version"`
+
 	Icon string `json:"icon"`
 
 	ConnectionOrientation ConnectionOrientation `json:"connectionOrientation"`
@@ -17071,6 +17434,7 @@ func (v *GetResourceTypeResourceType) __premarshalJSON() (*__premarshalGetResour
 
 	retval.Id = v.Id
 	retval.Name = v.Name
+	retval.Version = v.Version
 	retval.Icon = v.Icon
 	retval.ConnectionOrientation = v.ConnectionOrientation
 	{
@@ -17140,15 +17504,28 @@ func (v *GetResourceTypeResourceTypeInstructionsImportInstruction) GetContent() 
 
 // GetResourceTypeResponse is returned by GetResourceType on success.
 type GetResourceTypeResponse struct {
-	// Fetch a single resource type by its identifier.
+	// Fetch a single resource type by its composite identifier.
 	//
-	// Returns `null` with a `NOT_FOUND` error if the resource type does not exist
-	// or is not accessible to your organization.
+	// The `id` accepts an `identifier@version` string where the version portion can
+	// be an exact semver, a release channel, or omitted entirely:
+	//
+	// | Input | Resolves to |
+	// |-------|-------------|
+	// | `aws-iam-role@1.2.3` | Exact version `1.2.3` |
+	// | `aws-iam-role@~1.2` | Latest patch in `1.2.x` |
+	// | `aws-iam-role@~1` | Latest minor in `1.x.x` |
+	// | `aws-iam-role@latest` | Newest stable release |
+	// | `aws-iam-role@latest+dev` | Newest release including dev builds |
+	// | `aws-iam-role` | Shorthand for `latest` (falls back to `latest+dev` if no stable exists) |
+	//
+	// Returns `null` with a `NOT_FOUND` error if no matching version exists or the
+	// resource type is not accessible to your organization.
 	//
 	// ```graphql
 	// query {
-	// resourceType(organizationId: "your-org-id", id: "aws-iam-role") {
+	// resourceType(organizationId: "your-org-id", id: "aws-iam-role@~1") {
 	// id
+	// version
 	// name
 	// connectionOrientation
 	// icon
@@ -22882,6 +23259,10 @@ type ListProjectsProjectsProjectsPageItemsProjectLinksLink struct {
 	FromField string `json:"fromField"`
 	// The input field name on the destination component (e.g., `database`).
 	ToField string `json:"toField"`
+	// The version range of the source component this link routes from, as a tilde constraint (`~1` covers 1.x, `~0.4` covers 0.4.x). Null when the range has not been determined.
+	FromVersionConstraint string `json:"fromVersionConstraint"`
+	// The version range of the destination component this link routes to, as a tilde constraint (`~1` covers 1.x, `~0.4` covers 0.4.x). Null when the range has not been determined.
+	ToVersionConstraint string `json:"toVersionConstraint"`
 	// When this link was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this link was last modified (UTC).
@@ -22902,6 +23283,16 @@ func (v *ListProjectsProjectsProjectsPageItemsProjectLinksLink) GetFromField() s
 
 // GetToField returns ListProjectsProjectsProjectsPageItemsProjectLinksLink.ToField, and is useful for accessing the field via an interface.
 func (v *ListProjectsProjectsProjectsPageItemsProjectLinksLink) GetToField() string { return v.ToField }
+
+// GetFromVersionConstraint returns ListProjectsProjectsProjectsPageItemsProjectLinksLink.FromVersionConstraint, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectLinksLink) GetFromVersionConstraint() string {
+	return v.FromVersionConstraint
+}
+
+// GetToVersionConstraint returns ListProjectsProjectsProjectsPageItemsProjectLinksLink.ToVersionConstraint, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectLinksLink) GetToVersionConstraint() string {
+	return v.ToVersionConstraint
+}
 
 // GetCreatedAt returns ListProjectsProjectsProjectsPageItemsProjectLinksLink.CreatedAt, and is useful for accessing the field via an interface.
 func (v *ListProjectsProjectsProjectsPageItemsProjectLinksLink) GetCreatedAt() time.Time {
@@ -23201,6 +23592,159 @@ type ListResourceGrantsResponse struct {
 // GetResource returns ListResourceGrantsResponse.Resource, and is useful for accessing the field via an interface.
 func (v *ListResourceGrantsResponse) GetResource() ListResourceGrantsResource { return v.Resource }
 
+// ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependent includes the requested fields of the GraphQL type ResourceTypeDependent.
+// The GraphQL type's documentation follows.
+//
+// An instance that depends on a resource type, paired with the dependency field
+// on its bundle that receives it.
+//
+// An instance appears once per dependency field that references the resource
+// type, so a bundle that depends on the same type through two fields yields two
+// entries for that instance.
+type ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependent struct {
+	// The instance whose bundle depends on the resource type.
+	Instance ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentInstance `json:"instance"`
+	// The dependency field on the instance's bundle that receives this resource type (e.g., `network`).
+	Field string `json:"field"`
+	// The resource type these instances depend on.
+	ResourceType ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentResourceType `json:"resourceType"`
+}
+
+// GetInstance returns ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependent.Instance, and is useful for accessing the field via an interface.
+func (v *ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependent) GetInstance() ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentInstance {
+	return v.Instance
+}
+
+// GetField returns ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependent.Field, and is useful for accessing the field via an interface.
+func (v *ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependent) GetField() string {
+	return v.Field
+}
+
+// GetResourceType returns ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependent.ResourceType, and is useful for accessing the field via an interface.
+func (v *ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependent) GetResourceType() ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentResourceType {
+	return v.ResourceType
+}
+
+// ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentInstance includes the requested fields of the GraphQL type Instance.
+// The GraphQL type's documentation follows.
+//
+// A deployed piece of infrastructure in an environment.
+//
+// An instance is the **runtime representation** of a component. When you add a
+// "database" component to your blueprint and deploy it to the `staging`
+// environment, Massdriver creates an instance that tracks the database's
+// configuration, deployment state, costs, and produced resources.
+//
+// **Lifecycle:** Instances progress through a well-defined set of states:
+//
+// ```mermaid
+// stateDiagram-v2
+// [*] --> INITIALIZED: "Component added to environment"
+// INITIALIZED --> PROVISIONED: "Deployment succeeds"
+// INITIALIZED --> FAILED: "Deployment fails"
+// PROVISIONED --> PROVISIONED: "Redeploy / update"
+// PROVISIONED --> DECOMMISSIONED: "Decommission succeeds"
+// PROVISIONED --> FAILED: "Deployment fails"
+// FAILED --> PROVISIONED: "Retry succeeds"
+// FAILED --> DECOMMISSIONED: "Decommission"
+// ```
+//
+// **Version resolution:** Each instance has a `version` constraint (e.g., `~1.0`)
+// and a `releaseStrategy` (stable or development). Together these determine
+// the `resolvedVersion` that will be used on the next deployment. Compare
+// `resolvedVersion` with `deployedVersion` to see if a redeployment is needed,
+// or check `availableUpgrade` for newer matching releases.
+type ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentInstance struct {
+	Id string `json:"id"`
+	// Name of the instance.
+	Name string `json:"name"`
+}
+
+// GetId returns ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentInstance.Id, and is useful for accessing the field via an interface.
+func (v *ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentInstance) GetId() string {
+	return v.Id
+}
+
+// GetName returns ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentInstance.Name, and is useful for accessing the field via an interface.
+func (v *ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentInstance) GetName() string {
+	return v.Name
+}
+
+// ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentResourceType includes the requested fields of the GraphQL type ResourceType.
+// The GraphQL type's documentation follows.
+//
+// A resource type that defines what kind of infrastructure a resource represents.
+//
+// Resource types are the schema layer for Massdriver's connection system. Every
+// dependency a bundle declares and every resource a bundle produces references a
+// resource type. This is what makes bundles composable -- a database bundle that
+// produces an `aws-rds-instance` resource can be connected to any application
+// bundle that declares an `aws-rds-instance` dependency.
+//
+// Resource types include both public types provided by Massdriver (e.g.,
+// `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
+// organization for custom infrastructure.
+type ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentResourceType struct {
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
+	Id string `json:"id"`
+	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
+	Name string `json:"name"`
+	// URL to the icon representing this resource type, if available.
+	Icon string `json:"icon"`
+}
+
+// GetId returns ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentResourceType.Id, and is useful for accessing the field via an interface.
+func (v *ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentResourceType) GetId() string {
+	return v.Id
+}
+
+// GetName returns ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentResourceType.Name, and is useful for accessing the field via an interface.
+func (v *ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentResourceType) GetName() string {
+	return v.Name
+}
+
+// GetIcon returns ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentResourceType.Icon, and is useful for accessing the field via an interface.
+func (v *ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependentResourceType) GetIcon() string {
+	return v.Icon
+}
+
+// ListResourceTypeDependentsResponse is returned by ListResourceTypeDependents on success.
+type ListResourceTypeDependentsResponse struct {
+	// List the instances in an environment that depend on a resource type.
+	//
+	// Returns one entry per (instance, dependency field) pair: an instance whose
+	// bundle declares a dependency slot referencing the resource type, plus the
+	// field name that receives it. Use this to see what a resource type is used by
+	// before changing or removing it.
+	//
+	// The `resourceTypeId` accepts a bare identifier (`aws-vpc`) or a versioned one
+	// (`aws-vpc@latest`, `aws-vpc@1.0.0`). The version portion is accepted for a
+	// stable contract but is not yet used to match: bundles reference resource
+	// types without a version, so matching is resolved at the type level (the
+	// type's current `0.0.0` document). Version-specific matching becomes possible
+	// once bundles carry versioned resource-type references.
+	//
+	// ```graphql
+	// query {
+	// resourceTypeDependents(
+	// organizationId: "your-org-id"
+	// environmentId: "ecomm-production"
+	// resourceTypeId: "aws-vpc"
+	// ) {
+	// instance { id name }
+	// field
+	// resourceType { id name }
+	// }
+	// }
+	// ```
+	ResourceTypeDependents []ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependent `json:"resourceTypeDependents"`
+}
+
+// GetResourceTypeDependents returns ListResourceTypeDependentsResponse.ResourceTypeDependents, and is useful for accessing the field via an interface.
+func (v *ListResourceTypeDependentsResponse) GetResourceTypeDependents() []ListResourceTypeDependentsResourceTypeDependentsResourceTypeDependent {
+	return v.ResourceTypeDependents
+}
+
 // ListResourcesResourcesResourcesPage includes the requested fields of the GraphQL type ResourcesPage.
 type ListResourcesResourcesResourcesPage struct {
 	// Pagination cursors for navigating between pages.
@@ -23469,7 +24013,7 @@ func (v *ListResourcesResourcesResourcesPageItemsResourceInstance) GetName() str
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type ListResourcesResourcesResourcesPageItemsResourceResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -25398,7 +25942,7 @@ func (v *RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultR
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type RemoveRemoteReferenceRemoveRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -26466,7 +27010,7 @@ func (v *SetEnvironmentDefaultSetEnvironmentDefaultEnvironmentDefaultPayloadResu
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type SetEnvironmentDefaultSetEnvironmentDefaultEnvironmentDefaultPayloadResultEnvironmentDefaultResourceResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -26867,7 +27411,7 @@ func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteR
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteReferenceResourceResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -30394,7 +30938,7 @@ func (v *UpdateResourceUpdateResourceResourcePayloadResultResource) __premarshal
 // `aws-iam-role`, `kubernetes-cluster`) and private types defined by your
 // organization for custom infrastructure.
 type UpdateResourceUpdateResourceResourcePayloadResultResourceResourceType struct {
-	// Unique identifier in kebab-case (e.g., `aws-iam-role`, `kubernetes-cluster`).
+	// Composite identifier in `identifier@version` format (e.g., `aws-iam-role@1.2.3`). Always contains the fully resolved semver version.
 	Id string `json:"id"`
 	// Human-readable display name (e.g., "AWS IAM Role", "Kubernetes Cluster").
 	Name string `json:"name"`
@@ -31285,6 +31829,32 @@ func (v *__GetEnvironmentInput) GetOrganizationId() string { return v.Organizati
 // GetId returns __GetEnvironmentInput.Id, and is useful for accessing the field via an interface.
 func (v *__GetEnvironmentInput) GetId() string { return v.Id }
 
+// __GetEnvironmentLinksInput is used internally by genqlient
+type __GetEnvironmentLinksInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __GetEnvironmentLinksInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__GetEnvironmentLinksInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __GetEnvironmentLinksInput.Id, and is useful for accessing the field via an interface.
+func (v *__GetEnvironmentLinksInput) GetId() string { return v.Id }
+
+// __GetEnvironmentUnfulfilledDependenciesInput is used internally by genqlient
+type __GetEnvironmentUnfulfilledDependenciesInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __GetEnvironmentUnfulfilledDependenciesInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__GetEnvironmentUnfulfilledDependenciesInput) GetOrganizationId() string {
+	return v.OrganizationId
+}
+
+// GetId returns __GetEnvironmentUnfulfilledDependenciesInput.Id, and is useful for accessing the field via an interface.
+func (v *__GetEnvironmentUnfulfilledDependenciesInput) GetId() string { return v.Id }
+
 // __GetGroupInput is used internally by genqlient
 type __GetGroupInput struct {
 	OrganizationId string `json:"organizationId"`
@@ -31752,6 +32322,22 @@ func (v *__ListResourceGrantsInput) GetId() string { return v.Id }
 
 // GetCursor returns __ListResourceGrantsInput.Cursor, and is useful for accessing the field via an interface.
 func (v *__ListResourceGrantsInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+// __ListResourceTypeDependentsInput is used internally by genqlient
+type __ListResourceTypeDependentsInput struct {
+	OrganizationId string `json:"organizationId"`
+	EnvironmentId  string `json:"environmentId"`
+	ResourceTypeId string `json:"resourceTypeId"`
+}
+
+// GetOrganizationId returns __ListResourceTypeDependentsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListResourceTypeDependentsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetEnvironmentId returns __ListResourceTypeDependentsInput.EnvironmentId, and is useful for accessing the field via an interface.
+func (v *__ListResourceTypeDependentsInput) GetEnvironmentId() string { return v.EnvironmentId }
+
+// GetResourceTypeId returns __ListResourceTypeDependentsInput.ResourceTypeId, and is useful for accessing the field via an interface.
+func (v *__ListResourceTypeDependentsInput) GetResourceTypeId() string { return v.ResourceTypeId }
 
 // __ListResourcesInput is used internally by genqlient
 type __ListResourcesInput struct {
@@ -32511,6 +33097,8 @@ mutation CloneProject ($organizationId: ID!, $sourceProjectId: ID!, $input: Clon
 				id
 				fromField
 				toField
+				fromVersionConstraint
+				toVersionConstraint
 				createdAt
 				updatedAt
 				fromComponent {
@@ -34941,6 +35529,107 @@ func GetEnvironment(
 	return data_, err_
 }
 
+// The query executed by GetEnvironmentLinks.
+const GetEnvironmentLinks_Operation = `
+query GetEnvironmentLinks ($organizationId: ID!, $id: ID!) {
+	environment(organizationId: $organizationId, id: $id) {
+		id
+		links {
+			id
+			fromField
+			toField
+			fromVersionConstraint
+			toVersionConstraint
+			createdAt
+			updatedAt
+			fromComponent {
+				id
+				name
+			}
+			toComponent {
+				id
+				name
+			}
+		}
+	}
+}
+`
+
+func GetEnvironmentLinks(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *GetEnvironmentLinksResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetEnvironmentLinks",
+		Query:  GetEnvironmentLinks_Operation,
+		Variables: &__GetEnvironmentLinksInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &GetEnvironmentLinksResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by GetEnvironmentUnfulfilledDependencies.
+const GetEnvironmentUnfulfilledDependencies_Operation = `
+query GetEnvironmentUnfulfilledDependencies ($organizationId: ID!, $id: ID!) {
+	environment(organizationId: $organizationId, id: $id) {
+		id
+		unfulfilledDependencies {
+			instance {
+				id
+				name
+			}
+			field
+			resourceType {
+				id
+				name
+				icon
+			}
+		}
+	}
+}
+`
+
+func GetEnvironmentUnfulfilledDependencies(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *GetEnvironmentUnfulfilledDependenciesResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetEnvironmentUnfulfilledDependencies",
+		Query:  GetEnvironmentUnfulfilledDependencies_Operation,
+		Variables: &__GetEnvironmentUnfulfilledDependenciesInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &GetEnvironmentUnfulfilledDependenciesResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The query executed by GetGroup.
 const GetGroup_Operation = `
 query GetGroup ($organizationId: ID!, $id: UUID!) {
@@ -35424,6 +36113,8 @@ query GetProject ($organizationId: ID!, $id: ID!) {
 			id
 			fromField
 			toField
+			fromVersionConstraint
+			toVersionConstraint
 			createdAt
 			updatedAt
 			fromComponent {
@@ -35520,10 +36211,11 @@ func GetResource(
 
 // The query executed by GetResourceType.
 const GetResourceType_Operation = `
-query GetResourceType ($organizationId: ID!, $id: ID!) {
+query GetResourceType ($organizationId: ID!, $id: ResourceTypeId!) {
 	resourceType(organizationId: $organizationId, id: $id) {
 		id
 		name
+		version
 		icon
 		connectionOrientation
 		schema
@@ -36830,6 +37522,8 @@ query ListProjects ($organizationId: ID!, $filter: ProjectsFilter, $sort: Projec
 				id
 				fromField
 				toField
+				fromVersionConstraint
+				toVersionConstraint
 				createdAt
 				updatedAt
 				fromComponent {
@@ -36917,6 +37611,53 @@ func ListResourceGrants(
 	}
 
 	data_ = &ListResourceGrantsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListResourceTypeDependents.
+const ListResourceTypeDependents_Operation = `
+query ListResourceTypeDependents ($organizationId: ID!, $environmentId: ID!, $resourceTypeId: ID!) {
+	resourceTypeDependents(organizationId: $organizationId, environmentId: $environmentId, resourceTypeId: $resourceTypeId) {
+		instance {
+			id
+			name
+		}
+		field
+		resourceType {
+			id
+			name
+			icon
+		}
+	}
+}
+`
+
+func ListResourceTypeDependents(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	environmentId string,
+	resourceTypeId string,
+) (data_ *ListResourceTypeDependentsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListResourceTypeDependents",
+		Query:  ListResourceTypeDependents_Operation,
+		Variables: &__ListResourceTypeDependentsInput{
+			OrganizationId: organizationId,
+			EnvironmentId:  environmentId,
+			ResourceTypeId: resourceTypeId,
+		},
+	}
+
+	data_ = &ListResourceTypeDependentsResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

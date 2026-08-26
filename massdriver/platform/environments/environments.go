@@ -183,6 +183,70 @@ func (s *Service) Get(ctx context.Context, id string) (*Environment, error) {
 	return toEnvironment(resp.Environment)
 }
 
+// Links lists the blueprint links in effect in an environment given the
+// versions its instances actually run.
+//
+// Where a project's links list every link in the architecture, this is the
+// subset that applies to this environment: a component can run different
+// versions in different environments, and a link applies only where the
+// versions at both ends fall inside its version range
+// ([types.Link.FromVersionConstraint] / [types.Link.ToVersionConstraint]).
+// A link whose source or destination has no instance in this environment
+// does not appear.
+//
+// Returns [gql.ErrNotFound] (wrapped, match with [errors.Is]) when the
+// environment does not exist.
+func (s *Service) Links(ctx context.Context, id string) ([]types.Link, error) {
+	resp, err := gen.GetEnvironmentLinks(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id)
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("get environment %s links: %w", id, err))
+	}
+	if resp.Environment.Id == "" {
+		return nil, fmt.Errorf("get environment %s links: %w", id, gql.ErrNotFound)
+	}
+	links := make([]types.Link, 0, len(resp.Environment.Links))
+	for _, item := range resp.Environment.Links {
+		l := types.Link{}
+		if derr := decode.Decode(item, &l); derr != nil {
+			return nil, fmt.Errorf("decode environment link: %w", derr)
+		}
+		links = append(links, l)
+	}
+	return links, nil
+}
+
+// UnfulfilledDependency is a required dependency input nothing in the
+// environment fills — alias of [types.UnfulfilledDependency].
+type UnfulfilledDependency = types.UnfulfilledDependency
+
+// UnfulfilledDependencies lists required dependency inputs across the
+// environment's instances that nothing fills — no blueprint link, no
+// per-instance remote reference, and no environment default of the matching
+// resource type. Each entry is one input a deploy would block on; optional
+// inputs are never included. The list is sorted by instance identifier,
+// then input name.
+//
+// Returns [gql.ErrNotFound] (wrapped, match with [errors.Is]) when the
+// environment does not exist.
+func (s *Service) UnfulfilledDependencies(ctx context.Context, id string) ([]UnfulfilledDependency, error) {
+	resp, err := gen.GetEnvironmentUnfulfilledDependencies(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id)
+	if err != nil {
+		return nil, gql.ClassifyError(fmt.Errorf("get environment %s unfulfilled dependencies: %w", id, err))
+	}
+	if resp.Environment.Id == "" {
+		return nil, fmt.Errorf("get environment %s unfulfilled dependencies: %w", id, gql.ErrNotFound)
+	}
+	deps := make([]UnfulfilledDependency, 0, len(resp.Environment.UnfulfilledDependencies))
+	for _, item := range resp.Environment.UnfulfilledDependencies {
+		d := UnfulfilledDependency{}
+		if derr := decode.Decode(item, &d); derr != nil {
+			return nil, fmt.Errorf("decode unfulfilled dependency: %w", derr)
+		}
+		deps = append(deps, d)
+	}
+	return deps, nil
+}
+
 // Iter returns a lazy [iter.Seq2] over environments matching input, fetching
 // pages on demand. It is the recommended way to list: ranging the sequence
 // streams results without buffering the whole match set, and breaking out of

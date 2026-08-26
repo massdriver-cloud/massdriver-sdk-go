@@ -507,3 +507,109 @@ func TestDecommissionProtected(t *testing.T) {
 		t.Errorf("messages = %+v, want one entry for decommissionProtection", mf.Messages)
 	}
 }
+
+func TestLinks(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"environment": map[string]any{
+				"id": "ecomm-prod",
+				"links": []map[string]any{
+					{
+						"id":                    "link-1",
+						"fromField":             "vpc",
+						"toField":               "network",
+						"fromVersionConstraint": "~1",
+						"toVersionConstraint":   "~0.4",
+						"fromComponent":         map[string]any{"id": "net", "name": "Network"},
+						"toComponent":           map[string]any{"id": "api", "name": "API"},
+					},
+					{
+						"id":            "link-2",
+						"fromField":     "database",
+						"toField":       "db",
+						"fromComponent": map[string]any{"id": "db", "name": "Database"},
+						"toComponent":   map[string]any{"id": "api", "name": "API"},
+					},
+				},
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).Links(t.Context(), "ecomm-prod")
+	if err != nil {
+		t.Fatalf("Links: %v", err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("len = %d, want 2", len(got))
+	}
+	if got[0].FromVersionConstraint != "~1" || got[0].ToVersionConstraint != "~0.4" {
+		t.Errorf("got[0] constraints = %q/%q, want ~1/~0.4", got[0].FromVersionConstraint, got[0].ToVersionConstraint)
+	}
+	if got[1].FromVersionConstraint != "" {
+		t.Errorf("got[1].FromVersionConstraint = %q, want empty for null constraint", got[1].FromVersionConstraint)
+	}
+	if got[0].FromComponent == nil || got[0].FromComponent.ID != "net" {
+		t.Errorf("got[0].FromComponent = %+v, want id net", got[0].FromComponent)
+	}
+
+	reqs := gqlClient.Requests()
+	if reqs[0].OpName != "GetEnvironmentLinks" {
+		t.Errorf("OpName = %q, want GetEnvironmentLinks", reqs[0].OpName)
+	}
+}
+
+func TestLinks_NotFound(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{"environment": nil}),
+	)
+	_, err := newService(gqlClient).Links(t.Context(), "missing")
+	if !errors.Is(err, gql.ErrNotFound) {
+		t.Errorf("err = %v, want it to wrap gql.ErrNotFound", err)
+	}
+}
+
+func TestUnfulfilledDependencies(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"environment": map[string]any{
+				"id": "ecomm-prod",
+				"unfulfilledDependencies": []map[string]any{
+					{
+						"instance": map[string]any{"id": "ecomm-prod-api", "name": "api"},
+						"field":    "database",
+						"resourceType": map[string]any{
+							"id":   "postgres@0.0.0",
+							"name": "PostgreSQL",
+						},
+					},
+				},
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).UnfulfilledDependencies(t.Context(), "ecomm-prod")
+	if err != nil {
+		t.Fatalf("UnfulfilledDependencies: %v", err)
+	}
+	if len(got) != 1 {
+		t.Fatalf("len = %d, want 1", len(got))
+	}
+	if got[0].Instance.ID != "ecomm-prod-api" || got[0].Field != "database" || got[0].ResourceType.ID != "postgres@0.0.0" {
+		t.Errorf("got[0] = %+v, want ecomm-prod-api / database / postgres@0.0.0", got[0])
+	}
+
+	reqs := gqlClient.Requests()
+	if reqs[0].OpName != "GetEnvironmentUnfulfilledDependencies" {
+		t.Errorf("OpName = %q, want GetEnvironmentUnfulfilledDependencies", reqs[0].OpName)
+	}
+}
+
+func TestUnfulfilledDependencies_NotFound(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{"environment": nil}),
+	)
+	_, err := newService(gqlClient).UnfulfilledDependencies(t.Context(), "missing")
+	if !errors.Is(err, gql.ErrNotFound) {
+		t.Errorf("err = %v, want it to wrap gql.ErrNotFound", err)
+	}
+}
