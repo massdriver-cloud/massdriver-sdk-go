@@ -57,6 +57,10 @@ type Overrides struct {
 	OrganizationID string
 	URL            string
 	Profile        string
+	// AuthMethod selects the credential kind: empty resolves
+	// API-key/PAT auth; [AuthDeployment] opts into the deployment
+	// token env vars.
+	AuthMethod AuthMethod
 }
 
 // Get is shorthand for [Load](Overrides{}).
@@ -128,7 +132,7 @@ func initializeConfig(o Overrides) (Config, error) {
 	cfg.URL = cmp.Or(configEnvs.URL, profile.URL, defaultURL)
 	cfg.TemplatesPath = cmp.Or(configEnvs.TemplatesPath, profile.TemplatesPath)
 
-	credentials, credErr := resolveCredentials(configEnvs, &profile, apiKeyOrigin)
+	credentials, credErr := resolveCredentials(configEnvs, &profile, apiKeyOrigin, o.AuthMethod)
 	if credErr != nil {
 		return Config{}, fmt.Errorf("error resolving credentials: %w", credErr)
 	}
@@ -183,7 +187,7 @@ func getConfigEnvs() (*configEnvs, error) {
 
 func validateConfig(cfg Config) error {
 	if cfg.OrganizationID == "" {
-		return fmt.Errorf("organization ID is required")
+		return ErrOrganizationIDRequired
 	}
 
 	if cfg.Credentials.ID == "" || cfg.Credentials.Secret == "" {

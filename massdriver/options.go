@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/Khan/genqlient/graphql"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 )
 
 // Option configures a [*Client] built by [NewClient]. Options
@@ -27,6 +28,7 @@ type options struct {
 	organizationID string
 	baseURL        string
 	profile        string
+	authMethod     config.AuthMethod
 	gqlClient      graphql.Client
 
 	timeout    time.Duration
@@ -39,6 +41,16 @@ type options struct {
 // auth); all other values are treated as legacy API keys (Basic auth).
 func WithAPIKey(key string) Option {
 	return func(o *options) { o.apiKey = key }
+}
+
+// WithDeploymentTokenAuth authenticates with the deployment token the
+// platform injects into provisioner containers (MASSDRIVER_DEPLOYMENT_ID
+// + MASSDRIVER_TOKEN); [NewClient] errors if either is unset. Deployment
+// tokens only work on the small provisioning-related subset of the
+// platform API, so they are never picked up implicitly — this option is
+// the only way [NewClient] uses one. Takes precedence over [WithAPIKey].
+func WithDeploymentTokenAuth() Option {
+	return func(o *options) { o.authMethod = config.AuthDeployment }
 }
 
 // WithOrganizationID sets the organization id this client operates

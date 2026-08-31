@@ -36,6 +36,19 @@ Package massdriver is the entry point for the Massdriver Go SDK.
     profile is selected by MASSDRIVER_PROFILE / [WithProfile]
     (default: "default").
 
+Deployment tokens (MASSDRIVER_DEPLOYMENT_ID + MASSDRIVER_TOKEN,
+injected into provisioner containers) are never resolved implicitly —
+they authenticate only a small provisioning-related subset of the
+platform API. Deploy-time tooling that needs one opts in with
+[WithDeploymentTokenAuth].
+
+Construction errors classify with [errors.Is] against the sentinels in
+[github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config]:
+[config.ErrNoCredentials], [config.ErrDeploymentCredentialsMissing],
+and [config.ErrOrganizationIDRequired]. Callers that treat credentials
+as optional should branch on ErrNoCredentials rather than matching
+message text.
+
 Common shapes:
 
 	// Default — env + config file

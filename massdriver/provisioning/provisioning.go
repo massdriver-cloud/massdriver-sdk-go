@@ -76,11 +76,12 @@ func NewClient(opts ...Option) (*Client, error) {
 		opt(&o)
 	}
 
-	// config.Load resolves auth (deployment-token), URL with default,
-	// and OrganizationID — also produces the http client we hand to
-	// the services. We keep URL and OrganizationID and discard the rest;
+	// config.Load resolves deployment-token auth (requested explicitly —
+	// this surface accepts nothing else), URL with default, and
+	// OrganizationID — also produces the http client we hand to the
+	// services. We keep URL and OrganizationID and discard the rest;
 	// the rest of provisioning.Config is loaded from env directly.
-	cfg, err := config.Load(config.Overrides{URL: o.baseURL})
+	cfg, err := config.Load(config.Overrides{URL: o.baseURL, AuthMethod: config.AuthDeployment})
 	if err != nil {
 		return nil, err
 	}
