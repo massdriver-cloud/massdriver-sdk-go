@@ -51,6 +51,8 @@ func main() {
 | `MASSDRIVER_API_KEY`, `MASSDRIVER_ORGANIZATION_ID`, `MASSDRIVER_URL`, `MASSDRIVER_PROFILE` | Environment variables override the config file. |
 | `~/.config/massdriver/config.yaml`, profile selected by `MASSDRIVER_PROFILE` (default `default`) | Created and managed by the [Massdriver CLI](https://github.com/massdriver-cloud/mass). |
 
+Deployment tokens (`MASSDRIVER_DEPLOYMENT_ID` + `MASSDRIVER_TOKEN`, injected into provisioner containers) are never picked up implicitly — they authenticate only a small provisioning-related subset of the platform API. Deploy-time tooling that needs one opts in with `massdriver.WithDeploymentTokenAuth()`.
+
 ```go
 // Explicit credentials (e.g. CI):
 c, _ := massdriver.NewClient(
@@ -127,6 +129,15 @@ if mf, ok := gql.AsMutationFailedError(err); ok {
     for _, m := range mf.Messages {
         log.Printf("%s: %s (%s)", m.Field, m.Message, m.Code)
     }
+}
+```
+
+Construction errors from `massdriver.NewClient` / `provisioning.NewClient` classify the same way against sentinels in package `config` — `config.ErrNoCredentials`, `config.ErrDeploymentCredentialsMissing`, `config.ErrOrganizationIDRequired`:
+
+```go
+c, err := massdriver.NewClient()
+if errors.Is(err, config.ErrNoCredentials) {
+    // no API key configured — e.g. disable optional platform features
 }
 ```
 

@@ -91,8 +91,10 @@ func (c *Client) Config() config.Config { return c.config }
 // Without options, configuration is resolved from environment variables
 // (MASSDRIVER_API_KEY, MASSDRIVER_ORGANIZATION_ID, MASSDRIVER_URL,
 // MASSDRIVER_PROFILE) and the active profile in
-// ~/.config/massdriver/config.yaml. Options override environment and
-// file values:
+// ~/.config/massdriver/config.yaml. Deployment tokens
+// (MASSDRIVER_DEPLOYMENT_ID + MASSDRIVER_TOKEN) are never used unless
+// explicitly requested via [WithDeploymentTokenAuth]. Options override
+// environment and file values:
 //
 //	c, err := massdriver.NewClient(
 //	    massdriver.WithAPIKey(os.Getenv("DEPLOY_KEY")),
@@ -132,6 +134,7 @@ func NewClient(opts ...Option) (*Client, error) {
 		OrganizationID: o.organizationID,
 		URL:            o.baseURL,
 		Profile:        o.profile,
+		AuthMethod:     o.authMethod,
 	})
 	if err != nil {
 		return nil, err

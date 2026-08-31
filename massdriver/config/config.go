@@ -27,14 +27,14 @@ type configFile struct {
 }
 
 type configEnvs struct {
-	OrganizationID  string `json:"organization_id" yaml:"organization_id" envconfig:"ORGANIZATION_ID"`
-	OrgId           string `json:"org_id" yaml:"org_id" envconfig:"ORG_ID"`
-	APIKey          string `json:"api_key" yaml:"api_key" envconfig:"API_KEY"`
-	DeploymentID    string `json:"deployment_id" yaml:"deployment_id" envconfig:"DEPLOYMENT_ID"`
-	DeploymentToken string `json:"deployment_token" yaml:"deployment_token" envconfig:"TOKEN"`
-	Profile         string `json:"profile" yaml:"profile" envconfig:"PROFILE"`
-	URL             string `json:"url" yaml:"url" envconfig:"URL"`
-	TemplatesPath   string `json:"templates_path" yaml:"templates_path" envconfig:"TEMPLATES_PATH"`
+	OrganizationID  string `json:"organization_id" yaml:"organization_id" envconfig:"MASSDRIVER_ORGANIZATION_ID"`
+	OrgId           string `json:"org_id" yaml:"org_id" envconfig:"MASSDRIVER_ORG_ID"`
+	APIKey          string `json:"api_key" yaml:"api_key" envconfig:"MASSDRIVER_API_KEY"`
+	DeploymentID    string `json:"deployment_id" yaml:"deployment_id" envconfig:"MASSDRIVER_DEPLOYMENT_ID"`
+	DeploymentToken string `json:"deployment_token" yaml:"deployment_token" envconfig:"MASSDRIVER_TOKEN"`
+	Profile         string `json:"profile" yaml:"profile" envconfig:"MASSDRIVER_PROFILE"`
+	URL             string `json:"url" yaml:"url" envconfig:"MASSDRIVER_URL"`
+	TemplatesPath   string `json:"templates_path" yaml:"templates_path" envconfig:"MASSDRIVER_TEMPLATES_PATH"`
 }
 
 type Config struct {
@@ -57,6 +57,10 @@ type Overrides struct {
 	OrganizationID string
 	URL            string
 	Profile        string
+	// AuthMethod selects the credential kind: empty resolves
+	// API-key/PAT auth; [AuthDeployment] opts into the deployment
+	// token env vars.
+	AuthMethod AuthMethod
 }
 
 // Get is shorthand for [Load](Overrides{}).
@@ -128,7 +132,7 @@ func initializeConfig(o Overrides) (Config, error) {
 	cfg.URL = cmp.Or(configEnvs.URL, profile.URL, defaultURL)
 	cfg.TemplatesPath = cmp.Or(configEnvs.TemplatesPath, profile.TemplatesPath)
 
-	credentials, credErr := resolveCredentials(configEnvs, &profile, apiKeyOrigin)
+	credentials, credErr := resolveCredentials(configEnvs, &profile, apiKeyOrigin, o.AuthMethod)
 	if credErr != nil {
 		return Config{}, fmt.Errorf("error resolving credentials: %w", credErr)
 	}
@@ -174,7 +178,7 @@ func getConfigFile() (*configFile, error) {
 
 func getConfigEnvs() (*configEnvs, error) {
 	envs := new(configEnvs)
-	envErr := envconfig.Process("massdriver", envs)
+	envErr := envconfig.Process("", envs)
 	if envErr != nil {
 		return nil, fmt.Errorf("error processing environment variables: %w", envErr)
 	}
@@ -183,7 +187,7 @@ func getConfigEnvs() (*configEnvs, error) {
 
 func validateConfig(cfg Config) error {
 	if cfg.OrganizationID == "" {
-		return fmt.Errorf("organization ID is required")
+		return ErrOrganizationIDRequired
 	}
 
 	if cfg.Credentials.ID == "" || cfg.Credentials.Secret == "" {

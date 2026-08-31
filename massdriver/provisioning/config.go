@@ -14,15 +14,15 @@ import "github.com/kelseyhightower/envconfig"
 type Config struct {
 	URL              string
 	OrganizationID   string
-	DeploymentID     string `envconfig:"DEPLOYMENT_ID" required:"true"`
-	Token            string `envconfig:"TOKEN" required:"true"`
-	BundleName       string `envconfig:"BUNDLE_NAME" required:"true"`
-	BundleVersion    string `envconfig:"BUNDLE_VERSION" required:"true"`
-	DeploymentAction string `envconfig:"DEPLOYMENT_ACTION" required:"true"`
-	InstanceID       string `envconfig:"INSTANCE_ID" required:"true"`
-	StepPath         string `envconfig:"STEP_PATH"`
+	DeploymentID     string `envconfig:"MASSDRIVER_DEPLOYMENT_ID" required:"true"`
+	Token            string `envconfig:"MASSDRIVER_TOKEN" required:"true"`
+	BundleName       string `envconfig:"MASSDRIVER_BUNDLE_NAME" required:"true"`
+	BundleVersion    string `envconfig:"MASSDRIVER_BUNDLE_VERSION" required:"true"`
+	DeploymentAction string `envconfig:"MASSDRIVER_DEPLOYMENT_ACTION" required:"true"`
+	InstanceID       string `envconfig:"MASSDRIVER_INSTANCE_ID" required:"true"`
+	StepPath         string `envconfig:"MASSDRIVER_STEP_PATH"`
 }
 
 func loadDeploymentEnvs(c *Config) error {
-	return envconfig.Process("MASSDRIVER", c)
+	return envconfig.Process("", c)
 }

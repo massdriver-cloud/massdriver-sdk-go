@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
 )
 
@@ -77,6 +78,75 @@ func TestNewClient_AuthMethodForPATPrefix(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestNewClient_DeploymentTokenIsOptIn confirms the deployment-token
+// env vars the platform injects into provisioner containers are only
+// used when the caller explicitly asks via WithDeploymentTokenAuth —
+// never as an ambient fallback, and never shadowing an API key.
+func TestNewClient_DeploymentTokenIsOptIn(t *testing.T) {
+	t.Run("opt-in uses the deployment token", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		c, err := massdriver.NewClient(massdriver.WithDeploymentTokenAuth())
+		if err != nil {
+			t.Fatalf("NewClient: %v", err)
+		}
+		if got := string(c.Config().Credentials.Method); got != "deployment" {
+			t.Errorf("Config.Credentials.Method = %q, want deployment", got)
+		}
+	})
+
+	t.Run("without opt-in the API key wins over deployment envs", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_API_KEY", "env-key")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		c, err := massdriver.NewClient()
+		if err != nil {
+			t.Fatalf("NewClient: %v", err)
+		}
+		if got := string(c.Config().Credentials.Method); got != "api_key" {
+			t.Errorf("Config.Credentials.Method = %q, want api_key", got)
+		}
+	})
+
+	t.Run("without opt-in deployment envs alone error with a hint", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		_, err := massdriver.NewClient()
+		if err == nil {
+			t.Fatal("NewClient without opt-in should not use deployment envs")
+		}
+		if !errors.Is(err, config.ErrNoCredentials) {
+			t.Errorf("err = %v, want errors.Is(err, config.ErrNoCredentials)", err)
+		}
+		if !strings.Contains(err.Error(), "WithDeploymentTokenAuth") {
+			t.Errorf("err = %v, want a hint pointing at WithDeploymentTokenAuth", err)
+		}
+	})
+
+	t.Run("opt-in without deployment envs errors", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_API_KEY", "env-key")
+
+		_, err := massdriver.NewClient(massdriver.WithDeploymentTokenAuth())
+		if err == nil {
+			t.Fatal("NewClient with opt-in but no deployment envs should error")
+		}
+		if !errors.Is(err, config.ErrDeploymentCredentialsMissing) {
+			t.Errorf("err = %v, want errors.Is(err, config.ErrDeploymentCredentialsMissing)", err)
+		}
+	})
 }
 
 // TestNewClient_EnvSourceTracking confirms credentials sourced from
@@ -181,13 +251,8 @@ func TestNewClient_NoCredentialsErrors(t *testing.T) {
 	if err == nil {
 		t.Fatal("NewClient with no creds should error")
 	}
-	if !strings.Contains(err.Error(), "credentials") {
-		t.Errorf("err = %v, want it to mention credentials", err)
-	}
-	// The error chain should be a regular error — not one of our
-	// sentinels. Sentinels are for runtime API errors, not config errors.
-	for _, sentinel := range []error{nil} {
-		_ = sentinel // placeholder; explicitly not asserting sentinel match
+	if !errors.Is(err, config.ErrNoCredentials) {
+		t.Errorf("err = %v, want errors.Is(err, config.ErrNoCredentials)", err)
 	}
 	// Sanity-check: errors.Is on unrelated sentinel returns false.
 	if errors.Is(err, errors.New("nope")) {

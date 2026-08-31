@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -41,7 +42,7 @@ profiles:
 		expectConfig    config.Config
 	}{
 		{
-			name: "loads full config with URL",
+			name: "API key wins over deployment env vars without explicit opt-in",
 			env: map[string]string{
 				"MASSDRIVER_ORGANIZATION_ID": "org-id",
 				"MASSDRIVER_API_KEY":         "key-abc",
@@ -55,13 +56,22 @@ profiles:
 				URL:            "https://custom.massdriver.cloud",
 				Profile:        "",
 				Credentials: config.Credentials{
-					Method:          config.AuthDeployment,
+					Method:          config.AuthAPIKey,
 					Source:          config.SourceEnv,
-					ID:              "deploy-123",
-					Secret:          "token-abc",
-					AuthHeaderValue: "Basic ZGVwbG95LTEyMzp0b2tlbi1hYmM=",
+					ID:              "org-id",
+					Secret:          "key-abc",
+					AuthHeaderValue: "Basic b3JnLWlkOmtleS1hYmM=",
 				},
 			},
+		},
+		{
+			name: "deployment env vars alone are not used without explicit opt-in",
+			env: map[string]string{
+				"MASSDRIVER_ORGANIZATION_ID": "org-id",
+				"MASSDRIVER_DEPLOYMENT_ID":   "deploy-123",
+				"MASSDRIVER_TOKEN":           "token-abc",
+			},
+			expectErr: "deployment token authentication requires explicit opt-in",
 		},
 		{
 			name: "defaults URL to standard URL",
@@ -365,4 +375,206 @@ func TestLoad_PATSourceTracking(t *testing.T) {
 		require.Equal(t, config.AuthPAT, cfg.Credentials.Method)
 		require.Equal(t, config.SourceEnv, cfg.Credentials.Source)
 	})
+}
+
+// TestLoad_AuthMethod covers the explicit auth-method request:
+// deployment tokens resolve only when asked for, and asking for them
+// makes the deployment env vars mandatory.
+func TestLoad_AuthMethod(t *testing.T) {
+	for _, k := range []string{
+		"MASSDRIVER_ORGANIZATION_ID",
+		"MASSDRIVER_ORG_ID",
+		"MASSDRIVER_API_KEY",
+		"MASSDRIVER_DEPLOYMENT_ID",
+		"MASSDRIVER_TOKEN",
+		"MASSDRIVER_PROFILE",
+		"MASSDRIVER_URL",
+	} {
+		t.Setenv(k, "")
+	}
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("XDG_CONFIG_HOME", "")
+
+	t.Run("deployment opt-in resolves deployment envs", func(t *testing.T) {
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		cfg, err := config.Load(config.Overrides{AuthMethod: config.AuthDeployment})
+		require.NoError(t, err)
+		require.Equal(t, config.Credentials{
+			Method:          config.AuthDeployment,
+			Source:          config.SourceEnv,
+			ID:              "deploy-123",
+			Secret:          "token-abc",
+			AuthHeaderValue: "Basic ZGVwbG95LTEyMzp0b2tlbi1hYmM=",
+		}, cfg.Credentials)
+	})
+
+	t.Run("deployment opt-in beats an ambient API key", func(t *testing.T) {
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_API_KEY", "key-abc")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		cfg, err := config.Load(config.Overrides{AuthMethod: config.AuthDeployment})
+		require.NoError(t, err)
+		require.Equal(t, config.AuthDeployment, cfg.Credentials.Method)
+	})
+
+	t.Run("deployment opt-in errors when envs are missing", func(t *testing.T) {
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_API_KEY", "key-abc")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "")
+		t.Setenv("MASSDRIVER_TOKEN", "")
+
+		_, err := config.Load(config.Overrides{AuthMethod: config.AuthDeployment})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "MASSDRIVER_DEPLOYMENT_ID and MASSDRIVER_TOKEN")
+	})
+
+	t.Run("unsupported method errors", func(t *testing.T) {
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_API_KEY", "key-abc")
+
+		_, err := config.Load(config.Overrides{AuthMethod: "bogus"})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), `unsupported auth method: "bogus"`)
+	})
+}
+
+// TestLoad_SentinelErrors confirms credential failures classify with
+// errors.Is through Load's wrapping, so callers (e.g. the Terraform
+// provider treating an API key as optional) don't have to match
+// message text.
+func TestLoad_SentinelErrors(t *testing.T) {
+	for _, k := range []string{
+		"MASSDRIVER_ORGANIZATION_ID",
+		"MASSDRIVER_ORG_ID",
+		"MASSDRIVER_API_KEY",
+		"MASSDRIVER_DEPLOYMENT_ID",
+		"MASSDRIVER_TOKEN",
+		"MASSDRIVER_PROFILE",
+		"MASSDRIVER_URL",
+	} {
+		t.Setenv(k, "")
+	}
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("XDG_CONFIG_HOME", "")
+
+	t.Run("empty config is ErrNoCredentials", func(t *testing.T) {
+		_, err := config.Load(config.Overrides{})
+		require.ErrorIs(t, err, config.ErrNoCredentials)
+	})
+
+	t.Run("deployment envs without opt-in is still ErrNoCredentials", func(t *testing.T) {
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		_, err := config.Load(config.Overrides{})
+		require.ErrorIs(t, err, config.ErrNoCredentials)
+	})
+
+	t.Run("deployment opt-in without envs is ErrDeploymentCredentialsMissing", func(t *testing.T) {
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+
+		_, err := config.Load(config.Overrides{AuthMethod: config.AuthDeployment})
+		require.ErrorIs(t, err, config.ErrDeploymentCredentialsMissing)
+	})
+
+	t.Run("API key without org is ErrOrganizationIDRequired", func(t *testing.T) {
+		t.Setenv("MASSDRIVER_API_KEY", "key-abc")
+
+		_, err := config.Load(config.Overrides{})
+		require.ErrorIs(t, err, config.ErrOrganizationIDRequired)
+	})
+
+	t.Run("deployment auth without org is ErrOrganizationIDRequired", func(t *testing.T) {
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		_, err := config.Load(config.Overrides{AuthMethod: config.AuthDeployment})
+		require.ErrorIs(t, err, config.ErrOrganizationIDRequired)
+	})
+}
+
+// TestLoad_IgnoresBareEnvVars guards against envconfig's bare-tag
+// fallback: unprefixed TOKEN, URL, API_KEY, etc. must never be honored.
+func TestLoad_IgnoresBareEnvVars(t *testing.T) {
+	for _, k := range []string{
+		"MASSDRIVER_ORGANIZATION_ID",
+		"MASSDRIVER_ORG_ID",
+		"MASSDRIVER_API_KEY",
+		"MASSDRIVER_DEPLOYMENT_ID",
+		"MASSDRIVER_TOKEN",
+		"MASSDRIVER_PROFILE",
+		"MASSDRIVER_URL",
+		"MASSDRIVER_TEMPLATES_PATH",
+	} {
+		t.Setenv(k, "") // register restore-on-cleanup
+		os.Unsetenv(k)  // the fallback only triggers when truly unset
+	}
+	for k, v := range map[string]string{
+		"ORGANIZATION_ID": "bare-org",
+		"ORG_ID":          "bare-org",
+		"API_KEY":         "bare-key",
+		"DEPLOYMENT_ID":   "bare-deploy",
+		"TOKEN":           "bare-token",
+		"PROFILE":         "bare-profile",
+		"URL":             "https://bare.example.com",
+		"TEMPLATES_PATH":  "/bare/templates",
+	} {
+		t.Setenv(k, v)
+	}
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("XDG_CONFIG_HOME", "")
+
+	_, err := config.Load(config.Overrides{})
+	require.ErrorIs(t, err, config.ErrNoCredentials, "bare API_KEY/ORGANIZATION_ID must not resolve credentials")
+
+	_, err = config.Load(config.Overrides{AuthMethod: config.AuthDeployment})
+	require.ErrorIs(t, err, config.ErrDeploymentCredentialsMissing, "bare DEPLOYMENT_ID/TOKEN must not resolve deployment credentials")
+
+	// With real prefixed credentials, a stray bare URL must not
+	// redirect the client.
+	t.Setenv("MASSDRIVER_ORGANIZATION_ID", "org")
+	t.Setenv("MASSDRIVER_API_KEY", "key")
+	cfg, err := config.Load(config.Overrides{})
+	require.NoError(t, err)
+	require.Equal(t, "https://api.massdriver.cloud", cfg.URL)
+	require.Empty(t, cfg.TemplatesPath)
+	require.Empty(t, cfg.Profile)
+}
+
+// TestCredentials_Redaction confirms Secret and AuthHeaderValue never
+// appear when a Credentials — bare or nested inside a Config — is
+// printed with any of fmt's default verbs.
+func TestCredentials_Redaction(t *testing.T) {
+	creds := config.Credentials{
+		Method:          config.AuthAPIKey,
+		Source:          config.SourceEnv,
+		ID:              "ecomm",
+		Secret:          "super-secret-key",
+		AuthHeaderValue: "Basic c3VwZXItc2VjcmV0",
+	}
+
+	for _, verb := range []string{"%v", "%+v", "%s", "%#v"} {
+		out := fmt.Sprintf(verb, creds)
+		require.NotContains(t, out, "super-secret-key", "verb %s leaked Secret", verb)
+		require.NotContains(t, out, "c3VwZXItc2VjcmV0", "verb %s leaked AuthHeaderValue", verb)
+		require.Contains(t, out, "REDACTED", "verb %s should mark set fields as REDACTED", verb)
+		require.Contains(t, out, "ecomm", "verb %s should keep non-secret fields visible", verb)
+	}
+
+	cfg := config.Config{OrganizationID: "ecomm", URL: "https://api.massdriver.cloud", Credentials: creds}
+	for _, verb := range []string{"%v", "%+v", "%#v"} {
+		out := fmt.Sprintf(verb, cfg)
+		require.NotContains(t, out, "super-secret-key", "verb %s leaked Secret via Config", verb)
+		require.NotContains(t, out, "c3VwZXItc2VjcmV0", "verb %s leaked AuthHeaderValue via Config", verb)
+	}
+
+	// Unset fields print empty, not REDACTED, so "no credential
+	// resolved" stays distinguishable in debug output.
+	require.NotContains(t, fmt.Sprintf("%v", config.Credentials{}), "REDACTED")
 }
