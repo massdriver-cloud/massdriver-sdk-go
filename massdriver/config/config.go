@@ -27,14 +27,14 @@ type configFile struct {
 }
 
 type configEnvs struct {
-	OrganizationID  string `json:"organization_id" yaml:"organization_id" envconfig:"ORGANIZATION_ID"`
-	OrgId           string `json:"org_id" yaml:"org_id" envconfig:"ORG_ID"`
-	APIKey          string `json:"api_key" yaml:"api_key" envconfig:"API_KEY"`
-	DeploymentID    string `json:"deployment_id" yaml:"deployment_id" envconfig:"DEPLOYMENT_ID"`
-	DeploymentToken string `json:"deployment_token" yaml:"deployment_token" envconfig:"TOKEN"`
-	Profile         string `json:"profile" yaml:"profile" envconfig:"PROFILE"`
-	URL             string `json:"url" yaml:"url" envconfig:"URL"`
-	TemplatesPath   string `json:"templates_path" yaml:"templates_path" envconfig:"TEMPLATES_PATH"`
+	OrganizationID  string `json:"organization_id" yaml:"organization_id" envconfig:"MASSDRIVER_ORGANIZATION_ID"`
+	OrgId           string `json:"org_id" yaml:"org_id" envconfig:"MASSDRIVER_ORG_ID"`
+	APIKey          string `json:"api_key" yaml:"api_key" envconfig:"MASSDRIVER_API_KEY"`
+	DeploymentID    string `json:"deployment_id" yaml:"deployment_id" envconfig:"MASSDRIVER_DEPLOYMENT_ID"`
+	DeploymentToken string `json:"deployment_token" yaml:"deployment_token" envconfig:"MASSDRIVER_TOKEN"`
+	Profile         string `json:"profile" yaml:"profile" envconfig:"MASSDRIVER_PROFILE"`
+	URL             string `json:"url" yaml:"url" envconfig:"MASSDRIVER_URL"`
+	TemplatesPath   string `json:"templates_path" yaml:"templates_path" envconfig:"MASSDRIVER_TEMPLATES_PATH"`
 }
 
 type Config struct {
@@ -178,7 +178,7 @@ func getConfigFile() (*configFile, error) {
 
 func getConfigEnvs() (*configEnvs, error) {
 	envs := new(configEnvs)
-	envErr := envconfig.Process("massdriver", envs)
+	envErr := envconfig.Process("", envs)
 	if envErr != nil {
 		return nil, fmt.Errorf("error processing environment variables: %w", envErr)
 	}

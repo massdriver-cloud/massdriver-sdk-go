@@ -499,6 +499,54 @@ func TestLoad_SentinelErrors(t *testing.T) {
 	})
 }
 
+// TestLoad_IgnoresBareEnvVars guards against envconfig's bare-tag
+// fallback: unprefixed TOKEN, URL, API_KEY, etc. must never be honored.
+func TestLoad_IgnoresBareEnvVars(t *testing.T) {
+	for _, k := range []string{
+		"MASSDRIVER_ORGANIZATION_ID",
+		"MASSDRIVER_ORG_ID",
+		"MASSDRIVER_API_KEY",
+		"MASSDRIVER_DEPLOYMENT_ID",
+		"MASSDRIVER_TOKEN",
+		"MASSDRIVER_PROFILE",
+		"MASSDRIVER_URL",
+		"MASSDRIVER_TEMPLATES_PATH",
+	} {
+		t.Setenv(k, "") // register restore-on-cleanup
+		os.Unsetenv(k)  // the fallback only triggers when truly unset
+	}
+	for k, v := range map[string]string{
+		"ORGANIZATION_ID": "bare-org",
+		"ORG_ID":          "bare-org",
+		"API_KEY":         "bare-key",
+		"DEPLOYMENT_ID":   "bare-deploy",
+		"TOKEN":           "bare-token",
+		"PROFILE":         "bare-profile",
+		"URL":             "https://bare.example.com",
+		"TEMPLATES_PATH":  "/bare/templates",
+	} {
+		t.Setenv(k, v)
+	}
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("XDG_CONFIG_HOME", "")
+
+	_, err := config.Load(config.Overrides{})
+	require.ErrorIs(t, err, config.ErrNoCredentials, "bare API_KEY/ORGANIZATION_ID must not resolve credentials")
+
+	_, err = config.Load(config.Overrides{AuthMethod: config.AuthDeployment})
+	require.ErrorIs(t, err, config.ErrDeploymentCredentialsMissing, "bare DEPLOYMENT_ID/TOKEN must not resolve deployment credentials")
+
+	// With real prefixed credentials, a stray bare URL must not
+	// redirect the client.
+	t.Setenv("MASSDRIVER_ORGANIZATION_ID", "org")
+	t.Setenv("MASSDRIVER_API_KEY", "key")
+	cfg, err := config.Load(config.Overrides{})
+	require.NoError(t, err)
+	require.Equal(t, "https://api.massdriver.cloud", cfg.URL)
+	require.Empty(t, cfg.TemplatesPath)
+	require.Empty(t, cfg.Profile)
+}
+
 // TestCredentials_Redaction confirms Secret and AuthHeaderValue never
 // appear when a Credentials — bare or nested inside a Config — is
 // printed with any of fmt's default verbs.
