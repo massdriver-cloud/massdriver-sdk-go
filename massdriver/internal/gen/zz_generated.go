@@ -1279,6 +1279,11 @@ type ApproveDeploymentResponse struct {
 	// as soon as nothing else is running on the instance. Approval is only valid
 	// for deployments in `PROPOSED` status; any other status returns a validation
 	// error.
+	//
+	// When the instance's environment has `separationOfDuty` enabled, the account
+	// or service account named in `deployedBy` cannot approve its own proposal —
+	// a second reviewer has to call this mutation. Use `rejectDeployment` to
+	// withdraw your own proposal.
 	ApproveDeployment ApproveDeploymentApproveDeploymentDeploymentPayload `json:"approveDeployment"`
 }
 
@@ -4116,6 +4121,10 @@ type CreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvironment struc
 	Description string `json:"description"`
 	// Key-value attributes assigned directly to this environment. Attributes cascade to instances. Must conform to your organization's custom attributes for the `ENVIRONMENT` scope.
 	Attributes map[string]any `json:"-"`
+	// When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false.
+	DecommissionProtection bool `json:"decommissionProtection"`
+	// When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`. Defaults to false.
+	SeparationOfDuty bool `json:"separationOfDuty"`
 	// When this environment was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this environment was last modified (UTC).
@@ -4142,6 +4151,16 @@ func (v *CreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvironment) 
 // GetAttributes returns CreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvironment.Attributes, and is useful for accessing the field via an interface.
 func (v *CreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvironment) GetAttributes() map[string]any {
 	return v.Attributes
+}
+
+// GetDecommissionProtection returns CreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvironment.DecommissionProtection, and is useful for accessing the field via an interface.
+func (v *CreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvironment) GetDecommissionProtection() bool {
+	return v.DecommissionProtection
+}
+
+// GetSeparationOfDuty returns CreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvironment.SeparationOfDuty, and is useful for accessing the field via an interface.
+func (v *CreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvironment) GetSeparationOfDuty() bool {
+	return v.SeparationOfDuty
 }
 
 // GetCreatedAt returns CreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvironment.CreatedAt, and is useful for accessing the field via an interface.
@@ -4201,6 +4220,10 @@ type __premarshalCreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvir
 
 	Attributes json.RawMessage `json:"attributes"`
 
+	DecommissionProtection bool `json:"decommissionProtection"`
+
+	SeparationOfDuty bool `json:"separationOfDuty"`
+
 	CreatedAt time.Time `json:"createdAt"`
 
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -4234,6 +4257,8 @@ func (v *CreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvironment) 
 				"unable to marshal CreateEnvironmentCreateEnvironmentEnvironmentPayloadResultEnvironment.Attributes: %w", err)
 		}
 	}
+	retval.DecommissionProtection = v.DecommissionProtection
+	retval.SeparationOfDuty = v.SeparationOfDuty
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
 	retval.Project = v.Project
@@ -4394,6 +4419,8 @@ type CreateEnvironmentInput struct {
 	Id string `json:"id"`
 	// A human-readable name for the environment
 	Name string `json:"name"`
+	// When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`. Defaults to false.
+	SeparationOfDuty bool `json:"separationOfDuty"`
 }
 
 // GetAttributes returns CreateEnvironmentInput.Attributes, and is useful for accessing the field via an interface.
@@ -4410,6 +4437,9 @@ func (v *CreateEnvironmentInput) GetId() string { return v.Id }
 
 // GetName returns CreateEnvironmentInput.Name, and is useful for accessing the field via an interface.
 func (v *CreateEnvironmentInput) GetName() string { return v.Name }
+
+// GetSeparationOfDuty returns CreateEnvironmentInput.SeparationOfDuty, and is useful for accessing the field via an interface.
+func (v *CreateEnvironmentInput) GetSeparationOfDuty() bool { return v.SeparationOfDuty }
 
 func (v *CreateEnvironmentInput) UnmarshalJSON(b []byte) error {
 
@@ -4454,6 +4484,8 @@ type __premarshalCreateEnvironmentInput struct {
 	Id string `json:"id"`
 
 	Name string `json:"name"`
+
+	SeparationOfDuty bool `json:"separationOfDuty"`
 }
 
 func (v *CreateEnvironmentInput) MarshalJSON() ([]byte, error) {
@@ -4483,6 +4515,7 @@ func (v *CreateEnvironmentInput) __premarshalJSON() (*__premarshalCreateEnvironm
 	retval.Description = v.Description
 	retval.Id = v.Id
 	retval.Name = v.Name
+	retval.SeparationOfDuty = v.SeparationOfDuty
 	return &retval, nil
 }
 
@@ -10786,6 +10819,10 @@ type ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment struct {
 	Description string `json:"description"`
 	// Key-value attributes assigned directly to this environment. Attributes cascade to instances. Must conform to your organization's custom attributes for the `ENVIRONMENT` scope.
 	Attributes map[string]any `json:"-"`
+	// When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false.
+	DecommissionProtection bool `json:"decommissionProtection"`
+	// When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`. Defaults to false.
+	SeparationOfDuty bool `json:"separationOfDuty"`
 	// When this environment was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this environment was last modified (UTC).
@@ -10814,6 +10851,16 @@ func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) GetD
 // GetAttributes returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.Attributes, and is useful for accessing the field via an interface.
 func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) GetAttributes() map[string]any {
 	return v.Attributes
+}
+
+// GetDecommissionProtection returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.DecommissionProtection, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) GetDecommissionProtection() bool {
+	return v.DecommissionProtection
+}
+
+// GetSeparationOfDuty returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.SeparationOfDuty, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) GetSeparationOfDuty() bool {
+	return v.SeparationOfDuty
 }
 
 // GetCreatedAt returns ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.CreatedAt, and is useful for accessing the field via an interface.
@@ -10878,6 +10925,10 @@ type __premarshalForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironme
 
 	Attributes json.RawMessage `json:"attributes"`
 
+	DecommissionProtection bool `json:"decommissionProtection"`
+
+	SeparationOfDuty bool `json:"separationOfDuty"`
+
 	CreatedAt time.Time `json:"createdAt"`
 
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -10913,6 +10964,8 @@ func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment) __pr
 				"unable to marshal ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironment.Attributes: %w", err)
 		}
 	}
+	retval.DecommissionProtection = v.DecommissionProtection
+	retval.SeparationOfDuty = v.SeparationOfDuty
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
 	retval.Cost = v.Cost
@@ -11229,6 +11282,8 @@ type ForkEnvironmentInput struct {
 	Id string `json:"id"`
 	// A human-readable name for the forked environment
 	Name string `json:"name"`
+	// When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`. Defaults to false.
+	SeparationOfDuty bool `json:"separationOfDuty"`
 }
 
 // GetAttributes returns ForkEnvironmentInput.Attributes, and is useful for accessing the field via an interface.
@@ -11254,6 +11309,9 @@ func (v *ForkEnvironmentInput) GetId() string { return v.Id }
 
 // GetName returns ForkEnvironmentInput.Name, and is useful for accessing the field via an interface.
 func (v *ForkEnvironmentInput) GetName() string { return v.Name }
+
+// GetSeparationOfDuty returns ForkEnvironmentInput.SeparationOfDuty, and is useful for accessing the field via an interface.
+func (v *ForkEnvironmentInput) GetSeparationOfDuty() bool { return v.SeparationOfDuty }
 
 func (v *ForkEnvironmentInput) UnmarshalJSON(b []byte) error {
 
@@ -11304,6 +11362,8 @@ type __premarshalForkEnvironmentInput struct {
 	Id string `json:"id"`
 
 	Name string `json:"name"`
+
+	SeparationOfDuty bool `json:"separationOfDuty"`
 }
 
 func (v *ForkEnvironmentInput) MarshalJSON() ([]byte, error) {
@@ -11336,6 +11396,7 @@ func (v *ForkEnvironmentInput) __premarshalJSON() (*__premarshalForkEnvironmentI
 	retval.Description = v.Description
 	retval.Id = v.Id
 	retval.Name = v.Name
+	retval.SeparationOfDuty = v.SeparationOfDuty
 	return &retval, nil
 }
 
@@ -12712,6 +12773,10 @@ type GetEnvironmentEnvironment struct {
 	Description string `json:"description"`
 	// Key-value attributes assigned directly to this environment. Attributes cascade to instances. Must conform to your organization's custom attributes for the `ENVIRONMENT` scope.
 	Attributes map[string]any `json:"-"`
+	// When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false.
+	DecommissionProtection bool `json:"decommissionProtection"`
+	// When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`. Defaults to false.
+	SeparationOfDuty bool `json:"separationOfDuty"`
 	// When this environment was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this environment was last modified (UTC).
@@ -12739,6 +12804,12 @@ func (v *GetEnvironmentEnvironment) GetDescription() string { return v.Descripti
 
 // GetAttributes returns GetEnvironmentEnvironment.Attributes, and is useful for accessing the field via an interface.
 func (v *GetEnvironmentEnvironment) GetAttributes() map[string]any { return v.Attributes }
+
+// GetDecommissionProtection returns GetEnvironmentEnvironment.DecommissionProtection, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironment) GetDecommissionProtection() bool { return v.DecommissionProtection }
+
+// GetSeparationOfDuty returns GetEnvironmentEnvironment.SeparationOfDuty, and is useful for accessing the field via an interface.
+func (v *GetEnvironmentEnvironment) GetSeparationOfDuty() bool { return v.SeparationOfDuty }
 
 // GetCreatedAt returns GetEnvironmentEnvironment.CreatedAt, and is useful for accessing the field via an interface.
 func (v *GetEnvironmentEnvironment) GetCreatedAt() time.Time { return v.CreatedAt }
@@ -12799,6 +12870,10 @@ type __premarshalGetEnvironmentEnvironment struct {
 
 	Attributes json.RawMessage `json:"attributes"`
 
+	DecommissionProtection bool `json:"decommissionProtection"`
+
+	SeparationOfDuty bool `json:"separationOfDuty"`
+
 	CreatedAt time.Time `json:"createdAt"`
 
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -12836,6 +12911,8 @@ func (v *GetEnvironmentEnvironment) __premarshalJSON() (*__premarshalGetEnvironm
 				"unable to marshal GetEnvironmentEnvironment.Attributes: %w", err)
 		}
 	}
+	retval.DecommissionProtection = v.DecommissionProtection
+	retval.SeparationOfDuty = v.SeparationOfDuty
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
 	retval.Cost = v.Cost
@@ -16716,6 +16793,10 @@ type GetProjectProjectEnvironmentsEnvironmentsPageItemsEnvironment struct {
 	Description string `json:"description"`
 	// Key-value attributes assigned directly to this environment. Attributes cascade to instances. Must conform to your organization's custom attributes for the `ENVIRONMENT` scope.
 	Attributes map[string]any `json:"-"`
+	// When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false.
+	DecommissionProtection bool `json:"decommissionProtection"`
+	// When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`. Defaults to false.
+	SeparationOfDuty bool `json:"separationOfDuty"`
 	// When this environment was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this environment was last modified (UTC).
@@ -16738,6 +16819,16 @@ func (v *GetProjectProjectEnvironmentsEnvironmentsPageItemsEnvironment) GetDescr
 // GetAttributes returns GetProjectProjectEnvironmentsEnvironmentsPageItemsEnvironment.Attributes, and is useful for accessing the field via an interface.
 func (v *GetProjectProjectEnvironmentsEnvironmentsPageItemsEnvironment) GetAttributes() map[string]any {
 	return v.Attributes
+}
+
+// GetDecommissionProtection returns GetProjectProjectEnvironmentsEnvironmentsPageItemsEnvironment.DecommissionProtection, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectEnvironmentsEnvironmentsPageItemsEnvironment) GetDecommissionProtection() bool {
+	return v.DecommissionProtection
+}
+
+// GetSeparationOfDuty returns GetProjectProjectEnvironmentsEnvironmentsPageItemsEnvironment.SeparationOfDuty, and is useful for accessing the field via an interface.
+func (v *GetProjectProjectEnvironmentsEnvironmentsPageItemsEnvironment) GetSeparationOfDuty() bool {
+	return v.SeparationOfDuty
 }
 
 // GetCreatedAt returns GetProjectProjectEnvironmentsEnvironmentsPageItemsEnvironment.CreatedAt, and is useful for accessing the field via an interface.
@@ -16792,6 +16883,10 @@ type __premarshalGetProjectProjectEnvironmentsEnvironmentsPageItemsEnvironment s
 
 	Attributes json.RawMessage `json:"attributes"`
 
+	DecommissionProtection bool `json:"decommissionProtection"`
+
+	SeparationOfDuty bool `json:"separationOfDuty"`
+
 	CreatedAt time.Time `json:"createdAt"`
 
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -16823,6 +16918,8 @@ func (v *GetProjectProjectEnvironmentsEnvironmentsPageItemsEnvironment) __premar
 				"unable to marshal GetProjectProjectEnvironmentsEnvironmentsPageItemsEnvironment.Attributes: %w", err)
 		}
 	}
+	retval.DecommissionProtection = v.DecommissionProtection
+	retval.SeparationOfDuty = v.SeparationOfDuty
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
 	return &retval, nil
@@ -19494,6 +19591,10 @@ type ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment struct {
 	Description string `json:"description"`
 	// Key-value attributes assigned directly to this environment. Attributes cascade to instances. Must conform to your organization's custom attributes for the `ENVIRONMENT` scope.
 	Attributes map[string]any `json:"-"`
+	// When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false.
+	DecommissionProtection bool `json:"decommissionProtection"`
+	// When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`. Defaults to false.
+	SeparationOfDuty bool `json:"separationOfDuty"`
 	// When this environment was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this environment was last modified (UTC).
@@ -19520,6 +19621,16 @@ func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment) GetDescri
 // GetAttributes returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment.Attributes, and is useful for accessing the field via an interface.
 func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment) GetAttributes() map[string]any {
 	return v.Attributes
+}
+
+// GetDecommissionProtection returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment.DecommissionProtection, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment) GetDecommissionProtection() bool {
+	return v.DecommissionProtection
+}
+
+// GetSeparationOfDuty returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment.SeparationOfDuty, and is useful for accessing the field via an interface.
+func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment) GetSeparationOfDuty() bool {
+	return v.SeparationOfDuty
 }
 
 // GetCreatedAt returns ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment.CreatedAt, and is useful for accessing the field via an interface.
@@ -19584,6 +19695,10 @@ type __premarshalListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment st
 
 	Attributes json.RawMessage `json:"attributes"`
 
+	DecommissionProtection bool `json:"decommissionProtection"`
+
+	SeparationOfDuty bool `json:"separationOfDuty"`
+
 	CreatedAt time.Time `json:"createdAt"`
 
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -19619,6 +19734,8 @@ func (v *ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment) __premars
 				"unable to marshal ListEnvironmentsEnvironmentsEnvironmentsPageItemsEnvironment.Attributes: %w", err)
 		}
 	}
+	retval.DecommissionProtection = v.DecommissionProtection
+	retval.SeparationOfDuty = v.SeparationOfDuty
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
 	retval.Cost = v.Cost
@@ -23126,6 +23243,10 @@ type ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPageIte
 	Description string `json:"description"`
 	// Key-value attributes assigned directly to this environment. Attributes cascade to instances. Must conform to your organization's custom attributes for the `ENVIRONMENT` scope.
 	Attributes map[string]any `json:"-"`
+	// When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false.
+	DecommissionProtection bool `json:"decommissionProtection"`
+	// When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`. Defaults to false.
+	SeparationOfDuty bool `json:"separationOfDuty"`
 	// When this environment was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this environment was last modified (UTC).
@@ -23150,6 +23271,16 @@ func (v *ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPag
 // GetAttributes returns ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPageItemsEnvironment.Attributes, and is useful for accessing the field via an interface.
 func (v *ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPageItemsEnvironment) GetAttributes() map[string]any {
 	return v.Attributes
+}
+
+// GetDecommissionProtection returns ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPageItemsEnvironment.DecommissionProtection, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPageItemsEnvironment) GetDecommissionProtection() bool {
+	return v.DecommissionProtection
+}
+
+// GetSeparationOfDuty returns ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPageItemsEnvironment.SeparationOfDuty, and is useful for accessing the field via an interface.
+func (v *ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPageItemsEnvironment) GetSeparationOfDuty() bool {
+	return v.SeparationOfDuty
 }
 
 // GetCreatedAt returns ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPageItemsEnvironment.CreatedAt, and is useful for accessing the field via an interface.
@@ -23204,6 +23335,10 @@ type __premarshalListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnviron
 
 	Attributes json.RawMessage `json:"attributes"`
 
+	DecommissionProtection bool `json:"decommissionProtection"`
+
+	SeparationOfDuty bool `json:"separationOfDuty"`
+
 	CreatedAt time.Time `json:"createdAt"`
 
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -23235,6 +23370,8 @@ func (v *ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPag
 				"unable to marshal ListProjectsProjectsProjectsPageItemsProjectEnvironmentsEnvironmentsPageItemsEnvironment.Attributes: %w", err)
 		}
 	}
+	retval.DecommissionProtection = v.DecommissionProtection
+	retval.SeparationOfDuty = v.SeparationOfDuty
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
 	return &retval, nil
@@ -28179,6 +28316,8 @@ type UpdateEnvironmentInput struct {
 	Description *string `json:"description,omitempty"`
 	// A human-readable name for the environment
 	Name *string `json:"name,omitempty"`
+	// When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`.
+	SeparationOfDuty *bool `json:"separationOfDuty,omitempty"`
 }
 
 // GetAttributes returns UpdateEnvironmentInput.Attributes, and is useful for accessing the field via an interface.
@@ -28192,6 +28331,9 @@ func (v *UpdateEnvironmentInput) GetDescription() *string { return v.Description
 
 // GetName returns UpdateEnvironmentInput.Name, and is useful for accessing the field via an interface.
 func (v *UpdateEnvironmentInput) GetName() *string { return v.Name }
+
+// GetSeparationOfDuty returns UpdateEnvironmentInput.SeparationOfDuty, and is useful for accessing the field via an interface.
+func (v *UpdateEnvironmentInput) GetSeparationOfDuty() *bool { return v.SeparationOfDuty }
 
 func (v *UpdateEnvironmentInput) UnmarshalJSON(b []byte) error {
 
@@ -28234,6 +28376,8 @@ type __premarshalUpdateEnvironmentInput struct {
 	Description *string `json:"description,omitempty"`
 
 	Name *string `json:"name,omitempty"`
+
+	SeparationOfDuty *bool `json:"separationOfDuty,omitempty"`
 }
 
 func (v *UpdateEnvironmentInput) MarshalJSON() ([]byte, error) {
@@ -28262,6 +28406,7 @@ func (v *UpdateEnvironmentInput) __premarshalJSON() (*__premarshalUpdateEnvironm
 	retval.DecommissionProtection = v.DecommissionProtection
 	retval.Description = v.Description
 	retval.Name = v.Name
+	retval.SeparationOfDuty = v.SeparationOfDuty
 	return &retval, nil
 }
 
@@ -28379,6 +28524,10 @@ type UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironment struc
 	Description string `json:"description"`
 	// Key-value attributes assigned directly to this environment. Attributes cascade to instances. Must conform to your organization's custom attributes for the `ENVIRONMENT` scope.
 	Attributes map[string]any `json:"-"`
+	// When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false.
+	DecommissionProtection bool `json:"decommissionProtection"`
+	// When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`. Defaults to false.
+	SeparationOfDuty bool `json:"separationOfDuty"`
 	// When this environment was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this environment was last modified (UTC).
@@ -28405,6 +28554,16 @@ func (v *UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironment) 
 // GetAttributes returns UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironment.Attributes, and is useful for accessing the field via an interface.
 func (v *UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironment) GetAttributes() map[string]any {
 	return v.Attributes
+}
+
+// GetDecommissionProtection returns UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironment.DecommissionProtection, and is useful for accessing the field via an interface.
+func (v *UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironment) GetDecommissionProtection() bool {
+	return v.DecommissionProtection
+}
+
+// GetSeparationOfDuty returns UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironment.SeparationOfDuty, and is useful for accessing the field via an interface.
+func (v *UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironment) GetSeparationOfDuty() bool {
+	return v.SeparationOfDuty
 }
 
 // GetCreatedAt returns UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironment.CreatedAt, and is useful for accessing the field via an interface.
@@ -28464,6 +28623,10 @@ type __premarshalUpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvir
 
 	Attributes json.RawMessage `json:"attributes"`
 
+	DecommissionProtection bool `json:"decommissionProtection"`
+
+	SeparationOfDuty bool `json:"separationOfDuty"`
+
 	CreatedAt time.Time `json:"createdAt"`
 
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -28497,6 +28660,8 @@ func (v *UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironment) 
 				"unable to marshal UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironment.Attributes: %w", err)
 		}
 	}
+	retval.DecommissionProtection = v.DecommissionProtection
+	retval.SeparationOfDuty = v.SeparationOfDuty
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
 	retval.Project = v.Project
@@ -33488,6 +33653,8 @@ mutation CreateEnvironment ($organizationId: ID!, $projectId: ID!, $input: Creat
 			name
 			description
 			attributes
+			decommissionProtection
+			separationOfDuty
 			createdAt
 			updatedAt
 			project {
@@ -35102,6 +35269,8 @@ mutation ForkEnvironment ($organizationId: ID!, $parentId: ID!, $input: ForkEnvi
 			name
 			description
 			attributes
+			decommissionProtection
+			separationOfDuty
 			createdAt
 			updatedAt
 			cost {
@@ -35454,6 +35623,8 @@ query GetEnvironment ($organizationId: ID!, $id: ID!) {
 		name
 		description
 		attributes
+		decommissionProtection
+		separationOfDuty
 		createdAt
 		updatedAt
 		cost {
@@ -36092,6 +36263,8 @@ query GetProject ($organizationId: ID!, $id: ID!) {
 				name
 				description
 				attributes
+				decommissionProtection
+				separationOfDuty
 				createdAt
 				updatedAt
 			}
@@ -36708,6 +36881,8 @@ query ListEnvironments ($organizationId: ID!, $filter: EnvironmentsFilter, $sort
 			name
 			description
 			attributes
+			decommissionProtection
+			separationOfDuty
 			createdAt
 			updatedAt
 			cost {
@@ -37501,6 +37676,8 @@ query ListProjects ($organizationId: ID!, $filter: ProjectsFilter, $sort: Projec
 					name
 					description
 					attributes
+					decommissionProtection
+					separationOfDuty
 					createdAt
 					updatedAt
 				}
@@ -38708,6 +38885,8 @@ mutation UpdateEnvironment ($organizationId: ID!, $id: ID!, $input: UpdateEnviro
 			name
 			description
 			attributes
+			decommissionProtection
+			separationOfDuty
 			createdAt
 			updatedAt
 			project {

@@ -46,9 +46,10 @@ func TestIntegration_Environments_CRUD(t *testing.T) {
 	projectID := newProjectFixture(t, ctx)
 
 	created, err := c.Environments.Create(ctx, projectID, environments.CreateInput{
-		ID:          "inttestenv",
-		Name:        "Integration test env",
-		Description: "Created by SDK integration test; safe to delete.",
+		ID:               "inttestenv",
+		Name:             "Integration test env",
+		Description:      "Created by SDK integration test; safe to delete.",
+		SeparationOfDuty: true,
 	})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
@@ -65,9 +66,13 @@ func TestIntegration_Environments_CRUD(t *testing.T) {
 	if got.Description != "Created by SDK integration test; safe to delete." {
 		t.Errorf("Get description = %q, want the create-time value", got.Description)
 	}
+	if !got.SeparationOfDuty {
+		t.Error("Get separationOfDuty = false, want the create-time true")
+	}
 
-	// Partial update: only Description is set, so Name must be left
-	// unchanged by the server (nil fields are omitted from the request).
+	// Partial update: only Description is set, so Name and SeparationOfDuty
+	// must be left unchanged by the server (nil fields are omitted from the
+	// request).
 	updated, err := c.Environments.Update(ctx, envID, environments.UpdateInput{
 		Description: types.Ptr("Updated by SDK integration test."),
 	})
@@ -79,6 +84,19 @@ func TestIntegration_Environments_CRUD(t *testing.T) {
 	}
 	if updated.Name != got.Name {
 		t.Errorf("Update name = %q, want unchanged %q", updated.Name, got.Name)
+	}
+	if !updated.SeparationOfDuty {
+		t.Error("Update separationOfDuty = false, want unchanged true")
+	}
+
+	toggled, err := c.Environments.Update(ctx, envID, environments.UpdateInput{
+		SeparationOfDuty: types.Ptr(false),
+	})
+	if err != nil {
+		t.Fatalf("Update separationOfDuty: %v", err)
+	}
+	if toggled.SeparationOfDuty {
+		t.Error("Update separationOfDuty = true, want toggled off")
 	}
 
 	if _, err := c.Environments.Delete(ctx, envID); err != nil {

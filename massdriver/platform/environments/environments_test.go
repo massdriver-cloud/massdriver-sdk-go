@@ -27,9 +27,11 @@ func TestGet(t *testing.T) {
 	gqlClient := gqltest.NewClient(
 		gqltest.RespondWithData(map[string]any{
 			"environment": map[string]any{
-				"id":          "ecomm-prod",
-				"name":        "Production",
-				"description": "prod env",
+				"id":                     "ecomm-prod",
+				"name":                   "Production",
+				"description":            "prod env",
+				"decommissionProtection": true,
+				"separationOfDuty":       true,
 				"project": map[string]any{
 					"id":          "ecomm",
 					"name":        "E-Commerce",
@@ -58,6 +60,12 @@ func TestGet(t *testing.T) {
 	}
 	if got.ID != "ecomm-prod" {
 		t.Errorf("ID = %q, want ecomm-prod", got.ID)
+	}
+	if !got.SeparationOfDuty {
+		t.Error("SeparationOfDuty = false, want true")
+	}
+	if !got.DecommissionProtection {
+		t.Error("DecommissionProtection = false, want true")
 	}
 	// defaults arrives as a paginated items envelope; assert it unwraps into
 	// the flat Defaults slice.
@@ -167,8 +175,9 @@ func TestCreate(t *testing.T) {
 	)
 
 	got, err := newService(gqlClient).Create(t.Context(), "ecomm", environments.CreateInput{
-		ID:   "prod",
-		Name: "Production",
+		ID:               "prod",
+		Name:             "Production",
+		SeparationOfDuty: true,
 	})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
@@ -181,6 +190,10 @@ func TestCreate(t *testing.T) {
 	reqs := gqlClient.Requests()
 	if reqs[0].Variables["projectId"] != "ecomm" {
 		t.Errorf("projectId variable = %v, want ecomm", reqs[0].Variables["projectId"])
+	}
+	input, _ := reqs[0].Variables["input"].(map[string]any)
+	if input["separationOfDuty"] != true {
+		t.Errorf("input.separationOfDuty = %v, want true", input["separationOfDuty"])
 	}
 }
 
@@ -297,7 +310,7 @@ func TestUpdate(t *testing.T) {
 	// decommissionProtection: a non-pointer field would send `false` on
 	// every update and silently disable the guard.
 	input, _ := gqlClient.Requests()[0].Variables["input"].(map[string]any)
-	for _, key := range []string{"description", "decommissionProtection", "attributes"} {
+	for _, key := range []string{"description", "decommissionProtection", "separationOfDuty", "attributes"} {
 		if _, present := input[key]; present {
 			t.Errorf("input.%s = %v, want the key absent", key, input[key])
 		}
@@ -308,21 +321,54 @@ func TestUpdate_DecommissionProtection(t *testing.T) {
 	gqlClient := gqltest.NewClient(
 		gqltest.RespondWithData(map[string]any{
 			"updateEnvironment": map[string]any{
-				"result":     map[string]any{"id": "ecomm-prod", "name": "Production"},
+				"result":     map[string]any{"id": "ecomm-prod", "name": "Production", "decommissionProtection": true},
 				"successful": true,
 			},
 		}),
 	)
 
-	if _, err := newService(gqlClient).Update(t.Context(), "ecomm-prod", environments.UpdateInput{
+	got, err := newService(gqlClient).Update(t.Context(), "ecomm-prod", environments.UpdateInput{
 		DecommissionProtection: types.Ptr(true),
-	}); err != nil {
+	})
+	if err != nil {
 		t.Fatalf("Update: %v", err)
+	}
+	if !got.DecommissionProtection {
+		t.Error("DecommissionProtection = false, want true")
 	}
 
 	input, _ := gqlClient.Requests()[0].Variables["input"].(map[string]any)
 	if input["decommissionProtection"] != true {
 		t.Errorf("input.decommissionProtection = %v, want true", input["decommissionProtection"])
+	}
+	if _, present := input["name"]; present {
+		t.Errorf("input.name = %v, want the key absent", input["name"])
+	}
+}
+
+func TestUpdate_SeparationOfDuty(t *testing.T) {
+	gqlClient := gqltest.NewClient(
+		gqltest.RespondWithData(map[string]any{
+			"updateEnvironment": map[string]any{
+				"result":     map[string]any{"id": "ecomm-prod", "name": "Production", "separationOfDuty": true},
+				"successful": true,
+			},
+		}),
+	)
+
+	got, err := newService(gqlClient).Update(t.Context(), "ecomm-prod", environments.UpdateInput{
+		SeparationOfDuty: types.Ptr(true),
+	})
+	if err != nil {
+		t.Fatalf("Update: %v", err)
+	}
+	if !got.SeparationOfDuty {
+		t.Error("SeparationOfDuty = false, want true")
+	}
+
+	input, _ := gqlClient.Requests()[0].Variables["input"].(map[string]any)
+	if input["separationOfDuty"] != true {
+		t.Errorf("input.separationOfDuty = %v, want true", input["separationOfDuty"])
 	}
 	if _, present := input["name"]; present {
 		t.Errorf("input.name = %v, want the key absent", input["name"])
@@ -390,15 +436,21 @@ func TestFork(t *testing.T) {
 	)
 
 	got, err := newService(gqlClient).Fork(t.Context(), "ecomm-prod", environments.ForkInput{
-		ID:          "ecomm-pr-123",
-		Name:        "PR-123 preview",
-		CopySecrets: true,
+		ID:               "ecomm-pr-123",
+		Name:             "PR-123 preview",
+		CopySecrets:      true,
+		SeparationOfDuty: true,
 	})
 	if err != nil {
 		t.Fatalf("Fork: %v", err)
 	}
 	if got.ID != "ecomm-pr-123" {
 		t.Errorf("ID = %q, want ecomm-pr-123", got.ID)
+	}
+
+	input, _ := gqlClient.Requests()[0].Variables["input"].(map[string]any)
+	if input["separationOfDuty"] != true {
+		t.Errorf("input.separationOfDuty = %v, want true", input["separationOfDuty"])
 	}
 }
 

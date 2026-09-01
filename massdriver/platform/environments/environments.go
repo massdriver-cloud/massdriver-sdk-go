@@ -74,6 +74,9 @@ type CreateInput struct {
 	Description string
 	// Attributes are optional key/value tags applied at the environment scope.
 	Attributes map[string]any
+	// SeparationOfDuty, when true, requires deployment proposals in this
+	// environment to be approved by someone other than the proposer.
+	SeparationOfDuty bool
 }
 
 // UpdateInput is the input for [Service.Update]. Nil fields are omitted from
@@ -86,6 +89,10 @@ type UpdateInput struct {
 	// decommissionEnvironment and per-instance DECOMMISSION deployments.
 	// Nil leaves the current setting unchanged.
 	DecommissionProtection *bool
+	// SeparationOfDuty, when non-nil, toggles whether deployment proposals in
+	// this environment must be approved by someone other than the proposer.
+	// Nil leaves the current setting unchanged.
+	SeparationOfDuty *bool
 	// Attributes, when non-nil, is sent as the environment's new attribute
 	// set. Nil leaves the current attributes unchanged.
 	Attributes map[string]any
@@ -154,6 +161,9 @@ type ForkInput struct {
 	// CopyEnvironmentDefaults, when true, copies the parent's default
 	// resource connections into the fork.
 	CopyEnvironmentDefaults bool
+	// SeparationOfDuty, when true, requires deployment proposals in the fork
+	// to be approved by someone other than the proposer.
+	SeparationOfDuty bool
 }
 
 // EnvironmentDefault is a resource pre-assigned to an environment so that
@@ -333,10 +343,11 @@ func buildListFilter(input ListInput) *gen.EnvironmentsFilter {
 // [*gql.MutationFailedError] (wrapped) if the server reports `successful: false`.
 func (s *Service) Create(ctx context.Context, projectID string, input CreateInput) (*Environment, error) {
 	resp, err := gen.CreateEnvironment(ctx, s.client.GQLv2, s.client.Config.OrganizationID, projectID, gen.CreateEnvironmentInput{
-		Id:          input.ID,
-		Name:        input.Name,
-		Description: input.Description,
-		Attributes:  input.Attributes,
+		Id:               input.ID,
+		Name:             input.Name,
+		Description:      input.Description,
+		Attributes:       input.Attributes,
+		SeparationOfDuty: input.SeparationOfDuty,
 	})
 	if err != nil {
 		return nil, gql.ClassifyError(fmt.Errorf("create environment in project %s: %w", projectID, err))
@@ -353,6 +364,7 @@ func (s *Service) Update(ctx context.Context, id string, input UpdateInput) (*En
 		Name:                   input.Name,
 		Description:            input.Description,
 		DecommissionProtection: input.DecommissionProtection,
+		SeparationOfDuty:       input.SeparationOfDuty,
 		Attributes:             input.Attributes,
 	})
 	if err != nil {
@@ -396,6 +408,7 @@ func (s *Service) Fork(ctx context.Context, parentID string, input ForkInput) (*
 		CopySecrets:             input.CopySecrets,
 		CopyRemoteReferences:    input.CopyRemoteReferences,
 		CopyEnvironmentDefaults: input.CopyEnvironmentDefaults,
+		SeparationOfDuty:        input.SeparationOfDuty,
 	})
 	if err != nil {
 		return nil, gql.ClassifyError(fmt.Errorf("fork environment from %s: %w", parentID, err))

@@ -2812,6 +2812,11 @@ type RootMutationType {
   as soon as nothing else is running on the instance. Approval is only valid
   for deployments in `PROPOSED` status; any other status returns a validation
   error.
+
+  When the instance's environment has `separationOfDuty` enabled, the account
+  or service account named in `deployedBy` cannot approve its own proposal —
+  a second reviewer has to call this mutation. Use `rejectDeployment` to
+  withdraw your own proposal.
   """
   approveDeployment(
     "Your organization's unique identifier."
@@ -7930,6 +7935,9 @@ input CreateEnvironmentInput {
 
   "A human-readable name for the environment"
   name: String!
+
+  "When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`. Defaults to false."
+  separationOfDuty: Boolean
 }
 
 "Update an existing environment's name and description. The ID cannot be changed after creation."
@@ -7945,6 +7953,9 @@ input UpdateEnvironmentInput {
 
   "A human-readable name for the environment"
   name: String
+
+  "When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`."
+  separationOfDuty: Boolean
 }
 
 "Create or update a fork of an existing environment."
@@ -7972,6 +7983,9 @@ input ForkEnvironmentInput {
 
   "A human-readable name for the forked environment"
   name: String!
+
+  "When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`. Defaults to false."
+  separationOfDuty: Boolean
 }
 
 """
@@ -8002,6 +8016,9 @@ type Environment {
 
   "When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false."
   decommissionProtection: Boolean!
+
+  "When true, `approveDeployment` rejects any approval from the account or service account that proposed the deployment — a proposal in this environment has to be approved by a second reviewer. Proposers can still reject their own proposals with `rejectDeployment`. Defaults to false."
+  separationOfDuty: Boolean!
 
   """
   The full attribute map the authorization system evaluates policies against for
