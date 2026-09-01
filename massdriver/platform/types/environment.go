@@ -12,8 +12,8 @@ type Environment struct {
 	Name                   string         `json:"name" mapstructure:"name"`
 	Description            string         `json:"description,omitempty" mapstructure:"description"`
 	Attributes             map[string]any `json:"attributes,omitempty" mapstructure:"attributes,omitempty"`
-	DecommissionProtection bool           `json:"decommissionProtection,omitempty" mapstructure:"decommissionProtection"`
-	SeparationOfDuty       bool           `json:"separationOfDuty,omitempty" mapstructure:"separationOfDuty"`
+	DecommissionProtection bool           `json:"decommissionProtection" mapstructure:"decommissionProtection"`
+	SeparationOfDuty       bool           `json:"separationOfDuty" mapstructure:"separationOfDuty"`
 	CreatedAt              time.Time      `json:"createdAt,omitzero" mapstructure:"createdAt"`
 	UpdatedAt              time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
 	Cost                   CostSummary    `json:"cost,omitzero" mapstructure:"cost"`
