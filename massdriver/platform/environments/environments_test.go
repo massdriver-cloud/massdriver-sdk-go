@@ -175,9 +175,10 @@ func TestCreate(t *testing.T) {
 	)
 
 	got, err := newService(gqlClient).Create(t.Context(), "ecomm", environments.CreateInput{
-		ID:               "prod",
-		Name:             "Production",
-		SeparationOfDuty: true,
+		ID:                     "prod",
+		Name:                   "Production",
+		DecommissionProtection: true,
+		SeparationOfDuty:       true,
 	})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
@@ -192,8 +193,10 @@ func TestCreate(t *testing.T) {
 		t.Errorf("projectId variable = %v, want ecomm", reqs[0].Variables["projectId"])
 	}
 	input, _ := reqs[0].Variables["input"].(map[string]any)
-	if input["separationOfDuty"] != true {
-		t.Errorf("input.separationOfDuty = %v, want true", input["separationOfDuty"])
+	for _, key := range []string{"decommissionProtection", "separationOfDuty"} {
+		if input[key] != true {
+			t.Errorf("input.%s = %v, want true", key, input[key])
+		}
 	}
 }
 
@@ -436,10 +439,11 @@ func TestFork(t *testing.T) {
 	)
 
 	got, err := newService(gqlClient).Fork(t.Context(), "ecomm-prod", environments.ForkInput{
-		ID:               "ecomm-pr-123",
-		Name:             "PR-123 preview",
-		CopySecrets:      true,
-		SeparationOfDuty: true,
+		ID:                     "ecomm-pr-123",
+		Name:                   "PR-123 preview",
+		CopySecrets:            true,
+		DecommissionProtection: true,
+		SeparationOfDuty:       true,
 	})
 	if err != nil {
 		t.Fatalf("Fork: %v", err)
@@ -449,8 +453,10 @@ func TestFork(t *testing.T) {
 	}
 
 	input, _ := gqlClient.Requests()[0].Variables["input"].(map[string]any)
-	if input["separationOfDuty"] != true {
-		t.Errorf("input.separationOfDuty = %v, want true", input["separationOfDuty"])
+	for _, key := range []string{"decommissionProtection", "separationOfDuty"} {
+		if input[key] != true {
+			t.Errorf("input.%s = %v, want true", key, input[key])
+		}
 	}
 }
 
