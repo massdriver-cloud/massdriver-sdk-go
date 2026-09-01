@@ -8,13 +8,15 @@ import "time"
 // Embedded fields (Project, Instances, Connections, Defaults) are populated
 // only when the underlying GraphQL query selected them.
 type Environment struct {
-	ID          string         `json:"id" mapstructure:"id"`
-	Name        string         `json:"name" mapstructure:"name"`
-	Description string         `json:"description,omitempty" mapstructure:"description"`
-	Attributes  map[string]any `json:"attributes,omitempty" mapstructure:"attributes,omitempty"`
-	CreatedAt   time.Time      `json:"createdAt,omitzero" mapstructure:"createdAt"`
-	UpdatedAt   time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
-	Cost        CostSummary    `json:"cost,omitzero" mapstructure:"cost"`
+	ID                     string         `json:"id" mapstructure:"id"`
+	Name                   string         `json:"name" mapstructure:"name"`
+	Description            string         `json:"description,omitempty" mapstructure:"description"`
+	Attributes             map[string]any `json:"attributes,omitempty" mapstructure:"attributes,omitempty"`
+	DecommissionProtection bool           `json:"decommissionProtection" mapstructure:"decommissionProtection"`
+	SeparationOfDuty       bool           `json:"separationOfDuty" mapstructure:"separationOfDuty"`
+	CreatedAt              time.Time      `json:"createdAt,omitzero" mapstructure:"createdAt"`
+	UpdatedAt              time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
+	Cost                   CostSummary    `json:"cost,omitzero" mapstructure:"cost"`
 
 	Project     *Project             `json:"project,omitempty" mapstructure:"project,omitempty"`
 	Instances   []Instance           `json:"instances,omitempty" mapstructure:"instances,omitempty"`

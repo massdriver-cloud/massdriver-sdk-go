@@ -314,7 +314,10 @@ func emptyIfNil(params map[string]any) map[string]any {
 
 // Approve releases a PROPOSED deployment into the run queue. The deployment
 // transitions to APPROVED and runs as soon as nothing else is running on the
-// instance. Only valid for deployments currently in PROPOSED status.
+// instance. Only valid for deployments currently in PROPOSED status. When the
+// instance's environment has separation of duty enabled, the proposer's own
+// approval is rejected — a second reviewer must approve (the proposer can
+// still withdraw with [Service.Reject]).
 func (s *Service) Approve(ctx context.Context, id string) (*Deployment, error) {
 	resp, err := gen.ApproveDeployment(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id)
 	if err != nil {

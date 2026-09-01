@@ -708,6 +708,8 @@ query GetEnvironment($organizationId: ID!, $id: ID!) {
     name
     description
     attributes
+    decommissionProtection
+    separationOfDuty
     createdAt
     updatedAt
     cost {
@@ -810,6 +812,8 @@ query ListEnvironments(
       name
       description
       attributes
+      decommissionProtection
+      separationOfDuty
       createdAt
       updatedAt
       cost {
@@ -841,6 +845,8 @@ mutation CreateEnvironment(
       name
       description
       attributes
+      decommissionProtection
+      separationOfDuty
       createdAt
       updatedAt
       project {
@@ -868,6 +874,7 @@ mutation CreateEnvironment(
 # @genqlient(for: "UpdateEnvironmentInput.name", omitempty: true, pointer: true)
 # @genqlient(for: "UpdateEnvironmentInput.description", omitempty: true, pointer: true)
 # @genqlient(for: "UpdateEnvironmentInput.decommissionProtection", omitempty: true, pointer: true)
+# @genqlient(for: "UpdateEnvironmentInput.separationOfDuty", omitempty: true, pointer: true)
 # @genqlient(for: "UpdateEnvironmentInput.attributes", omitempty: true)
 mutation UpdateEnvironment(
   $organizationId: ID!,
@@ -880,6 +887,8 @@ mutation UpdateEnvironment(
       name
       description
       attributes
+      decommissionProtection
+      separationOfDuty
       createdAt
       updatedAt
       project {
@@ -923,6 +932,8 @@ mutation ForkEnvironment($organizationId: ID!, $parentId: ID!, $input: ForkEnvir
       name
       description
       attributes
+      decommissionProtection
+      separationOfDuty
       createdAt
       updatedAt
       cost {
@@ -2449,6 +2460,8 @@ query GetProject($organizationId: ID!, $id: ID!) {
         name
         description
         attributes
+        decommissionProtection
+        separationOfDuty
         createdAt
         updatedAt
       }
@@ -2532,6 +2545,8 @@ query ListProjects(
           name
           description
           attributes
+          decommissionProtection
+          separationOfDuty
           createdAt
           updatedAt
         }
