@@ -46,10 +46,11 @@ func TestIntegration_Environments_CRUD(t *testing.T) {
 	projectID := newProjectFixture(t, ctx)
 
 	created, err := c.Environments.Create(ctx, projectID, environments.CreateInput{
-		ID:               "inttestenv",
-		Name:             "Integration test env",
-		Description:      "Created by SDK integration test; safe to delete.",
-		SeparationOfDuty: true,
+		ID:                     "inttestenv",
+		Name:                   "Integration test env",
+		Description:            "Created by SDK integration test; safe to delete.",
+		DecommissionProtection: true,
+		SeparationOfDuty:       true,
 	})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
@@ -68,6 +69,9 @@ func TestIntegration_Environments_CRUD(t *testing.T) {
 	}
 	if !got.SeparationOfDuty {
 		t.Error("Get separationOfDuty = false, want the create-time true")
+	}
+	if !got.DecommissionProtection {
+		t.Error("Get decommissionProtection = false, want the create-time true")
 	}
 
 	// Partial update: only Description is set, so Name and SeparationOfDuty
@@ -88,15 +92,22 @@ func TestIntegration_Environments_CRUD(t *testing.T) {
 	if !updated.SeparationOfDuty {
 		t.Error("Update separationOfDuty = false, want unchanged true")
 	}
+	if !updated.DecommissionProtection {
+		t.Error("Update decommissionProtection = false, want unchanged true")
+	}
 
 	toggled, err := c.Environments.Update(ctx, envID, environments.UpdateInput{
-		SeparationOfDuty: types.Ptr(false),
+		DecommissionProtection: types.Ptr(false),
+		SeparationOfDuty:       types.Ptr(false),
 	})
 	if err != nil {
-		t.Fatalf("Update separationOfDuty: %v", err)
+		t.Fatalf("Update protection flags: %v", err)
 	}
 	if toggled.SeparationOfDuty {
 		t.Error("Update separationOfDuty = true, want toggled off")
+	}
+	if toggled.DecommissionProtection {
+		t.Error("Update decommissionProtection = true, want toggled off")
 	}
 
 	if _, err := c.Environments.Delete(ctx, envID); err != nil {

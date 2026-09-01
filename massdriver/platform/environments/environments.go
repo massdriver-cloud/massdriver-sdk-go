@@ -74,6 +74,9 @@ type CreateInput struct {
 	Description string
 	// Attributes are optional key/value tags applied at the environment scope.
 	Attributes map[string]any
+	// DecommissionProtection, when true, blocks decommissionEnvironment and
+	// per-instance DECOMMISSION deployments until disabled via Update.
+	DecommissionProtection bool
 	// SeparationOfDuty, when true, requires deployment proposals in this
 	// environment to be approved by someone other than the proposer.
 	SeparationOfDuty bool
@@ -161,6 +164,9 @@ type ForkInput struct {
 	// CopyEnvironmentDefaults, when true, copies the parent's default
 	// resource connections into the fork.
 	CopyEnvironmentDefaults bool
+	// DecommissionProtection, when true, blocks decommissionEnvironment and
+	// per-instance DECOMMISSION deployments until disabled via Update.
+	DecommissionProtection bool
 	// SeparationOfDuty, when true, requires deployment proposals in the fork
 	// to be approved by someone other than the proposer.
 	SeparationOfDuty bool
@@ -343,11 +349,12 @@ func buildListFilter(input ListInput) *gen.EnvironmentsFilter {
 // [*gql.MutationFailedError] (wrapped) if the server reports `successful: false`.
 func (s *Service) Create(ctx context.Context, projectID string, input CreateInput) (*Environment, error) {
 	resp, err := gen.CreateEnvironment(ctx, s.client.GQLv2, s.client.Config.OrganizationID, projectID, gen.CreateEnvironmentInput{
-		Id:               input.ID,
-		Name:             input.Name,
-		Description:      input.Description,
-		Attributes:       input.Attributes,
-		SeparationOfDuty: input.SeparationOfDuty,
+		Id:                     input.ID,
+		Name:                   input.Name,
+		Description:            input.Description,
+		Attributes:             input.Attributes,
+		DecommissionProtection: input.DecommissionProtection,
+		SeparationOfDuty:       input.SeparationOfDuty,
 	})
 	if err != nil {
 		return nil, gql.ClassifyError(fmt.Errorf("create environment in project %s: %w", projectID, err))
@@ -408,6 +415,7 @@ func (s *Service) Fork(ctx context.Context, parentID string, input ForkInput) (*
 		CopySecrets:             input.CopySecrets,
 		CopyRemoteReferences:    input.CopyRemoteReferences,
 		CopyEnvironmentDefaults: input.CopyEnvironmentDefaults,
+		DecommissionProtection:  input.DecommissionProtection,
 		SeparationOfDuty:        input.SeparationOfDuty,
 	})
 	if err != nil {
