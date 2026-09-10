@@ -32,9 +32,13 @@ Package massdriver is the entry point for the Massdriver Go SDK.
     [WithOrganizationID], [WithBaseURL], [WithProfile].
   - Environment variables: MASSDRIVER_API_KEY,
     MASSDRIVER_ORGANIZATION_ID, MASSDRIVER_URL, MASSDRIVER_PROFILE.
-  - The active profile in ~/.config/massdriver/config.yaml. The
-    profile is selected by MASSDRIVER_PROFILE / [WithProfile]
-    (default: "default").
+  - The active profile in ~/.config/massdriver/config.yaml (or
+    $XDG_CONFIG_HOME/massdriver/config.yaml).
+
+The active profile is [WithProfile], else MASSDRIVER_PROFILE, else the
+file's current_profile, else "default". The first three name a profile
+explicitly and fail with [config.ErrProfileNotFound] if it doesn't
+exist; the "default" fallback may be absent.
 
 Deployment tokens (MASSDRIVER_DEPLOYMENT_ID + MASSDRIVER_TOKEN,
 injected into provisioner containers) are never resolved implicitly —

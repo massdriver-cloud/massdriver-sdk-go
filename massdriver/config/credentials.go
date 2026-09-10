@@ -90,7 +90,7 @@ func redact(s string) string {
 //
 // origin identifies which layer supplied an explicit API-key
 // override; empty means "infer from envs vs profile."
-func resolveCredentials(envs *configEnvs, profile *configFileProfile, origin CredentialSource, method AuthMethod) (Credentials, error) {
+func resolveCredentials(envs *configEnvs, profile *Profile, origin CredentialSource, method AuthMethod) (Credentials, error) {
 	switch method {
 	case AuthDeployment:
 		return resolveDeploymentCredentials(envs)
@@ -116,7 +116,7 @@ func resolveDeploymentCredentials(envs *configEnvs) (Credentials, error) {
 	}, nil
 }
 
-func resolveAPIKeyCredentials(envs *configEnvs, profile *configFileProfile, origin CredentialSource) (Credentials, error) {
+func resolveAPIKeyCredentials(envs *configEnvs, profile *Profile, origin CredentialSource) (Credentials, error) {
 	organizationID := cmp.Or(envs.OrganizationID, envs.OrgId, profile.OrganizationID)
 	apiKey := cmp.Or(envs.APIKey, profile.APIKey)
 
