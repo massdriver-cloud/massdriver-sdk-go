@@ -18,4 +18,8 @@ var (
 	// ErrOrganizationIDRequired indicates no organization ID was found
 	// in any configuration layer.
 	ErrOrganizationIDRequired = errors.New("organization ID is required")
+
+	// ErrProfileNotFound indicates a profile was named explicitly but
+	// does not exist. See [Load] for which layers count as explicit.
+	ErrProfileNotFound = errors.New("profile not found")
 )

@@ -49,7 +49,23 @@ func main() {
 | --- | --- |
 | Functional options: `WithAPIKey`, `WithOrganizationID`, `WithBaseURL`, `WithProfile` | Highest precedence; useful for explicit credentials in CI or tests. |
 | `MASSDRIVER_API_KEY`, `MASSDRIVER_ORGANIZATION_ID`, `MASSDRIVER_URL`, `MASSDRIVER_PROFILE` | Environment variables override the config file. |
-| `~/.config/massdriver/config.yaml`, profile selected by `MASSDRIVER_PROFILE` (default `default`) | Created and managed by the [Massdriver CLI](https://github.com/massdriver-cloud/mass). |
+| `~/.config/massdriver/config.yaml` (or `$XDG_CONFIG_HOME/massdriver/config.yaml`) | Created and managed by the [Massdriver CLI](https://github.com/massdriver-cloud/mass). |
+
+The active profile is chosen by `WithProfile`, then `MASSDRIVER_PROFILE`, then the config file's own `current_profile` key, and finally the profile named `default`:
+
+```yaml
+version: 1
+current_profile: staging   # used when nothing else selects a profile
+profiles:
+  default:
+    organization_id: ecomm
+    api_key: mds_...
+  staging:
+    organization_id: ecomm-staging
+    api_key: mds_...
+```
+
+The first three are explicit requests — naming a profile that doesn't exist fails with `config.ErrProfileNotFound` rather than quietly falling back to whatever credentials the environment happens to hold. The `default` fallback is only a convenience, so it may be absent; that's the case when a caller is configured entirely through environment variables.
 
 Deployment tokens (`MASSDRIVER_DEPLOYMENT_ID` + `MASSDRIVER_TOKEN`, injected into provisioner containers) are never picked up implicitly — they authenticate only a small provisioning-related subset of the platform API. Deploy-time tooling that needs one opts in with `massdriver.WithDeploymentTokenAuth()`.
 

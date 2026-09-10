@@ -69,8 +69,9 @@ func WithBaseURL(url string) Option {
 }
 
 // WithProfile selects which profile to read from
-// ~/.config/massdriver/config.yaml. Overrides MASSDRIVER_PROFILE and
-// the default ("default").
+// ~/.config/massdriver/config.yaml, outranking MASSDRIVER_PROFILE and
+// the file's current_profile. A name that matches no profile fails
+// with [config.ErrProfileNotFound].
 func WithProfile(name string) Option {
 	return func(o *options) { o.profile = name }
 }

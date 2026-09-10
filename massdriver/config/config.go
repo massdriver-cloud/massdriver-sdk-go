@@ -4,27 +4,13 @@ import (
 	"cmp"
 	"fmt"
 	"net/url"
-	"os"
-	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/kelseyhightower/envconfig"
-	"gopkg.in/yaml.v3"
 )
 
 const defaultURL = "https://api.massdriver.cloud"
-const configPathFromConfigDir = "massdriver/config.yaml"
-
-type configFileProfile struct {
-	OrganizationID string `json:"organization_id" yaml:"organization_id"`
-	APIKey         string `json:"api_key" yaml:"api_key"`
-	URL            string `json:"url" yaml:"url"`
-	TemplatesPath  string `json:"templates_path" yaml:"templates_path"`
-}
-type configFile struct {
-	Version  int                          `json:"version" yaml:"version"`
-	Profiles map[string]configFileProfile `json:"profiles" yaml:"profiles"`
-}
 
 type configEnvs struct {
 	OrganizationID  string `json:"organization_id" yaml:"organization_id" envconfig:"MASSDRIVER_ORGANIZATION_ID"`
@@ -40,8 +26,10 @@ type configEnvs struct {
 type Config struct {
 	Credentials    Credentials
 	OrganizationID string
-	Profile        string
-	URL            string
+	// Profile is the config-file profile that supplied the values
+	// below; empty if no profile was loaded.
+	Profile string
+	URL     string
 	// TemplatesPath is the directory the Massdriver CLI uses to
 	// scaffold new bundles. The SDK itself does not consume this
 	// field — it is loaded for the benefit of CLI tools that share
@@ -69,8 +57,19 @@ func Get() (Config, error) {
 }
 
 // Load resolves a [Config] from environment variables, the active
-// profile in ~/.config/massdriver/config.yaml, and the supplied
+// profile in the config file at [FilePath], and the supplied
 // [Overrides] (highest precedence).
+//
+// The active profile is [Overrides.Profile], else MASSDRIVER_PROFILE,
+// else the file's current_profile, else [DefaultProfileName]. The
+// first three name a profile explicitly and fail with
+// [ErrProfileNotFound] if it doesn't exist, rather than falling back
+// to whatever credentials the environment holds. The
+// [DefaultProfileName] fallback may be absent — that is how a
+// caller configured purely through environment variables resolves.
+//
+// [AuthDeployment] is exempt: its credentials come only from the
+// environment, so a stale profile name never blocks a provisioner.
 func Load(o Overrides) (Config, error) {
 	cfg, initErr := initializeConfig(o)
 	if initErr != nil {
@@ -107,25 +106,27 @@ func initializeConfig(o Overrides) (Config, error) {
 	if o.URL != "" {
 		configEnvs.URL = o.URL
 	}
+	// Remember which layer named the profile so a miss can say so.
+	envProfileOrigin := "MASSDRIVER_PROFILE"
 	if o.Profile != "" {
 		configEnvs.Profile = o.Profile
+		envProfileOrigin = "the Profile option"
 	}
 
-	profile := configFileProfile{}
-	configFile, configFileErr := getConfigFile()
+	profile := Profile{}
+	configFile, configFileErr := ReadFile()
 	if configFileErr != nil {
 		return Config{}, fmt.Errorf("error reading config file: %w", configFileErr)
 	}
-	if configFile != nil && configFile.Profiles != nil {
-		profileName := configEnvs.Profile
-		if profileName == "" {
-			profileName = "default"
-		}
 
-		if profileConfig, exists := configFile.Profiles[profileName]; exists {
-			profile = profileConfig
-			cfg.Profile = profileName
-		}
+	selection := selectProfile(configEnvs.Profile, envProfileOrigin, configFile)
+	if profileConfig, exists := configFile.lookup(selection.name); exists {
+		profile = profileConfig
+		cfg.Profile = selection.name
+	} else if selection.explicit && o.AuthMethod != AuthDeployment {
+		// Deployment tokens come from the environment and never from a
+		// profile, so a stale profile name must not block a provisioner.
+		return Config{}, selection.notFoundError(configFile)
 	}
 
 	cfg.OrganizationID = cmp.Or(configEnvs.OrganizationID, configEnvs.OrgId, profile.OrganizationID)
@@ -141,39 +142,52 @@ func initializeConfig(o Overrides) (Config, error) {
 	return cfg, nil
 }
 
-func getConfigFile() (*configFile, error) {
-	var configFilePath string
+type profileSelection struct {
+	name string
+	// explicit is false only for the DefaultProfileName fallback,
+	// which is the one selection allowed to miss.
+	explicit bool
+	origin   string // the layer that asked, for the not-found error
+}
 
-	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
-	if xdgConfigHome != "" {
-		configFilePath = filepath.Join(xdgConfigHome, configPathFromConfigDir)
-	} else {
-		homeDir, homeDirErr := os.UserHomeDir()
-		if homeDirErr != nil {
-			return nil, fmt.Errorf("could not determine home directory: %w", homeDirErr)
-		}
-		configFilePath = filepath.Join(homeDir, ".config", configPathFromConfigDir)
+// selectProfile applies the precedence documented on [Load].
+// envProfile holds the option and env layers already merged, with
+// envOrigin naming whichever supplied it.
+func selectProfile(envProfile, envOrigin string, file *File) profileSelection {
+	if envProfile != "" {
+		return profileSelection{name: envProfile, explicit: true, origin: envOrigin}
+	}
+	if file != nil && file.CurrentProfile != "" {
+		return profileSelection{name: file.CurrentProfile, explicit: true, origin: "current_profile in the config file"}
+	}
+	return profileSelection{name: DefaultProfileName}
+}
+
+func (s profileSelection) notFoundError(file *File) error {
+	path, pathErr := FilePath()
+	if pathErr != nil {
+		path = "the config file"
 	}
 
-	file, readErr := os.ReadFile(configFilePath)
-	if readErr != nil {
-		if os.IsNotExist(readErr) {
-			// quietly return nil if the config file does not exist
-			return nil, nil
-		}
-		return nil, fmt.Errorf("could not read config file %s: %w", configFilePath, readErr)
+	switch names := file.ProfileNames(); {
+	case file == nil:
+		return fmt.Errorf("%w: %q was requested by %s, but no config file exists at %s",
+			ErrProfileNotFound, s.name, s.origin, path)
+	case len(names) == 0:
+		return fmt.Errorf("%w: %q was requested by %s, but %s defines no profiles",
+			ErrProfileNotFound, s.name, s.origin, path)
+	default:
+		return fmt.Errorf("%w: %q was requested by %s, but %s defines only %s",
+			ErrProfileNotFound, s.name, s.origin, path, strings.Join(names, ", "))
 	}
+}
 
-	var cfg configFile
-	if yamlErr := yaml.Unmarshal(file, &cfg); yamlErr != nil {
-		return nil, fmt.Errorf("could not unmarshal config file %s: %w", configFilePath, yamlErr)
+func (f *File) lookup(name string) (Profile, bool) {
+	if f == nil {
+		return Profile{}, false
 	}
-
-	if cfg.Version != 1 {
-		return nil, fmt.Errorf("unsupported config file version: %d  expected version 1", cfg.Version)
-	}
-
-	return &cfg, nil
+	p, exists := f.Profiles[name]
+	return p, exists
 }
 
 func getConfigEnvs() (*configEnvs, error) {
