@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
@@ -17,20 +18,33 @@ import (
 // Match with [errors.Is].
 var ErrNotFound = errors.New("not found")
 
-// Resource is the create/update/show payload for /v1/resources.
-//
-// The server dispatches on presence of `field` in the body: bodies with
-// `field` set go through the provisioned-artifact path (deployment token
-// auth, type inferred from the deployment's package); bodies without it
-// go through the imported-artifact path (requires `type`). `omitempty`
-// on every optional field is what keeps these two flows distinct on the
-// wire — do not remove it.
+// Resource is a resource as returned by /v1/resources.
 type Resource struct {
-	ID      string                 `json:"id,omitempty"`
-	Field   string                 `json:"field,omitempty"`
-	Type    string                 `json:"type,omitempty"`
-	Name    string                 `json:"name,omitempty"`
-	Payload map[string]interface{} `json:"payload"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+
+	// Type is the legacy `<org>/<identifier>` name and carries no version;
+	// ResourceType is `identifier@version` with the resolved version.
+	Type         string `json:"type"`
+	ResourceType string `json:"resource_type"`
+
+	// VersionConstraint is the range the producing bundle declared for this
+	// field ("~1", "1.2.3", "latest"), empty if it declared none.
+	VersionConstraint string `json:"version_constraint"`
+
+	Field     string         `json:"field"`
+	Payload   map[string]any `json:"payload"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+}
+
+// ResourceInput is the body of a create or update request to /v1/resources.
+// All three fields are required; the resource type is resolved server-side
+// from the deployment's release pin and Field.
+type ResourceInput struct {
+	Field   string         `json:"field"`
+	Name    string         `json:"name"`
+	Payload map[string]any `json:"payload"`
 }
 
 type Service struct {
@@ -43,11 +57,11 @@ func NewService(c *client.Client) *Service {
 }
 
 // CreateResource sends a POST /v1/resources request
-func (s *Service) CreateResource(ctx context.Context, a *Resource) (*Resource, error) {
+func (s *Service) CreateResource(ctx context.Context, input *ResourceInput) (*Resource, error) {
 	var result Resource
 	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
-		SetBody(a).
+		SetBody(input).
 		SetResult(&result).
 		Post("/v1/resources")
 
@@ -81,11 +95,11 @@ func (s *Service) GetResource(ctx context.Context, id string) (*Resource, error)
 }
 
 // UpdateResource sends a PUT /v1/resources/:id request
-func (s *Service) UpdateResource(ctx context.Context, id string, a *Resource) (*Resource, error) {
+func (s *Service) UpdateResource(ctx context.Context, id string, input *ResourceInput) (*Resource, error) {
 	var result Resource
 	resp, err := s.client.HTTP.R().
 		SetContext(ctx).
-		SetBody(a).
+		SetBody(input).
 		SetResult(&result).
 		Put("/v1/resources/" + id)
 

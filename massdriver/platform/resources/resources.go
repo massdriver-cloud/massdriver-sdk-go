@@ -214,9 +214,10 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Resource] {
 }
 
 // Create imports a new resource of the named resource type (e.g.
-// "aws-iam-role"), optionally pinned to a specific published version with
-// an `@<version>` suffix (e.g. "aws-iam-role@1.2.3"). The returned
-// [Resource] has [OriginImported].
+// "aws-iam-role"), optionally suffixed with `@<constraint>` — an exact
+// version ("aws-iam-role@1.2.3"), a tilde range ("aws-iam-role@~1") or a
+// channel ("aws-iam-role@latest"). A constraint matching no published
+// version is an error. The returned [Resource] has [OriginImported].
 func (s *Service) Create(ctx context.Context, resourceTypeID string, input CreateInput) (*Resource, error) {
 	resp, err := gen.CreateResource(ctx, s.client.GQLv2, s.client.Config.OrganizationID, resourceTypeID, gen.CreateResourceInput{
 		Name:    input.Name,
