@@ -32,6 +32,14 @@ type Resource struct {
 	// field ("~1", "1.2.3", "latest"), empty if it declared none.
 	VersionConstraint string `json:"version_constraint"`
 
+	// AvailableUpgrade is the newest published version VersionConstraint
+	// accepts that is newer than the one ResourceType names. It is a bare
+	// version ("1.3.0"), not the `identifier@version` form ResourceType
+	// uses. Empty when the resource is already on the newest version in
+	// range, and whenever VersionConstraint is empty. Redeploying the
+	// producing package is what moves the resource onto it.
+	AvailableUpgrade string `json:"available_upgrade"`
+
 	Field     string         `json:"field"`
 	Payload   map[string]any `json:"payload"`
 	CreatedAt time.Time      `json:"created_at"`

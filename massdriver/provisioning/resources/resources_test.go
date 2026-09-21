@@ -238,13 +238,15 @@ func TestDeleteResource(t *testing.T) {
 	}
 }
 
-// The provisioned-artifact response carries the resolved resource type and
-// the range the producing bundle declared. Both must decode.
+// The provisioned-artifact response carries the resolved resource type, the
+// range the producing bundle declared, and the newest version in that range.
+// All three must decode.
 func TestGetResource_DecodesResourceTypeAndVersionConstraint(t *testing.T) {
 	client, _ := newTestClient(&mockhttp.MockHTTPResponse{
 		StatusCode: 200,
 		Body: `{"id":"my-app.bucket","name":"Bucket","type":"acme/foo",` +
-			`"resource_type":"foo@1.2.0","version_constraint":"~1","field":"bucket",` +
+			`"resource_type":"foo@1.2.0","version_constraint":"~1",` +
+			`"available_upgrade":"1.3.0","field":"bucket",` +
 			`"payload":{"specs":{"zone":"us-east-1"}},"specs":{"zone":"us-east-1"},` +
 			`"created_at":"2026-09-01T12:00:00Z","updated_at":"2026-09-02T12:00:00Z"}`,
 	})
@@ -254,6 +256,8 @@ func TestGetResource_DecodesResourceTypeAndVersionConstraint(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "foo@1.2.0", got.ResourceType)
 	require.Equal(t, "~1", got.VersionConstraint)
+	// A bare version, unlike ResourceType's `identifier@version`.
+	require.Equal(t, "1.3.0", got.AvailableUpgrade)
 	// Type stays the legacy org-scoped string, with no version.
 	require.Equal(t, "acme/foo", got.Type)
 	require.Equal(t, "2026-09-01T12:00:00Z", got.CreatedAt.UTC().Format(time.RFC3339))
@@ -274,4 +278,20 @@ func TestGetResource_AbsentVersionConstraint(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "foo@0.0.0", got.ResourceType)
 	require.Empty(t, got.VersionConstraint)
+}
+
+// available_upgrade is null once the resource sits on the newest version its
+// range accepts — the common case, so the null must decode to empty.
+func TestGetResource_NullAvailableUpgrade(t *testing.T) {
+	client, _ := newTestClient(&mockhttp.MockHTTPResponse{
+		StatusCode: 200,
+		Body: `{"id":"my-app.bucket","name":"Bucket","resource_type":"foo@1.3.0",` +
+			`"version_constraint":"~1","available_upgrade":null,"payload":{}}`,
+	})
+	service := resources.NewService(client)
+
+	got, err := service.GetResource(context.Background(), "my-app.bucket")
+	require.NoError(t, err)
+	require.Equal(t, "~1", got.VersionConstraint)
+	require.Empty(t, got.AvailableUpgrade)
 }
