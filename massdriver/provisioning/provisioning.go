@@ -15,7 +15,7 @@
 //	if err != nil {
 //	    return err
 //	}
-//	res, err := pc.Resources.CreateResource(ctx, &resources.Resource{ ... })
+//	res, err := pc.Resources.CreateResource(ctx, &resources.ResourceInput{ ... })
 package provisioning
 
 import (

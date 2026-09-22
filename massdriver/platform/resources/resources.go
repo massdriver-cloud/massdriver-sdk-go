@@ -217,6 +217,11 @@ func (s *Service) page(input ListInput) paging.FetchFunc[Resource] {
 // "aws-iam-role"), optionally pinned to a specific published version with
 // an `@<version>` suffix (e.g. "aws-iam-role@1.2.3"). The returned
 // [Resource] has [OriginImported].
+//
+// Only an exact version is accepted. The resource-type read queries resolve
+// ranges and channels, but this mutation compares the version literally, so
+// "aws-iam-role@~1" and "aws-iam-role@latest" both fail with "Resource type
+// not found" rather than resolving.
 func (s *Service) Create(ctx context.Context, resourceTypeID string, input CreateInput) (*Resource, error) {
 	resp, err := gen.CreateResource(ctx, s.client.GQLv2, s.client.Config.OrganizationID, resourceTypeID, gen.CreateResourceInput{
 		Name:    input.Name,
