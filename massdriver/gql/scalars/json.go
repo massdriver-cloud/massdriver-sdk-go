@@ -45,7 +45,7 @@ func isEmpty(v any) bool {
 		return true
 	}
 	rv := reflect.ValueOf(v)
-	for rv.Kind() == reflect.Ptr {
+	for rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {
 			return true
 		}
