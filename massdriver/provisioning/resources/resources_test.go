@@ -232,7 +232,13 @@ func TestDeleteResource(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				require.Nil(t, roundTripper.ReceivedRequest.Body)
+				require.Equal(t, "DELETE", roundTripper.ReceivedRequest.Method)
+				// resty may attach an empty body to a DELETE; only its content matters.
+				if roundTripper.ReceivedRequest.Body != nil {
+					gotBody, err := io.ReadAll(roundTripper.ReceivedRequest.Body)
+					require.NoError(t, err)
+					require.Empty(t, gotBody)
+				}
 			}
 		})
 	}
