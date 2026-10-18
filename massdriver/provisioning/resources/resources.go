@@ -82,6 +82,28 @@ func (s *Service) CreateResource(ctx context.Context, input *ResourceInput) (*Re
 	return &result, nil
 }
 
+// ListResources sends a GET /v1/resources request. It returns every resource
+// produced by the calling deployment's instance, ordered by field. Only
+// deployment tokens may call it; other credentials get a 403.
+func (s *Service) ListResources(ctx context.Context) ([]Resource, error) {
+	var result []Resource
+	resp, err := s.client.HTTP.R().
+		SetContext(ctx).
+		SetResult(&result).
+		Get("/v1/resources")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, formatAPIError("list resources", resp)
+	}
+	if result == nil {
+		result = []Resource{}
+	}
+	return result, nil
+}
+
 // GetResource sends a GET /v1/resources/:id request
 func (s *Service) GetResource(ctx context.Context, id string) (*Resource, error) {
 	var result Resource

@@ -295,3 +295,58 @@ func TestGetResource_NullAvailableUpgrade(t *testing.T) {
 	require.Equal(t, "~1", got.VersionConstraint)
 	require.Empty(t, got.AvailableUpgrade)
 }
+
+func TestListResources(t *testing.T) {
+	tests := []struct {
+		name         string
+		status       int
+		responseBody string
+		expectErr    bool
+		expectIDs    []string
+	}{
+		{
+			name:   "success",
+			status: 200,
+			responseBody: `[{"id":"prj-env-api.policy","name":"API policy","field":"policy","payload":{"data":{"id":"api-policy"}}},` +
+				`{"id":"prj-env-api.role","name":"API role","field":"role","payload":{"data":{"id":"api-role"}}}]`,
+			expectIDs: []string{"prj-env-api.policy", "prj-env-api.role"},
+		},
+		{
+			name:         "empty",
+			status:       200,
+			responseBody: `[]`,
+			expectIDs:    []string{},
+		},
+		{
+			name:         "not a deployment",
+			status:       403,
+			responseBody: `{"error":"forbidden"}`,
+			expectErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client, roundTripper := newTestClient(&mockhttp.MockHTTPResponse{StatusCode: tt.status, Body: tt.responseBody})
+			service := resources.NewService(client)
+
+			result, err := service.ListResources(context.Background())
+
+			require.Equal(t, "GET", roundTripper.ReceivedRequest.Method)
+			require.Equal(t, "/v1/resources", roundTripper.ReceivedRequest.URL.Path)
+
+			if tt.expectErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "403")
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			ids := make([]string, 0, len(result))
+			for _, r := range result {
+				ids = append(ids, r.ID)
+			}
+			require.Equal(t, tt.expectIDs, ids)
+		})
+	}
+}
