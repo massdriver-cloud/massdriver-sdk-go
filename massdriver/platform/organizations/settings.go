@@ -31,6 +31,17 @@ type Settings struct {
 	// DefaultBundleAccess is the access granted to new bundle repositories
 	// at creation. Defaults to [DefaultBundleAccessNone].
 	DefaultBundleAccess DefaultBundleAccess
+	// NamingConvention is the Liquid template that names every provisioned
+	// cloud resource, e.g. `{{attrs.team}}-{{instance.id}}`. Empty means the
+	// default convention `{{instance.id}}-{{component.suffix}}`. The resolved
+	// name is burned into each instance when it is first created.
+	NamingConvention string
+	// DefaultTags are the attribute keys whose values are sent to
+	// deployments as default tags. `managed-by` and `md-instance` are always
+	// sent. Nil means the organization has never chosen its tags and still
+	// sends the legacy set; once chosen, the list can change but can't
+	// return to nil.
+	DefaultTags []string
 }
 
 // UpdateSettingsInput is the input for [Service.UpdateSettings]. Only the
@@ -41,6 +52,13 @@ type UpdateSettingsInput struct {
 	// bundle repositories at creation. Changing it only affects
 	// repositories created afterwards.
 	DefaultBundleAccess DefaultBundleAccess
+	// NamingConvention, when non-nil, sets the naming convention. A pointer
+	// to "" restores the default convention.
+	NamingConvention *string
+	// DefaultTags, when non-nil, replaces the default tag keys. A pointer to
+	// an empty slice sends only the always-on tags. Each key must be an
+	// attribute that applies to instances.
+	DefaultTags *[]string
 }
 
 // GetSettings retrieves the configured organization's behavior settings.
@@ -58,8 +76,11 @@ func (s *Service) GetSettings(ctx context.Context) (*Settings, error) {
 	if resp.Organization.Settings == nil {
 		return nil, fmt.Errorf("get organization settings: server returned no settings")
 	}
+	st := resp.Organization.Settings
 	return &Settings{
-		DefaultBundleAccess: DefaultBundleAccess(resp.Organization.Settings.DefaultBundleAccess),
+		DefaultBundleAccess: DefaultBundleAccess(st.DefaultBundleAccess),
+		NamingConvention:    st.NamingConvention,
+		DefaultTags:         st.DefaultTags,
 	}, nil
 }
 
@@ -70,9 +91,20 @@ func (s *Service) GetSettings(ctx context.Context) (*Settings, error) {
 // Requires the `organization:manageSettings` action (organization admins);
 // other callers receive a forbidden error.
 func (s *Service) UpdateSettings(ctx context.Context, input UpdateSettingsInput) (*Settings, error) {
-	resp, err := gen.UpdateOrganizationSettings(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gen.UpdateOrganizationSettingsInput{
+	gi := gen.UpdateOrganizationSettingsInput{
 		DefaultBundleAccess: gen.OrganizationDefaultBundleAccess(input.DefaultBundleAccess),
-	})
+		NamingConvention:    input.NamingConvention,
+	}
+	if input.DefaultTags != nil {
+		// A nil slice would marshal as null, which the server reads as
+		// "remove the default tags" rather than "no tags".
+		tags := []string{}
+		if *input.DefaultTags != nil {
+			tags = *input.DefaultTags
+		}
+		gi.DefaultTags = &tags
+	}
+	resp, err := gen.UpdateOrganizationSettings(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gi)
 	if err != nil {
 		return nil, gql.ClassifyError(fmt.Errorf("update organization settings: %w", err))
 	}
@@ -85,5 +117,7 @@ func (s *Service) UpdateSettings(ctx context.Context, input UpdateSettingsInput)
 	}
 	return &Settings{
 		DefaultBundleAccess: DefaultBundleAccess(r.Settings.DefaultBundleAccess),
+		NamingConvention:    r.Settings.NamingConvention,
+		DefaultTags:         r.Settings.DefaultTags,
 	}, nil
 }
