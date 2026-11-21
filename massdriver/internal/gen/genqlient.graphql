@@ -2145,6 +2145,8 @@ query GetOrganizationSettings($organizationId: ID!) {
     # @genqlient(pointer: true)
     settings {
       defaultBundleAccess
+      namingConvention
+      defaultTags
     }
   }
 }
@@ -2152,6 +2154,8 @@ query GetOrganizationSettings($organizationId: ID!) {
 # Omitted settings keep their current values, so unset fields must stay off
 # the wire — see UpdateComponent.
 # @genqlient(for: "UpdateOrganizationSettingsInput.defaultBundleAccess", omitempty: true)
+# @genqlient(for: "UpdateOrganizationSettingsInput.namingConvention", omitempty: true, pointer: true)
+# @genqlient(for: "UpdateOrganizationSettingsInput.defaultTags", omitempty: true, bind: "*[]string")
 mutation UpdateOrganizationSettings(
   $organizationId: ID!,
   $input: UpdateOrganizationSettingsInput!
@@ -2162,6 +2166,8 @@ mutation UpdateOrganizationSettings(
       # @genqlient(pointer: true)
       settings {
         defaultBundleAccess
+        namingConvention
+        defaultTags
       }
     }
     successful

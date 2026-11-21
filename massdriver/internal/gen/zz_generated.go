@@ -1349,7 +1349,7 @@ const (
 	AttributeScopeEnvironment AttributeScope = "ENVIRONMENT"
 	// Attribute is set on blueprint components (design-time).
 	AttributeScopeComponent AttributeScope = "COMPONENT"
-	// Attribute is set on individual OCI repositories (bundles).
+	// Attribute is set on individual OCI repositories.
 	AttributeScopeRepo AttributeScope = "REPO"
 )
 
@@ -1415,6 +1415,10 @@ type AuditLogsFilter struct {
 	ActorId *IdFilter `json:"actorId,omitempty"`
 	// Search actors by a substring match across their identifying fields (email and name for users, name for service accounts, ID for deployments and system actions). Useful for finding every action taken by a person or bot without knowing their exact ID.
 	Actor *ActorSearchFilter `json:"actor,omitempty"`
+	// Match events whose metadata contains every given key and value, e.g. `{"contains_secrets": true, "credential": "access_token"}`. Values must match exactly, including type. `eventTypes` lists the metadata each event type records.
+	Metadata map[string]any `json:"-"`
+	// Match events whose entity had every given attribute and value when the event happened, e.g. `{"md-environment": "prod", "TEAM": "payments"}`. Takes custom attributes and system (`md-*`) attributes.
+	Attributes map[string]any `json:"-"`
 }
 
 // GetOccurredAt returns AuditLogsFilter.OccurredAt, and is useful for accessing the field via an interface.
@@ -1431,6 +1435,118 @@ func (v *AuditLogsFilter) GetActorId() *IdFilter { return v.ActorId }
 
 // GetActor returns AuditLogsFilter.Actor, and is useful for accessing the field via an interface.
 func (v *AuditLogsFilter) GetActor() *ActorSearchFilter { return v.Actor }
+
+// GetMetadata returns AuditLogsFilter.Metadata, and is useful for accessing the field via an interface.
+func (v *AuditLogsFilter) GetMetadata() map[string]any { return v.Metadata }
+
+// GetAttributes returns AuditLogsFilter.Attributes, and is useful for accessing the field via an interface.
+func (v *AuditLogsFilter) GetAttributes() map[string]any { return v.Attributes }
+
+func (v *AuditLogsFilter) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*AuditLogsFilter
+		Metadata   json.RawMessage `json:"metadata"`
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.AuditLogsFilter = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Metadata
+		src := firstPass.Metadata
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal AuditLogsFilter.Metadata: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal AuditLogsFilter.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalAuditLogsFilter struct {
+	OccurredAt *DatetimeFilter `json:"occurredAt,omitempty"`
+
+	Type *StringFilter `json:"type,omitempty"`
+
+	ActorType *AuditLogActorTypeFilter `json:"actorType,omitempty"`
+
+	ActorId *IdFilter `json:"actorId,omitempty"`
+
+	Actor *ActorSearchFilter `json:"actor,omitempty"`
+
+	Metadata json.RawMessage `json:"metadata"`
+
+	Attributes json.RawMessage `json:"attributes"`
+}
+
+func (v *AuditLogsFilter) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *AuditLogsFilter) __premarshalJSON() (*__premarshalAuditLogsFilter, error) {
+	var retval __premarshalAuditLogsFilter
+
+	retval.OccurredAt = v.OccurredAt
+	retval.Type = v.Type
+	retval.ActorType = v.ActorType
+	retval.ActorId = v.ActorId
+	retval.Actor = v.Actor
+	{
+
+		dst := &retval.Metadata
+		src := v.Metadata
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal AuditLogsFilter.Metadata: %w", err)
+		}
+	}
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal AuditLogsFilter.Attributes: %w", err)
+		}
+	}
+	return &retval, nil
+}
 
 // Sorting options for the audit logs list.
 type AuditLogsSort struct {
@@ -2341,7 +2457,7 @@ type CompareDeploymentsCompareDeploymentsDeploymentComparisonSourceDeployment st
 	Version string `json:"version"`
 	// An optional message describing the purpose of this deployment, similar to a commit message.
 	Message string `json:"message"`
-	// The name of the user or service account that initiated this deployment. Null if the initiator has been removed.
+	// The user or service account that initiated this deployment.
 	DeployedBy string `json:"deployedBy"`
 	// When this deployment was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
@@ -2463,7 +2579,7 @@ type CompareDeploymentsCompareDeploymentsDeploymentComparisonTargetDeployment st
 	Version string `json:"version"`
 	// An optional message describing the purpose of this deployment, similar to a commit message.
 	Message string `json:"message"`
-	// The name of the user or service account that initiated this deployment. Null if the initiator has been removed.
+	// The user or service account that initiated this deployment.
 	DeployedBy string `json:"deployedBy"`
 	// When this deployment was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
@@ -3401,9 +3517,9 @@ func (v *CopyInstanceCopyInstanceInstancePayloadResultInstance) __premarshalJSON
 
 // Copy configuration from one instance to another. The source and destination must be instances of the same component. Source params (minus any fields marked non-copyable in the bundle) are written to the destination.
 type CopyInstanceInput struct {
-	// When true, copies remote resource references from the source instance to the destination. Defaults to false.
+	// When true, copies remote resource references from the source instance to the destination. Each referenced resource requires `resource:view` and a resource grant that covers the destination environment. Defaults to false.
 	CopyRemoteReferences bool `json:"copyRemoteReferences"`
-	// When true, copies secret values from the source instance to the destination. Defaults to false.
+	// When true, copies secret values from the source instance to the destination. Requires `instance:configure` on the source instance when it has secrets. Defaults to false.
 	CopySecrets bool `json:"copySecrets"`
 	// Optional overrides that are deep-merged onto the source params before writing to the destination. Useful for tweaking environment-specific values (e.g., instance sizes).
 	Overrides map[string]any `json:"-"`
@@ -3496,6 +3612,11 @@ type CopyInstanceResponse struct {
 	// with any `overrides`. `copySecrets` and `copyRemoteReferences` opt in to additional
 	// state transfer. Deployment is a separate action — call `createDeployment` on the
 	// destination when you're ready to apply.
+	//
+	// Copying secrets requires `instance:configure` on the source instance. Copying remote
+	// references requires `resource:view` on each referenced resource and a resource grant
+	// that covers the destination environment — the same checks as `setRemoteReference`.
+	// If any check fails, nothing is copied.
 	//
 	// ```graphql
 	// mutation {
@@ -3698,8 +3819,10 @@ func (v *CreateCustomAttributeInput) GetValues() []string { return v.Values }
 type CreateCustomAttributeResponse struct {
 	// Declare a new custom attribute in your organization.
 	//
-	// Once declared, the attribute immediately applies to new resources at the specified scope.
-	// Existing resources are not retroactively validated. Requires the `organization:manageCustomAttributes` action.
+	// Once declared, the attribute applies to resources created at the specified scope from
+	// this point on. Resources that already exist keep their attributes unchanged, and a
+	// `required` attribute does not have to be added to them before they can be updated.
+	// Requires the `organization:manageCustomAttributes` action.
 	CreateCustomAttribute CreateCustomAttributeCreateCustomAttributeCustomAttributePayload `json:"createCustomAttribute"`
 }
 
@@ -4630,8 +4753,12 @@ func (v *CreateGroupCreateGroupGroupPayloadMessagesValidationMessage) GetMessage
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -4933,8 +5060,12 @@ func (v *CreateGroupPolicyCreateGroupPolicyPolicyPayloadResultPolicy) __premarsh
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -5827,7 +5958,7 @@ func (v *CreateOrganizationCreateOrganizationOrganizationPayloadResultOrganizati
 
 // Create a new organization. An organization is the top-level container for all your projects, environments, and infrastructure resources.
 type CreateOrganizationInput struct {
-	// A short, memorable identifier for looking up this organization in the API and CLI. Choose something concise and meaningful—human-readable, not a UUID. Max 20 characters, lowercase alphanumeric only (a-z, 0-9). Immutable after creation.
+	// A short, memorable identifier for looking up this organization in the API and CLI. Choose something concise and meaningful—human-readable, not a UUID. Max 20 characters, lowercase letters, numbers, and hyphens (a-z, 0-9, -). Immutable after creation.
 	Id string `json:"id"`
 	// A human-readable name for the organization.
 	Name string `json:"name"`
@@ -7789,9 +7920,10 @@ type CustomAttributeSchemaResponse struct {
 	// The schema is the org's custom-attribute schema for the action's scope
 	// (e.g. `project:create` → project-scope attributes), with each key's
 	// `enum` reduced to the values the caller's allow policies permit for
-	// that action. Org admins see the full closed set; non-admins with no
-	// matching policy receive `{"properties": {}, "additionalProperties": false}`,
-	// which rejects any write. Actions whose entity has no custom-attribute
+	// that action. Org admins see the full closed set. When the org declares no
+	// attributes for the scope, or the caller has no matching policy, the result
+	// is `{"properties": {}, "additionalProperties": false}`, which rejects any
+	// attribute key. Actions whose entity has no custom-attribute
 	// scope (group, organization, resource, resource_type) return
 	// `{"type": "object"}` (no constraints).
 	//
@@ -8193,8 +8325,12 @@ func (v *DeleteCustomAttributeDeleteCustomAttributeCustomAttributePayloadResultC
 type DeleteCustomAttributeResponse struct {
 	// Delete a custom attribute from your organization.
 	//
-	// Removing a custom attribute stops enforcing the rule for future resources.
-	// Existing attributes on resources are not removed. Requires the `organization:manageCustomAttributes` action.
+	// Refused while a policy or grant condition on this key exists; the error names each one
+	// so you can edit or delete it first.
+	//
+	// Once deleted, the key can no longer be set on new or existing resources. Values
+	// already set on resources are not removed, and updates to those resources still
+	// succeed. Requires the `organization:manageCustomAttributes` action.
 	DeleteCustomAttribute DeleteCustomAttributeDeleteCustomAttributeCustomAttributePayload `json:"deleteCustomAttribute"`
 }
 
@@ -8631,8 +8767,12 @@ func (v *DeleteGroupDeleteGroupGroupPayloadMessagesValidationMessage) GetMessage
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -8886,8 +9026,8 @@ func (v *DeleteGroupMemberResponse) GetDeleteGroupMember() DeleteGroupMemberDele
 type DeleteGroupResponse struct {
 	// Delete a group.
 	//
-	// Only groups with the `CUSTOM` role can be deleted. The built-in `organization_admin` and
-	// `organization_viewer` groups are permanent and cannot be removed. All members lose the
+	// Only groups with the `CUSTOM` role can be deleted. The built-in `organization_admin` group
+	// is permanent and cannot be removed. All members lose the
 	// access granted by this group immediately upon deletion. Requires the `organization:manageGroups` action.
 	DeleteGroup DeleteGroupDeleteGroupGroupPayload `json:"deleteGroup"`
 }
@@ -9137,10 +9277,12 @@ func (v *DeleteOciRepoDeleteOciRepoOciRepoPayloadResultOciRepo) GetArtifactType(
 
 // DeleteOciRepoResponse is returned by DeleteOciRepo on success.
 type DeleteOciRepoResponse struct {
-	// Delete an OCI repository.
+	// Delete an OCI repository and every version published in it.
 	//
-	// Refused if the repository has any published versions. Tags are immutable;
-	// to remove versions today, recreate the repository.
+	// Refused while the repository is still in use: a bundle repository that is on
+	// a project canvas or deployed, or a resource-type repository whose type a
+	// resource, an environment default, or a published bundle still references. The
+	// error lists what is using it.
 	DeleteOciRepo DeleteOciRepoDeleteOciRepoOciRepoPayload `json:"deleteOciRepo"`
 }
 
@@ -9249,7 +9391,7 @@ type DeleteOrganizationMemberResponse struct {
 	//
 	// This revokes all group memberships and cancels any pending invitations for the
 	// specified email address. The member immediately loses access to all organization
-	// resources. Requires the `organization:manageProfile` action.
+	// resources. Requires the `organization:manageMembers` action.
 	DeleteOrganizationMember DeleteOrganizationMemberDeleteOrganizationMemberDeletedOrganizationMemberPayload `json:"deleteOrganizationMember"`
 }
 
@@ -9500,8 +9642,12 @@ func (v *DeletePolicyDeletePolicyPolicyPayloadResultPolicy) __premarshalJSON() (
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -11268,11 +11414,11 @@ func (v *ForkEnvironmentForkEnvironmentEnvironmentPayloadResultEnvironmentProjec
 type ForkEnvironmentInput struct {
 	// Key-value attributes for this environment. Keys and values must be strings. Must conform to the organization's custom attributes for the environment scope.
 	Attributes map[string]any `json:"-"`
-	// When true, copies the parent environment's default resource connections into the fork.
+	// When true, copies the parent environment's default resource connections into the fork. Each resource requires `resource:view` and a resource grant that covers the fork.
 	CopyEnvironmentDefaults bool `json:"copyEnvironmentDefaults"`
-	// When true, copies every package's remote resource references from the parent into the fork. Applies the same behavior as `copyInstance(copyRemoteReferences: true)` to every package in one call. Defaults to false.
+	// When true, copies every package's remote resource references from the parent into the fork. Applies the same behavior as `copyInstance(copyRemoteReferences: true)` to every package in one call, so each referenced resource requires `resource:view` and a resource grant that covers the fork. Defaults to false.
 	CopyRemoteReferences bool `json:"copyRemoteReferences"`
-	// When true, copies every package's secret values from the parent into the fork. Applies the same behavior as `copyInstance(copySecrets: true)` to every package in one call. Defaults to false.
+	// When true, copies every package's secret values from the parent into the fork. Applies the same behavior as `copyInstance(copySecrets: true)` to every package in one call, so each parent instance with secrets requires `instance:configure`. Defaults to false.
 	CopySecrets bool `json:"copySecrets"`
 	// When true, blocks `decommissionEnvironment` and any per-instance deployment with `action: DECOMMISSION` against this environment. Disable it via `updateEnvironment` before tearing down. Defaults to false.
 	DecommissionProtection bool `json:"decommissionProtection"`
@@ -11412,6 +11558,12 @@ type ForkEnvironmentResponse struct {
 	// `copyEnvironmentDefaults: true` to also copy the parent's default resource
 	// connections.
 	//
+	// Each copied environment default and remote reference requires `resource:view` on
+	// the resource and a resource grant that covers the new environment — the same checks
+	// as `setEnvironmentDefault` and `setRemoteReference`. Copying secrets requires
+	// `instance:configure` on each parent instance that has secrets. If any check fails,
+	// the fork makes no changes.
+	//
 	// Re-calling `forkEnvironment` with the same parent + `id` is a no-op that
 	// returns the existing environment. Re-calling with the same `id` but a
 	// different `parentId` is rejected — a fork's parent is immutable.
@@ -11448,7 +11600,7 @@ type GetAuditLogAuditLog struct {
 	Source string `json:"source"`
 	// The affected resource in MRI format (e.g., `mri://organization/my-org/project/backend`). May be `null` for organization-wide events.
 	Subject string `json:"subject"`
-	// Event payload containing context-specific details about the action. The structure varies by event type.
+	// The event body. `actor` holds the ids of the account, service account, or deployment that caused the event, and the organization. `entity` holds a copy of the entity the event is about, as it was when the event happened. The fields in `entity` depend on the entity type.
 	Data map[string]any `json:"-"`
 	// The actor (user, service account, deployment, or system) that performed this action.
 	Actor GetAuditLogAuditLogActor `json:"actor"`
@@ -11569,7 +11721,7 @@ func (v *GetAuditLogAuditLog) __premarshalJSON() (*__premarshalGetAuditLogAuditL
 // - **`DEPLOYMENT`** — `name` is a reference like `deployment:<id>`.
 // - **`SYSTEM`** — `name` is `system` for internal actions.
 //
-// If the original actor has been deleted, the `name` will indicate this (e.g., "deleted account").
+// If the actor has been deleted, `name` is a reference like `service_account:<id>`.
 type GetAuditLogAuditLogActor struct {
 	// Unique identifier of the actor that performed the action.
 	Id string `json:"id"`
@@ -11703,7 +11855,7 @@ type GetBundleBundleDependenciesBundleDependency struct {
 	Name string `json:"name"`
 	// When `true`, this dependency must be connected before the bundle can be deployed.
 	Required bool `json:"required"`
-	// The resource type this dependency accepts. `null` if the field is not pinned to a resource type — for example, the type has been removed from the catalog.
+	// The resource type this dependency accepts, resolved to the newest version its `versionConstraint` accepts. `null` if no published version of the type satisfies the range, or the field is not pinned to a resource type at all.
 	ResourceType GetBundleBundleDependenciesBundleDependencyResourceType `json:"resourceType"`
 }
 
@@ -11759,7 +11911,7 @@ type GetBundleBundleResourcesBundleResource struct {
 	Name string `json:"name"`
 	// When `true`, this resource is always produced on a successful deployment.
 	Required bool `json:"required"`
-	// The resource type this output produces. `null` if the field is not pinned to a resource type — for example, the type has been removed from the catalog.
+	// The resource type this output produces, resolved to the newest version its `versionConstraint` accepts. `null` if no published version of the type satisfies the range, or the field is not pinned to a resource type at all.
 	ResourceType GetBundleBundleResourcesBundleResourceResourceType `json:"resourceType"`
 }
 
@@ -12331,7 +12483,7 @@ type GetDeploymentDeployment struct {
 	// For terminal states, this is the total time from creation to the final status transition.
 	// Returns `0` for deployments that have not yet executed (`PENDING`, `PROPOSED`, `APPROVED`).
 	ElapsedTime int `json:"elapsedTime"`
-	// The name of the user or service account that initiated this deployment. Null if the initiator has been removed.
+	// The user or service account that initiated this deployment.
 	DeployedBy string `json:"deployedBy"`
 	// When this deployment was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
@@ -13680,8 +13832,12 @@ func (v *GetEnvironmentUnfulfilledDependenciesResponse) GetEnvironment() GetEnvi
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -13879,8 +14035,12 @@ func (v *GetGroupPolicyGroupPolicy) __premarshalJSON() (*__premarshalGetGroupPol
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -14166,9 +14326,12 @@ type GetInstanceInstance struct {
 	// May differ from `resolvedVersion` if the version constraint has been updated
 	// but no deployment has occurred yet. Null if the instance has never been deployed.
 	DeployedVersion string `json:"deployedVersion"`
-	// The newest bundle version available that satisfies the version constraint.
+	// The newest bundle version available that satisfies the version constraint
+	// and is newer than the version the instance is currently on.
 	//
 	// Returns null if the instance is already on the latest matching version.
+	// An exact version pin reports patch-level upgrades within its major.minor;
+	// a pre-release pin also includes newer pre-releases.
 	// Use this field to detect when an upgrade is available.
 	AvailableUpgrade string `json:"availableUpgrade"`
 	// Cached configuration parameters from the most recent deployment. Null if the instance has never been deployed.
@@ -14180,7 +14343,7 @@ type GetInstanceInstance struct {
 	//
 	// - `$md.enum` is replaced with a `oneOf` list whose entries are computed by
 	// running the configured jq expression against the connected resource's
-	// payload. Missing connections or jq errors produce a single placeholder
+	// payload. A missing dependency or a jq error produces a single placeholder
 	// entry whose `title` begins with `ERROR:`.
 	// - `$md.immutable` is rewritten to `readOnly: true` once the instance has
 	// reached a state where the field can no longer be changed (`PROVISIONED`
@@ -14946,6 +15109,10 @@ type GetInstanceInstanceDependenciesInstanceDependencyResource struct {
 	// Null for **imported** resources. For **provisioned** resources, this is the instance
 	// that owns the resource's lifecycle — updating or decommissioning the instance will
 	// update or remove the resource.
+	//
+	// Also null when you cannot view the project that contains the instance. You can see a
+	// resource from another project through a grant, a `resource:view` policy, or a
+	// dependency of an instance you can view; the instance that produced it stays hidden.
 	Instance *GetInstanceInstanceDependenciesInstanceDependencyResourceInstance `json:"instance"`
 }
 
@@ -15835,18 +16002,21 @@ type GetOciRepoOciRepo struct {
 	// and excluded from this map — see `effectiveAttributes` for the merged view.
 	Attributes map[string]any `json:"-"`
 	// Short summary of what this repository provisions, taken from the latest
-	// published release. `null` when the repository has no releases yet or the
-	// author omitted the description.
+	// published release. For a resource-type repository it is the schema
+	// `description` of the type's newest published version. `null` when the
+	// repository has no releases yet or the author omitted the description.
 	Description string `json:"description"`
-	// URL to this repository's display icon (SVG), taken from the latest
-	// published release. `null` when the repository has no releases yet or the
-	// latest release has no icon.
+	// URL to this repository's display icon, or `null` if it has none.
 	//
-	// The URL is **authenticated** — callers must have an active browser session
-	// or valid API credentials for the owning organization. Embedding it in an
-	// `<img>` tag from the web UI works because the browser sends the session
+	// For a bundle repository the URL is **authenticated** and serves the SVG
+	// packaged with its latest release — callers must have an active browser
+	// session or valid API credentials for the owning organization. Embedding it in
+	// an `<img>` tag from the web UI works because the browser sends the session
 	// cookie automatically; programmatic clients must include an `Authorization`
 	// header.
+	//
+	// For a resource-type repository it is the icon URL declared by the type's
+	// newest published version.
 	Icon string `json:"icon"`
 	// URL of the source code this repository is published from (for example, a
 	// GitHub link), when the author provides one. Taken from the latest release.
@@ -15863,7 +16033,7 @@ type GetOciRepoOciRepo struct {
 	// Paginated list of release channels for this repository.
 	//
 	// Each channel is a version constraint that auto-resolves to the latest matching
-	// tag. Use the `stable` filter to show only stable or only development channels.
+	// tag. Use the `channel` filter to show only stable or only development channels.
 	ReleaseChannels GetOciRepoOciRepoReleaseChannelsOciRepoReleaseChannelsPage `json:"releaseChannels"`
 }
 
@@ -16093,7 +16263,7 @@ type GetOciRepoResponse struct {
 	// items { tag createdAt }
 	// cursor { next }
 	// }
-	// releaseChannels(filter: { stable: true }) {
+	// releaseChannels(filter: { channel: STABLE }) {
 	// items { name tag }
 	// }
 	// }
@@ -16249,12 +16419,24 @@ func (v *GetOrganizationSettingsOrganization) GetSettings() *GetOrganizationSett
 type GetOrganizationSettingsOrganizationSettings struct {
 	// Access granted to new bundle repositories at creation. Defaults to `NONE` — new repositories are restricted until a grant is authored for them.
 	DefaultBundleAccess OrganizationDefaultBundleAccess `json:"defaultBundleAccess"`
+	// Liquid template that names every provisioned cloud resource, e.g. `{{attrs.team}}-{{instance.id}}`. `null` means the default convention `{{instance.id}}-{{component.suffix}}`. The resolved name is burned into each instance when it is first created and does not change afterward.
+	NamingConvention string `json:"namingConvention"`
+	// Attribute keys whose values are sent to deployments as default tags. `managed-by` and `md-instance` are always sent.
+	DefaultTags []string `json:"defaultTags"`
 }
 
 // GetDefaultBundleAccess returns GetOrganizationSettingsOrganizationSettings.DefaultBundleAccess, and is useful for accessing the field via an interface.
 func (v *GetOrganizationSettingsOrganizationSettings) GetDefaultBundleAccess() OrganizationDefaultBundleAccess {
 	return v.DefaultBundleAccess
 }
+
+// GetNamingConvention returns GetOrganizationSettingsOrganizationSettings.NamingConvention, and is useful for accessing the field via an interface.
+func (v *GetOrganizationSettingsOrganizationSettings) GetNamingConvention() string {
+	return v.NamingConvention
+}
+
+// GetDefaultTags returns GetOrganizationSettingsOrganizationSettings.DefaultTags, and is useful for accessing the field via an interface.
+func (v *GetOrganizationSettingsOrganizationSettings) GetDefaultTags() []string { return v.DefaultTags }
 
 // GetOrganizationSettingsResponse is returned by GetOrganizationSettings on success.
 type GetOrganizationSettingsResponse struct {
@@ -17103,6 +17285,10 @@ type GetResourceResource struct {
 	// Null for **imported** resources. For **provisioned** resources, this is the instance
 	// that owns the resource's lifecycle — updating or decommissioning the instance will
 	// update or remove the resource.
+	//
+	// Also null when you cannot view the project that contains the instance. You can see a
+	// resource from another project through a grant, a `resource:view` policy, or a
+	// dependency of an instance you can view; the instance that produced it stays hidden.
 	Instance *GetResourceResourceInstance `json:"instance"`
 }
 
@@ -18123,7 +18309,6 @@ func (v *GetViewerViewerServiceAccountViewerOrganization) GetUpdatedAt() time.Ti
 // Every group has exactly one role that determines what its members can do:
 //
 // - **`ORGANIZATION_ADMIN`** — Full administrative access across all projects.
-// - **`ORGANIZATION_VIEWER`** — Read-only access across all projects.
 // - **`CUSTOM`** — Fine-grained, project-level access grants. Use this when you need
 // to give a team access to specific projects without organization-wide permissions.
 type GroupRole string
@@ -18131,15 +18316,12 @@ type GroupRole string
 const (
 	// Full administrative access to all projects and settings in the organization. Members can manage groups, service accounts, billing, and all infrastructure.
 	GroupRoleOrganizationAdmin GroupRole = "ORGANIZATION_ADMIN"
-	// Read-only access to all projects in the organization. Members can view infrastructure, deployments, and logs but cannot make changes.
-	GroupRoleOrganizationViewer GroupRole = "ORGANIZATION_VIEWER"
 	// Project-level access grants. Members only see projects explicitly assigned to this group, with either `project_admin` or `project_viewer` permissions per project.
 	GroupRoleCustom GroupRole = "CUSTOM"
 )
 
 var AllGroupRole = []GroupRole{
 	GroupRoleOrganizationAdmin,
-	GroupRoleOrganizationViewer,
 	GroupRoleCustom,
 }
 
@@ -18719,7 +18901,7 @@ type ListAccessTokensAccessTokensAccessTokensPageItemsAccessToken struct {
 	ExpiresAt time.Time `json:"expiresAt"`
 	// When this token was manually revoked, or `null` if still active.
 	RevokedAt time.Time `json:"revokedAt"`
-	// When this token was last used to authenticate an API request, or `null` if never used.
+	// When this token was last used to authenticate an API request.
 	LastUsedAt time.Time `json:"lastUsedAt"`
 	// When this token was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
@@ -18877,7 +19059,7 @@ type ListAuditLogsAuditLogsAuditLogsPageItemsAuditLog struct {
 	Source string `json:"source"`
 	// The affected resource in MRI format (e.g., `mri://organization/my-org/project/backend`). May be `null` for organization-wide events.
 	Subject string `json:"subject"`
-	// Event payload containing context-specific details about the action. The structure varies by event type.
+	// The event body. `actor` holds the ids of the account, service account, or deployment that caused the event, and the organization. `entity` holds a copy of the entity the event is about, as it was when the event happened. The fields in `entity` depend on the entity type.
 	Data map[string]any `json:"-"`
 	// The actor (user, service account, deployment, or system) that performed this action.
 	Actor ListAuditLogsAuditLogsAuditLogsPageItemsAuditLogActor `json:"actor"`
@@ -19002,7 +19184,7 @@ func (v *ListAuditLogsAuditLogsAuditLogsPageItemsAuditLog) __premarshalJSON() (*
 // - **`DEPLOYMENT`** — `name` is a reference like `deployment:<id>`.
 // - **`SYSTEM`** — `name` is `system` for internal actions.
 //
-// If the original actor has been deleted, the `name` will indicate this (e.g., "deleted account").
+// If the actor has been deleted, `name` is a reference like `service_account:<id>`.
 type ListAuditLogsAuditLogsAuditLogsPageItemsAuditLogActor struct {
 	// Unique identifier of the actor that performed the action.
 	Id string `json:"id"`
@@ -19384,7 +19566,7 @@ type ListDeploymentsDeploymentsDeploymentsPageItemsDeployment struct {
 	// For terminal states, this is the total time from creation to the final status transition.
 	// Returns `0` for deployments that have not yet executed (`PENDING`, `PROPOSED`, `APPROVED`).
 	ElapsedTime int `json:"elapsedTime"`
-	// The name of the user or service account that initiated this deployment. Null if the initiator has been removed.
+	// The user or service account that initiated this deployment.
 	DeployedBy string `json:"deployedBy"`
 	// When this deployment was created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
@@ -20078,8 +20260,12 @@ func (v *ListEnvironmentsResponse) GetEnvironments() ListEnvironmentsEnvironment
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -20216,8 +20402,12 @@ func (v *ListGroupInvitationsResponse) GetGroup() ListGroupInvitationsGroup { re
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -20356,8 +20546,12 @@ func (v *ListGroupMembersResponse) GetGroup() ListGroupMembersGroup { return v.G
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -20596,8 +20790,12 @@ func (v *ListGroupPoliciesResponse) GetGroup() ListGroupPoliciesGroup { return v
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -20797,8 +20995,12 @@ func (v *ListGroupsGroupsGroupsPageCursorPaginationCursor) GetPrevious() string 
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -20845,13 +21047,17 @@ type ListGroupsResponse struct {
 	// List all groups in your organization.
 	//
 	// Returns a paginated, sortable list of groups. By default, groups are sorted
-	// alphabetically by name.
+	// alphabetically by name. Use `filter` to search groups or to list the groups of one
+	// account or service account.
+	//
+	// **Note:** when a `search` filter is active, pagination cursors are offset-based and are
+	// not interchangeable with the cursors returned by queries without `search`.
 	//
 	// **Example:**
 	//
 	// ```graphql
 	// query {
-	// groups(organizationId: "my-org") {
+	// groups(organizationId: "my-org", filter: { search: "platform" }) {
 	// data {
 	// id
 	// name
@@ -21137,9 +21343,12 @@ type ListInstancesInstancesInstancesPageItemsInstance struct {
 	// May differ from `resolvedVersion` if the version constraint has been updated
 	// but no deployment has occurred yet. Null if the instance has never been deployed.
 	DeployedVersion string `json:"deployedVersion"`
-	// The newest bundle version available that satisfies the version constraint.
+	// The newest bundle version available that satisfies the version constraint
+	// and is newer than the version the instance is currently on.
 	//
 	// Returns null if the instance is already on the latest matching version.
+	// An exact version pin reports patch-level upgrades within its major.minor;
+	// a pre-release pin also includes newer pre-releases.
 	// Use this field to detect when an upgrade is available.
 	AvailableUpgrade string `json:"availableUpgrade"`
 	// Key-value attributes assigned directly to this instance.
@@ -21864,7 +22073,7 @@ type ListOciRepoGrantsResponse struct {
 	// items { tag createdAt }
 	// cursor { next }
 	// }
-	// releaseChannels(filter: { stable: true }) {
+	// releaseChannels(filter: { channel: STABLE }) {
 	// items { name tag }
 	// }
 	// }
@@ -21958,18 +22167,21 @@ type ListOciReposOciReposOciReposPageItemsOciRepo struct {
 	// and excluded from this map — see `effectiveAttributes` for the merged view.
 	Attributes map[string]any `json:"-"`
 	// Short summary of what this repository provisions, taken from the latest
-	// published release. `null` when the repository has no releases yet or the
-	// author omitted the description.
+	// published release. For a resource-type repository it is the schema
+	// `description` of the type's newest published version. `null` when the
+	// repository has no releases yet or the author omitted the description.
 	Description string `json:"description"`
-	// URL to this repository's display icon (SVG), taken from the latest
-	// published release. `null` when the repository has no releases yet or the
-	// latest release has no icon.
+	// URL to this repository's display icon, or `null` if it has none.
 	//
-	// The URL is **authenticated** — callers must have an active browser session
-	// or valid API credentials for the owning organization. Embedding it in an
-	// `<img>` tag from the web UI works because the browser sends the session
+	// For a bundle repository the URL is **authenticated** and serves the SVG
+	// packaged with its latest release — callers must have an active browser
+	// session or valid API credentials for the owning organization. Embedding it in
+	// an `<img>` tag from the web UI works because the browser sends the session
 	// cookie automatically; programmatic clients must include an `Authorization`
 	// header.
+	//
+	// For a resource-type repository it is the icon URL declared by the type's
+	// newest published version.
 	Icon string `json:"icon"`
 	// URL of the source code this repository is published from (for example, a
 	// GitHub link), when the author provides one. Taken from the latest release.
@@ -21981,7 +22193,7 @@ type ListOciReposOciReposOciReposPageItemsOciRepo struct {
 	// Paginated list of release channels for this repository.
 	//
 	// Each channel is a version constraint that auto-resolves to the latest matching
-	// tag. Use the `stable` filter to show only stable or only development channels.
+	// tag. Use the `channel` filter to show only stable or only development channels.
 	ReleaseChannels ListOciReposOciReposOciReposPageItemsOciRepoReleaseChannelsOciRepoReleaseChannelsPage `json:"releaseChannels"`
 }
 
@@ -22165,6 +22377,48 @@ type ListOciReposResponse struct {
 	// and resource types). Each repository is the container for all published
 	// versions of its artifact. Use `filter` to narrow by name, artifact type,
 	// or full-text search.
+	//
+	// The list holds every repository you can see:
+	//
+	// - repositories your `repo:view` group policies match, **plus**
+	// - bundle repositories granted to a project you can view.
+	//
+	// A grant to one of your projects adds its repository to the list even when
+	// no `repo:view` policy matches it, and a deny `repo:view` policy does not
+	// remove it. Use `filter.projectId` for the bundles granted to one project,
+	// and `filter.viewer` for the repositories your own policies match. When
+	// both are set, a repository must match both. To list a project's bundles
+	// and your own bundles together, make two queries.
+	//
+	// Example: you can view projects `checkout` and `billing`, and your group
+	// policy allows `repo:view` on repositories with `TEAM=payments`.
+	//
+	// | Repository     | `TEAM`     | Granted to |
+	// | -------------- | ---------- | ---------- |
+	// | `aws-aurora`   | `payments` | none       |
+	// | `aws-s3`       | `payments` | `checkout` |
+	// | `aws-iam-role` | none       | `checkout` |
+	// | `aws-vpc`      | none       | `billing`  |
+	//
+	// | `filter`                                       | Result                                            |
+	// | ---------------------------------------------- | ------------------------------------------------- |
+	// | none                                           | `aws-aurora`, `aws-iam-role`, `aws-s3`, `aws-vpc` |
+	// | `{ projectId: "checkout" }`                    | `aws-iam-role`, `aws-s3`                          |
+	// | `{ projectId: "billing" }`                     | `aws-vpc`                                         |
+	// | `{ viewer: true }`                             | `aws-aurora`, `aws-s3`                            |
+	// | `{ viewer: false }`                            | `aws-iam-role`, `aws-vpc`                         |
+	// | `{ projectId: "checkout", viewer: true }`      | `aws-s3`                                          |
+	// | `{ projectId: "checkout", viewer: false }`     | `aws-iam-role`                                    |
+	// | `{ projectId: "billing", viewer: true }`       | empty list                                        |
+	// | `{ projectId: "x" }`, no `project:view` on `x` | `NOT_FOUND` error                                 |
+	//
+	// ```graphql
+	// query {
+	// ociRepos(organizationId: "your-org-id", filter: { projectId: "ecomm" }) {
+	// items { name }
+	// }
+	// }
+	// ```
 	//
 	// ```graphql
 	// query {
@@ -22396,10 +22650,10 @@ type ListOrganizationMembersOrganization struct {
 	// Paginated list of every human account in this organization, whether or not they belong to a group.
 	// Includes members provisioned by an identity provider (e.g. Okta) who have not yet been added to a group.
 	//
-	// Sorted by email ascending. Service accounts live under the top-level `serviceAccounts`
-	// query — pair both when rendering the full organization roster.
+	// Service accounts live under the top-level `serviceAccounts` query — pair both when
+	// rendering the full organization roster.
 	//
-	// Requires the `organization:manageProfile` action.
+	// Every member of the organization can see this list.
 	Members ListOrganizationMembersOrganizationMembersAccountsPage `json:"members"`
 }
 
@@ -23965,6 +24219,10 @@ type ListResourcesResourcesResourcesPageItemsResource struct {
 	// Null for **imported** resources. For **provisioned** resources, this is the instance
 	// that owns the resource's lifecycle — updating or decommissioning the instance will
 	// update or remove the resource.
+	//
+	// Also null when you cannot view the project that contains the instance. You can see a
+	// resource from another project through a grant, a `resource:view` policy, or a
+	// dependency of an instance you can view; the instance that produced it stays hidden.
 	Instance ListResourcesResourcesResourcesPageItemsResourceInstance `json:"instance"`
 }
 
@@ -24383,6 +24641,10 @@ type OciReposFilter struct {
 	Attributes []AttributeFilter `json:"attributes,omitempty"`
 	// Full-text search across the repository name, readme, and changelog. Results are ranked by relevance unless you provide an explicit `sort`. For terms longer than 3 characters, name-prefix matches are also included. **Note:** pagination cursors returned by search results use offset-based pagination and are not interchangeable with cursors from non-search queries.
 	Search string `json:"search,omitempty"`
+	// Only repositories granted to this project. These are the bundles that can be added to the project. Returns `NOT_FOUND` when you cannot view the project.
+	ProjectId string `json:"projectId"`
+	// `true` returns only repositories your own `repo:view` group policies match. `false` returns only repositories you see only through a grant to a project you can view, with no `repo:view` policy of yours matching them. When omitted, both are returned.
+	Viewer bool `json:"viewer"`
 }
 
 // GetArtifactType returns OciReposFilter.ArtifactType, and is useful for accessing the field via an interface.
@@ -24399,6 +24661,12 @@ func (v *OciReposFilter) GetAttributes() []AttributeFilter { return v.Attributes
 
 // GetSearch returns OciReposFilter.Search, and is useful for accessing the field via an interface.
 func (v *OciReposFilter) GetSearch() string { return v.Search }
+
+// GetProjectId returns OciReposFilter.ProjectId, and is useful for accessing the field via an interface.
+func (v *OciReposFilter) GetProjectId() string { return v.ProjectId }
+
+// GetViewer returns OciReposFilter.Viewer, and is useful for accessing the field via an interface.
+func (v *OciReposFilter) GetViewer() bool { return v.Viewer }
 
 // Controls the sort order of the OCI repositories list.
 //
@@ -26310,7 +26578,7 @@ type ResourcesFilter struct {
 	CreatedAt *DatetimeFilter `json:"createdAt,omitempty"`
 	// Match by the resource's effective attributes. A provisioned resource matches attributes set anywhere on its instance chain (project, environment, component, instance) as well as `md-resource-type` and `md-id`. An imported resource has no instance chain, so only `md-resource-type` and `md-id` can match it. Each entry targets one attribute key; multiple entries are combined with AND.
 	Attributes []AttributeFilter `json:"attributes,omitempty"`
-	// Return only resources of the given resource type, matched by the type's identifier (e.g., `aws-iam-role`, `kubernetes-cluster`). Append `@<version>` (e.g., `aws-iam-role@1.2.3`) to match a specific published version; a bare identifier matches the type's `0.0.0` document.
+	// Return only resources of the given resource type, matched by the type's identifier (e.g., `aws-iam-role`, `kubernetes-cluster`). Append `@<version>` for an exact published version (`aws-iam-role@1.2.3`), or a tilde range to match every resource whose version is in it (`aws-iam-role@~1` matches all `1.x`, `aws-iam-role@~1.2` matches all `1.2.x`). A bare identifier matches the type's `0.0.0` document. Unlike the single-item `resourceType(id:)` query, a range here matches all versions in range rather than resolving to the newest.
 	ResourceType *StringFilter `json:"resourceType,omitempty"`
 	// Return only resources provisioned into the specified environment(s). Imported resources have no environment and are excluded when this filter is set.
 	EnvironmentId *IdFilter `json:"environmentId,omitempty"`
@@ -26797,11 +27065,14 @@ const (
 	ServiceAccountsSortFieldName ServiceAccountsSortField = "NAME"
 	// Sort by creation date (oldest first or newest first).
 	ServiceAccountsSortFieldCreatedAt ServiceAccountsSortField = "CREATED_AT"
+	// Sort by when the service account was last used. Service accounts never used come last.
+	ServiceAccountsSortFieldLastUsedAt ServiceAccountsSortField = "LAST_USED_AT"
 )
 
 var AllServiceAccountsSortField = []ServiceAccountsSortField{
 	ServiceAccountsSortFieldName,
 	ServiceAccountsSortFieldCreatedAt,
+	ServiceAccountsSortFieldLastUsedAt,
 }
 
 // Set the position of a component on the canvas.
@@ -28142,10 +28413,14 @@ func (v *UpdateCustomAttributeInput) GetValues() []string { return v.Values }
 type UpdateCustomAttributeResponse struct {
 	// Replace the closed set of values for an existing custom attribute.
 	//
-	// Changing `values` does not retroactively validate or rewrite resources
-	// that were tagged before this update. Subsequent writes (and policy conditions
-	// referencing this key) must use a value from the new set. Requires the
-	// `organization:manageCustomAttributes` action.
+	// Adding a value is always accepted. Removing a value is refused while a policy or
+	// grant condition on this key would be left matching no permitted value; the error
+	// names each one so you can edit or delete it first.
+	//
+	// Resources tagged before this update are not validated or rewritten. A resource keeps
+	// a value the attribute no longer declares, and updates to that resource still succeed.
+	// Set the attribute to a value from the new set to clear it. New writes must use a value
+	// from the new set. Requires the `organization:manageCustomAttributes` action.
 	UpdateCustomAttribute UpdateCustomAttributeUpdateCustomAttributeCustomAttributePayload `json:"updateCustomAttribute"`
 }
 
@@ -28935,8 +29210,12 @@ func (v *UpdateGroupUpdateGroupGroupPayloadMessagesValidationMessage) GetMessage
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -29771,12 +30050,22 @@ func (v *UpdateOrganizationResponse) GetUpdateOrganization() UpdateOrganizationU
 type UpdateOrganizationSettingsInput struct {
 	// Access granted to new bundle repositories at creation. NONE keeps each new repository restricted until a grant is authored for it. ALL_PROJECTS automatically creates an org-wide repo:pull grant on each new bundle repository, making its bundles usable by every project. Changing this setting only affects repositories created afterwards.
 	DefaultBundleAccess OrganizationDefaultBundleAccess `json:"defaultBundleAccess,omitempty"`
+	// Attribute keys whose values are sent to deployments as default tags. Each key must apply to instances. managed-by and md-instance are always sent.
+	DefaultTags *[]string `json:"defaultTags,omitempty"`
+	// Liquid template that names every provisioned cloud resource, composed from atoms such as {{org.id}}, {{project.id}}, {{environment.id}}, {{environment.local_id}}, {{instance.id}}, {{instance.local_id}}, {{component.id}}, {{component.name}}, {{component.suffix}}, and {{attrs.YOUR_KEY}} for any declared custom attribute. Built-in Liquid filters (downcase, replace, ...) are available. To keep names distinct per instance, the template must include {{instance.id}}, or {{component.id}} with an environment atom, or {{project.id}} with an environment atom and {{instance.local_id}}. Spaces are allowed; control characters are not. Send an empty string or null to use the default convention {{instance.id}}-{{component.suffix}}. The resolved name is burned into each instance at first creation and does not change afterward.
+	NamingConvention *string `json:"namingConvention,omitempty"`
 }
 
 // GetDefaultBundleAccess returns UpdateOrganizationSettingsInput.DefaultBundleAccess, and is useful for accessing the field via an interface.
 func (v *UpdateOrganizationSettingsInput) GetDefaultBundleAccess() OrganizationDefaultBundleAccess {
 	return v.DefaultBundleAccess
 }
+
+// GetDefaultTags returns UpdateOrganizationSettingsInput.DefaultTags, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsInput) GetDefaultTags() *[]string { return v.DefaultTags }
+
+// GetNamingConvention returns UpdateOrganizationSettingsInput.NamingConvention, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsInput) GetNamingConvention() *string { return v.NamingConvention }
 
 // UpdateOrganizationSettingsResponse is returned by UpdateOrganizationSettings on success.
 type UpdateOrganizationSettingsResponse struct {
@@ -29929,11 +30218,25 @@ func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayload
 type UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings struct {
 	// Access granted to new bundle repositories at creation. Defaults to `NONE` — new repositories are restricted until a grant is authored for them.
 	DefaultBundleAccess OrganizationDefaultBundleAccess `json:"defaultBundleAccess"`
+	// Liquid template that names every provisioned cloud resource, e.g. `{{attrs.team}}-{{instance.id}}`. `null` means the default convention `{{instance.id}}-{{component.suffix}}`. The resolved name is burned into each instance when it is first created and does not change afterward.
+	NamingConvention string `json:"namingConvention"`
+	// Attribute keys whose values are sent to deployments as default tags. `managed-by` and `md-instance` are always sent.
+	DefaultTags []string `json:"defaultTags"`
 }
 
 // GetDefaultBundleAccess returns UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings.DefaultBundleAccess, and is useful for accessing the field via an interface.
 func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings) GetDefaultBundleAccess() OrganizationDefaultBundleAccess {
 	return v.DefaultBundleAccess
+}
+
+// GetNamingConvention returns UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings.NamingConvention, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings) GetNamingConvention() string {
+	return v.NamingConvention
+}
+
+// GetDefaultTags returns UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings.DefaultTags, and is useful for accessing the field via an interface.
+func (v *UpdateOrganizationSettingsUpdateOrganizationSettingsOrganizationPayloadResultOrganizationSettings) GetDefaultTags() []string {
+	return v.DefaultTags
 }
 
 // UpdateOrganizationUpdateOrganizationOrganizationPayload includes the requested fields of the GraphQL type OrganizationPayload.
@@ -30431,8 +30734,12 @@ func (v *UpdatePolicyUpdatePolicyPolicyPayloadResultPolicy) __premarshalJSON() (
 // G3 -->|"project_viewer"| P2["Project: frontend"]
 // ```
 //
-// **Built-in groups** — Every organization starts with an `Admins` group (`organization_admin` role)
-// and a `Viewers` group (`organization_viewer` role). These cannot be deleted.
+// **Built-in group** — Every organization has one `organization_admin` group. It cannot be renamed
+// or deleted, and its policies cannot be changed.
+//
+// **Starter groups** — New organizations also start with these `CUSTOM` groups, with no members:
+// Organization Viewers, Developers, Production Deployers, Platform Engineers, CI / Automation,
+// and Billing. You can rename them, delete them, or change their policies.
 //
 // **Custom groups** — Create custom groups with the `CUSTOM` role to grant project-level access.
 // Each custom group can be assigned `project_admin` or `project_viewer` on specific projects.
@@ -36197,6 +36504,8 @@ query GetOrganizationSettings ($organizationId: ID!) {
 		id
 		settings {
 			defaultBundleAccess
+			namingConvention
+			defaultTags
 		}
 	}
 }
@@ -39212,6 +39521,8 @@ mutation UpdateOrganizationSettings ($organizationId: ID!, $input: UpdateOrganiz
 			id
 			settings {
 				defaultBundleAccess
+				namingConvention
+				defaultTags
 			}
 		}
 		successful
