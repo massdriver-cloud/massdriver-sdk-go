@@ -432,7 +432,7 @@ func (s *Service) Resume(ctx context.Context, id string) (*EventDestination, err
 }
 
 // Delete deletes a destination and its deliveries. Events that wait to be
-// sent are not sent.
+// sent are not sent. The result carries only the ID and Name.
 func (s *Service) Delete(ctx context.Context, id string) (*EventDestination, error) {
 	resp, err := gen.DeleteEventDestination(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id)
 	if err != nil {
@@ -447,7 +447,7 @@ func (s *Service) Delete(ctx context.Context, id string) (*EventDestination, err
 // Redeliver sends a destination's FAILED deliveries again, with a new set
 // of retries. Empty deliveryIDs sends every failed delivery again.
 // Deliveries that are not FAILED are left as they are. A paused destination
-// sends them after it is resumed.
+// sends them after it is resumed. The result carries only the ID and Name.
 func (s *Service) Redeliver(ctx context.Context, id string, deliveryIDs []string) (*EventDestination, error) {
 	resp, err := gen.RedeliverEvents(ctx, s.client.GQLv2, s.client.Config.OrganizationID, id, deliveryIDs)
 	if err != nil {
