@@ -26107,8 +26107,6 @@ func (v *RemoveInstanceSecretRemoveInstanceSecretInstanceSecretPayloadMessagesVa
 type RemoveInstanceSecretRemoveInstanceSecretInstanceSecretPayloadResultInstanceSecret struct {
 	// The secret's key name, used to reference it in deployment configuration.
 	Name string `json:"name"`
-	// Lowercase hex SHA-256 of the stored value. Use as a stable fingerprint to detect changes without exposing the secret itself.
-	Sha256 string `json:"sha256"`
 	// When this secret was first created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this secret's value was last changed (UTC).
@@ -26118,11 +26116,6 @@ type RemoveInstanceSecretRemoveInstanceSecretInstanceSecretPayloadResultInstance
 // GetName returns RemoveInstanceSecretRemoveInstanceSecretInstanceSecretPayloadResultInstanceSecret.Name, and is useful for accessing the field via an interface.
 func (v *RemoveInstanceSecretRemoveInstanceSecretInstanceSecretPayloadResultInstanceSecret) GetName() string {
 	return v.Name
-}
-
-// GetSha256 returns RemoveInstanceSecretRemoveInstanceSecretInstanceSecretPayloadResultInstanceSecret.Sha256, and is useful for accessing the field via an interface.
-func (v *RemoveInstanceSecretRemoveInstanceSecretInstanceSecretPayloadResultInstanceSecret) GetSha256() string {
-	return v.Sha256
 }
 
 // GetCreatedAt returns RemoveInstanceSecretRemoveInstanceSecretInstanceSecretPayloadResultInstanceSecret.CreatedAt, and is useful for accessing the field via an interface.
@@ -27560,8 +27553,6 @@ func (v *SetInstanceSecretSetInstanceSecretInstanceSecretPayloadMessagesValidati
 type SetInstanceSecretSetInstanceSecretInstanceSecretPayloadResultInstanceSecret struct {
 	// The secret's key name, used to reference it in deployment configuration.
 	Name string `json:"name"`
-	// Lowercase hex SHA-256 of the stored value. Use as a stable fingerprint to detect changes without exposing the secret itself.
-	Sha256 string `json:"sha256"`
 	// When this secret was first created (UTC).
 	CreatedAt time.Time `json:"createdAt"`
 	// When this secret's value was last changed (UTC).
@@ -27571,11 +27562,6 @@ type SetInstanceSecretSetInstanceSecretInstanceSecretPayloadResultInstanceSecret
 // GetName returns SetInstanceSecretSetInstanceSecretInstanceSecretPayloadResultInstanceSecret.Name, and is useful for accessing the field via an interface.
 func (v *SetInstanceSecretSetInstanceSecretInstanceSecretPayloadResultInstanceSecret) GetName() string {
 	return v.Name
-}
-
-// GetSha256 returns SetInstanceSecretSetInstanceSecretInstanceSecretPayloadResultInstanceSecret.Sha256, and is useful for accessing the field via an interface.
-func (v *SetInstanceSecretSetInstanceSecretInstanceSecretPayloadResultInstanceSecret) GetSha256() string {
-	return v.Sha256
 }
 
 // GetCreatedAt returns SetInstanceSecretSetInstanceSecretInstanceSecretPayloadResultInstanceSecret.CreatedAt, and is useful for accessing the field via an interface.
@@ -38566,7 +38552,6 @@ mutation RemoveInstanceSecret ($organizationId: ID!, $id: ID!, $name: String!) {
 	removeInstanceSecret(organizationId: $organizationId, id: $id, name: $name) {
 		result {
 			name
-			sha256
 			createdAt
 			updatedAt
 		}
@@ -38928,7 +38913,6 @@ mutation SetInstanceSecret ($organizationId: ID!, $id: ID!, $input: SetInstanceS
 	setInstanceSecret(organizationId: $organizationId, id: $id, input: $input) {
 		result {
 			name
-			sha256
 			createdAt
 			updatedAt
 		}

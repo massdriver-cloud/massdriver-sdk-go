@@ -1798,7 +1798,6 @@ mutation SetInstanceSecret($organizationId: ID!, $id: ID!, $input: SetInstanceSe
   setInstanceSecret(organizationId: $organizationId, id: $id, input: $input) {
     result {
       name
-      sha256
       createdAt
       updatedAt
     }
@@ -1815,7 +1814,6 @@ mutation RemoveInstanceSecret($organizationId: ID!, $id: ID!, $name: String!) {
   removeInstanceSecret(organizationId: $organizationId, id: $id, name: $name) {
     result {
       name
-      sha256
       createdAt
       updatedAt
     }
