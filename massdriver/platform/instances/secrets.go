@@ -12,7 +12,7 @@ import (
 
 // Secret is metadata for an encrypted secret on an instance — alias of
 // [types.InstanceSecret]. Secret values are never returned by the API; only
-// the name, SHA-256 fingerprint, and timestamps are exposed.
+// the name and timestamps are exposed.
 type Secret = types.InstanceSecret
 
 // SetSecret creates or updates a secret on an instance. The value is

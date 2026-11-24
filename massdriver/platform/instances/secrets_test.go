@@ -11,8 +11,7 @@ func TestSetSecret(t *testing.T) {
 		gqltest.RespondWithData(map[string]any{
 			"setInstanceSecret": map[string]any{
 				"result": map[string]any{
-					"name":   "DB_PASSWORD",
-					"sha256": "abc123def456",
+					"name": "DB_PASSWORD",
 				},
 				"successful": true,
 			},
@@ -25,9 +24,6 @@ func TestSetSecret(t *testing.T) {
 	}
 	if got.Name != "DB_PASSWORD" {
 		t.Errorf("Name = %q, want DB_PASSWORD", got.Name)
-	}
-	if got.SHA256 != "abc123def456" {
-		t.Errorf("SHA256 = %q, want abc123def456", got.SHA256)
 	}
 
 	// The secret VALUE must reach the wire — confirm it's in the input.
@@ -43,8 +39,7 @@ func TestRemoveSecret(t *testing.T) {
 		gqltest.RespondWithData(map[string]any{
 			"removeInstanceSecret": map[string]any{
 				"result": map[string]any{
-					"name":   "DB_PASSWORD",
-					"sha256": "abc123def456",
+					"name": "DB_PASSWORD",
 				},
 				"successful": true,
 			},
