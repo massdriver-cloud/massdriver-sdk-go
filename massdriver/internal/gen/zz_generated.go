@@ -4656,6 +4656,531 @@ func (v *CreateEnvironmentResponse) GetCreateEnvironment() CreateEnvironmentCrea
 	return v.CreateEnvironment
 }
 
+// CreateEventDestinationCreateEventDestinationEventDestinationPayload includes the requested fields of the GraphQL type EventDestinationPayload.
+type CreateEventDestinationCreateEventDestinationEventDestinationPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []CreateEventDestinationCreateEventDestinationEventDestinationPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns CreateEventDestinationCreateEventDestinationEventDestinationPayload.Result, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayload) GetResult() CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination {
+	return v.Result
+}
+
+// GetSuccessful returns CreateEventDestinationCreateEventDestinationEventDestinationPayload.Successful, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns CreateEventDestinationCreateEventDestinationEventDestinationPayload.Messages, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayload) GetMessages() []CreateEventDestinationCreateEventDestinationEventDestinationPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// CreateEventDestinationCreateEventDestinationEventDestinationPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type CreateEventDestinationCreateEventDestinationEventDestinationPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination includes the requested fields of the GraphQL type EventDestination.
+// The GraphQL type's documentation follows.
+//
+// A place outside Massdriver that receives the organization's audit log events.
+//
+// The destination gets one delivery for each event of its `eventTypes` and `attributes`, and sends the ones its
+// `condition` passes. A failed send is retried with backoff until it succeeds or the delivery is `FAILED`.
+// Events go out in any order, and one event can arrive more than once: use the event `time` when order matters,
+// and the event `id` to drop duplicates.
+type CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination struct {
+	// Unique identifier of the destination.
+	Id string `json:"id"`
+	// Name of the destination, unique in the organization.
+	Name string `json:"name"`
+	// How the destination receives events.
+	Adapter EventDestinationAdapter `json:"adapter"`
+	// Where and how events are sent, in the shape of the adapter's `configSchema`. The destination's `auth` credentials are never returned.
+	Config map[string]any `json:"-"`
+	// The event types the destination receives, or `<entity>.*` for every event of an entity. An empty list receives every event.
+	EventTypes []string `json:"eventTypes"`
+	// Attribute values that the event's entity must have had when the event happened, such as `{"md-environment": "prod"}`. An event must have all of them. An empty map receives events of any attributes.
+	Attributes map[string]any `json:"-"`
+	// A jq expression run on each CloudEvent that the `eventTypes` and `attributes` select. The event is sent only when it outputs `true`. `null` sends every selected event.
+	Condition string `json:"condition"`
+	// Whether the destination receives events.
+	Status EventDestinationStatus `json:"status"`
+	// The secret that signs each request, in Standard Webhooks form (`whsec_` followed by base64). Use it to check the `webhook-signature` header. Treat it as a credential. `null` for adapters that do not sign.
+	SigningSecret string `json:"signingSecret"`
+	// When sends to the destination started to fail. `null` when the last send succeeded.
+	FailingSince time.Time `json:"failingSince"`
+	// When the destination last accepted an event (UTC).
+	LastDeliveredAt time.Time `json:"lastDeliveredAt"`
+	// Why the endpoint did not accept the last send, such as `HTTP 503`. `null` when the last send succeeded. Condition errors are on the deliveries, not here.
+	LastError string `json:"lastError"`
+	// When the destination was added (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When the destination last changed (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.Id, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetId() string {
+	return v.Id
+}
+
+// GetName returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.Name, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetName() string {
+	return v.Name
+}
+
+// GetAdapter returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.Adapter, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetAdapter() EventDestinationAdapter {
+	return v.Adapter
+}
+
+// GetConfig returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.Config, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetConfig() map[string]any {
+	return v.Config
+}
+
+// GetEventTypes returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.EventTypes, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetEventTypes() []string {
+	return v.EventTypes
+}
+
+// GetAttributes returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.Attributes, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetAttributes() map[string]any {
+	return v.Attributes
+}
+
+// GetCondition returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.Condition, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetCondition() string {
+	return v.Condition
+}
+
+// GetStatus returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.Status, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetStatus() EventDestinationStatus {
+	return v.Status
+}
+
+// GetSigningSecret returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.SigningSecret, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetSigningSecret() string {
+	return v.SigningSecret
+}
+
+// GetFailingSince returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.FailingSince, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetFailingSince() time.Time {
+	return v.FailingSince
+}
+
+// GetLastDeliveredAt returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.LastDeliveredAt, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetLastDeliveredAt() time.Time {
+	return v.LastDeliveredAt
+}
+
+// GetLastError returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.LastError, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetLastError() string {
+	return v.LastError
+}
+
+// GetCreatedAt returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination
+		Config     json.RawMessage `json:"config"`
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Config
+		src := firstPass.Config
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.Config: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Adapter EventDestinationAdapter `json:"adapter"`
+
+	Config json.RawMessage `json:"config"`
+
+	EventTypes []string `json:"eventTypes"`
+
+	Attributes json.RawMessage `json:"attributes"`
+
+	Condition string `json:"condition"`
+
+	Status EventDestinationStatus `json:"status"`
+
+	SigningSecret string `json:"signingSecret"`
+
+	FailingSince time.Time `json:"failingSince"`
+
+	LastDeliveredAt time.Time `json:"lastDeliveredAt"`
+
+	LastError string `json:"lastError"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination) __premarshalJSON() (*__premarshalCreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination, error) {
+	var retval __premarshalCreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Adapter = v.Adapter
+	{
+
+		dst := &retval.Config
+		src := v.Config
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.Config: %w", err)
+		}
+	}
+	retval.EventTypes = v.EventTypes
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CreateEventDestinationCreateEventDestinationEventDestinationPayloadResultEventDestination.Attributes: %w", err)
+		}
+	}
+	retval.Condition = v.Condition
+	retval.Status = v.Status
+	retval.SigningSecret = v.SigningSecret
+	retval.FailingSince = v.FailingSince
+	retval.LastDeliveredAt = v.LastDeliveredAt
+	retval.LastError = v.LastError
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// Add a destination that receives the organization's audit log events.
+type CreateEventDestinationInput struct {
+	// How the destination receives events. `eventDestinationAdapters` lists each adapter and the settings it takes.
+	Adapter EventDestinationAdapter `json:"adapter"`
+	// Attribute values that the event's entity must have had when the event happened. An event must have all of them. Leave it empty to receive events of any attributes. For other logic, use the condition.
+	Attributes map[string]any `json:"-"`
+	// Credentials used to send events, in the shape of the adapter's `authSchema` from `eventDestinationAdapters`. The API never returns them.
+	Auth map[string]any `json:"-"`
+	// A jq expression run on each CloudEvent that the event types and attributes select. The event is sent only when it outputs `true`. The CloudEvent's `data` holds the `entity`, its `attributes` (such as `md-environment`), and the event's `metadata`. It must finish within the install's timeout (1 second by default) and cannot use `import`, `include`, `module`, `modulemeta`, or `get_search_list`.
+	Condition string `json:"condition,omitempty"`
+	// Where and how events are sent, in the shape of the adapter's `configSchema` from `eventDestinationAdapters`. The API returns it, so put credentials in `auth`.
+	Config map[string]any `json:"-"`
+	// The event types the destination receives, or `<entity>.*` for every event of an entity. Leave it empty to receive every event. The `eventTypes` query lists the event types.
+	EventTypes []string `json:"eventTypes,omitempty"`
+	// Name of the destination, unique in the organization.
+	Name string `json:"name"`
+}
+
+// GetAdapter returns CreateEventDestinationInput.Adapter, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationInput) GetAdapter() EventDestinationAdapter { return v.Adapter }
+
+// GetAttributes returns CreateEventDestinationInput.Attributes, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationInput) GetAttributes() map[string]any { return v.Attributes }
+
+// GetAuth returns CreateEventDestinationInput.Auth, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationInput) GetAuth() map[string]any { return v.Auth }
+
+// GetCondition returns CreateEventDestinationInput.Condition, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationInput) GetCondition() string { return v.Condition }
+
+// GetConfig returns CreateEventDestinationInput.Config, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationInput) GetConfig() map[string]any { return v.Config }
+
+// GetEventTypes returns CreateEventDestinationInput.EventTypes, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationInput) GetEventTypes() []string { return v.EventTypes }
+
+// GetName returns CreateEventDestinationInput.Name, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationInput) GetName() string { return v.Name }
+
+func (v *CreateEventDestinationInput) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CreateEventDestinationInput
+		Attributes json.RawMessage `json:"attributes"`
+		Auth       json.RawMessage `json:"auth"`
+		Config     json.RawMessage `json:"config"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CreateEventDestinationInput = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CreateEventDestinationInput.Attributes: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Auth
+		src := firstPass.Auth
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CreateEventDestinationInput.Auth: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Config
+		src := firstPass.Config
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal CreateEventDestinationInput.Config: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalCreateEventDestinationInput struct {
+	Adapter EventDestinationAdapter `json:"adapter"`
+
+	Attributes json.RawMessage `json:"attributes,omitempty"`
+
+	Auth json.RawMessage `json:"auth,omitempty"`
+
+	Condition string `json:"condition,omitempty"`
+
+	Config json.RawMessage `json:"config"`
+
+	EventTypes []string `json:"eventTypes,omitempty"`
+
+	Name string `json:"name"`
+}
+
+func (v *CreateEventDestinationInput) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *CreateEventDestinationInput) __premarshalJSON() (*__premarshalCreateEventDestinationInput, error) {
+	var retval __premarshalCreateEventDestinationInput
+
+	retval.Adapter = v.Adapter
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CreateEventDestinationInput.Attributes: %w", err)
+		}
+	}
+	{
+
+		dst := &retval.Auth
+		src := v.Auth
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CreateEventDestinationInput.Auth: %w", err)
+		}
+	}
+	retval.Condition = v.Condition
+	{
+
+		dst := &retval.Config
+		src := v.Config
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal CreateEventDestinationInput.Config: %w", err)
+		}
+	}
+	retval.EventTypes = v.EventTypes
+	retval.Name = v.Name
+	return &retval, nil
+}
+
+// CreateEventDestinationResponse is returned by CreateEventDestination on success.
+type CreateEventDestinationResponse struct {
+	// Add a destination that receives the organization's audit log events.
+	//
+	// `eventDestinationAdapters` lists each adapter's `configSchema` and `authSchema`. Put credentials in `auth`:
+	// the API never returns them. A destination of an adapter that `signs` gets a `signingSecret`, which signs
+	// each event.
+	//
+	// Pass `auth` as a variable. Query text can appear in request traces. Variables do not.
+	//
+	// ```graphql
+	// mutation CreateEventDestination($auth: Map) {
+	// createEventDestination(
+	// organizationId: "my-org"
+	// input: {
+	// name: "Production deployments"
+	// adapter: HTTP
+	// config: "{\"url\": \"https://hooks.example.com/massdriver\"}"
+	// auth: $auth
+	// eventTypes: ["deployment.*"]
+	// attributes: "{\"md-environment\": \"prod\"}"
+	// condition: ".data.metadata.deployment_action == \"PROVISION\""
+	// }
+	// ) {
+	// result { id signingSecret }
+	// successful
+	// messages { field message }
+	// }
+	// }
+	// ```
+	CreateEventDestination CreateEventDestinationCreateEventDestinationEventDestinationPayload `json:"createEventDestination"`
+}
+
+// GetCreateEventDestination returns CreateEventDestinationResponse.CreateEventDestination, and is useful for accessing the field via an interface.
+func (v *CreateEventDestinationResponse) GetCreateEventDestination() CreateEventDestinationCreateEventDestinationEventDestinationPayload {
+	return v.CreateEventDestination
+}
+
 // CreateGroupCreateGroupGroupPayload includes the requested fields of the GraphQL type GroupPayload.
 type CreateGroupCreateGroupGroupPayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -8471,6 +8996,123 @@ func (v *DeleteEnvironmentResponse) GetDeleteEnvironment() DeleteEnvironmentDele
 	return v.DeleteEnvironment
 }
 
+// DeleteEventDestinationDeleteEventDestinationEventDestinationPayload includes the requested fields of the GraphQL type EventDestinationPayload.
+type DeleteEventDestinationDeleteEventDestinationEventDestinationPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadResultEventDestination `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns DeleteEventDestinationDeleteEventDestinationEventDestinationPayload.Result, and is useful for accessing the field via an interface.
+func (v *DeleteEventDestinationDeleteEventDestinationEventDestinationPayload) GetResult() DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadResultEventDestination {
+	return v.Result
+}
+
+// GetSuccessful returns DeleteEventDestinationDeleteEventDestinationEventDestinationPayload.Successful, and is useful for accessing the field via an interface.
+func (v *DeleteEventDestinationDeleteEventDestinationEventDestinationPayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns DeleteEventDestinationDeleteEventDestinationEventDestinationPayload.Messages, and is useful for accessing the field via an interface.
+func (v *DeleteEventDestinationDeleteEventDestinationEventDestinationPayload) GetMessages() []DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadResultEventDestination includes the requested fields of the GraphQL type EventDestination.
+// The GraphQL type's documentation follows.
+//
+// A place outside Massdriver that receives the organization's audit log events.
+//
+// The destination gets one delivery for each event of its `eventTypes` and `attributes`, and sends the ones its
+// `condition` passes. A failed send is retried with backoff until it succeeds or the delivery is `FAILED`.
+// Events go out in any order, and one event can arrive more than once: use the event `time` when order matters,
+// and the event `id` to drop duplicates.
+type DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadResultEventDestination struct {
+	// Unique identifier of the destination.
+	Id string `json:"id"`
+	// Name of the destination, unique in the organization.
+	Name string `json:"name"`
+}
+
+// GetId returns DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadResultEventDestination.Id, and is useful for accessing the field via an interface.
+func (v *DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadResultEventDestination) GetId() string {
+	return v.Id
+}
+
+// GetName returns DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadResultEventDestination.Name, and is useful for accessing the field via an interface.
+func (v *DeleteEventDestinationDeleteEventDestinationEventDestinationPayloadResultEventDestination) GetName() string {
+	return v.Name
+}
+
+// DeleteEventDestinationResponse is returned by DeleteEventDestination on success.
+type DeleteEventDestinationResponse struct {
+	// Delete a destination and its deliveries. Events waiting to be sent are not sent.
+	DeleteEventDestination DeleteEventDestinationDeleteEventDestinationEventDestinationPayload `json:"deleteEventDestination"`
+}
+
+// GetDeleteEventDestination returns DeleteEventDestinationResponse.DeleteEventDestination, and is useful for accessing the field via an interface.
+func (v *DeleteEventDestinationResponse) GetDeleteEventDestination() DeleteEventDestinationDeleteEventDestinationEventDestinationPayload {
+	return v.DeleteEventDestination
+}
+
 // DeleteGrantDeleteGrantGrantPayload includes the requested fields of the GraphQL type GrantPayload.
 type DeleteGrantDeleteGrantGrantPayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -10539,6 +11181,212 @@ type EvaluatePolicyResponse struct {
 func (v *EvaluatePolicyResponse) GetEvaluatePolicy() EvaluatePolicyEvaluatePolicyPolicyDecision {
 	return v.EvaluatePolicy
 }
+
+// The type of lifecycle change that triggered an event.
+//
+// Every event carries an action indicating whether the resource was created,
+// modified, or removed.
+type EventAction string
+
+const (
+	// A new resource was created.
+	EventActionCreated EventAction = "CREATED"
+	// An existing resource was modified (configuration, status, or metadata changed).
+	EventActionUpdated EventAction = "UPDATED"
+	// A resource was permanently removed.
+	EventActionDeleted EventAction = "DELETED"
+)
+
+var AllEventAction = []EventAction{
+	EventActionCreated,
+	EventActionUpdated,
+	EventActionDeleted,
+}
+
+// Filter options for a destination's deliveries. All filters are combined with **AND**.
+type EventDeliveriesFilter struct {
+	// Filter by status.
+	Status *EventDeliveryStatusFilter `json:"status,omitempty"`
+	// Filter by when the event was given to the destination.
+	CreatedAt *DatetimeFilter `json:"createdAt,omitempty"`
+}
+
+// GetStatus returns EventDeliveriesFilter.Status, and is useful for accessing the field via an interface.
+func (v *EventDeliveriesFilter) GetStatus() *EventDeliveryStatusFilter { return v.Status }
+
+// GetCreatedAt returns EventDeliveriesFilter.CreatedAt, and is useful for accessing the field via an interface.
+func (v *EventDeliveriesFilter) GetCreatedAt() *DatetimeFilter { return v.CreatedAt }
+
+// Sorting options for a destination's deliveries.
+type EventDeliveriesSort struct {
+	// The field to sort by.
+	Field EventDeliveriesSortField `json:"field"`
+	// `ASC` for oldest first, `DESC` for newest first.
+	Order SortOrder `json:"order"`
+}
+
+// GetField returns EventDeliveriesSort.Field, and is useful for accessing the field via an interface.
+func (v *EventDeliveriesSort) GetField() EventDeliveriesSortField { return v.Field }
+
+// GetOrder returns EventDeliveriesSort.Order, and is useful for accessing the field via an interface.
+func (v *EventDeliveriesSort) GetOrder() SortOrder { return v.Order }
+
+// Fields to sort a destination's deliveries by.
+type EventDeliveriesSortField string
+
+const (
+	// Sort by when the event was given to the destination.
+	EventDeliveriesSortFieldCreatedAt EventDeliveriesSortField = "CREATED_AT"
+	// Sort by the last change to the delivery, such as an attempt.
+	EventDeliveriesSortFieldUpdatedAt EventDeliveriesSortField = "UPDATED_AT"
+)
+
+var AllEventDeliveriesSortField = []EventDeliveriesSortField{
+	EventDeliveriesSortFieldCreatedAt,
+	EventDeliveriesSortFieldUpdatedAt,
+}
+
+// The state of one event's delivery to a destination.
+type EventDeliveryStatus string
+
+const (
+	// The destination accepted the event.
+	EventDeliveryStatusDelivered EventDeliveryStatus = "DELIVERED"
+	// The destination's condition did not pass the event, so it was not sent.
+	EventDeliveryStatusSkipped EventDeliveryStatus = "SKIPPED"
+	// No more attempts. The destination rejected the event, every retry failed, or the destination's condition could not run. Use `redeliverEvents` to send it again.
+	EventDeliveryStatusFailed EventDeliveryStatus = "FAILED"
+	// Waits to be sent: new, waiting for a retry, or queued again by `redeliverEvents`. The next attempt is at `nextAttemptAt`.
+	EventDeliveryStatusPending EventDeliveryStatus = "PENDING"
+)
+
+var AllEventDeliveryStatus = []EventDeliveryStatus{
+	EventDeliveryStatusDelivered,
+	EventDeliveryStatusSkipped,
+	EventDeliveryStatusFailed,
+	EventDeliveryStatusPending,
+}
+
+// Filter by delivery status.
+type EventDeliveryStatusFilter struct {
+	// Return only deliveries with this status.
+	Eq EventDeliveryStatus `json:"eq,omitempty"`
+	// Return deliveries with any of these statuses.
+	In []EventDeliveryStatus `json:"in,omitempty"`
+}
+
+// GetEq returns EventDeliveryStatusFilter.Eq, and is useful for accessing the field via an interface.
+func (v *EventDeliveryStatusFilter) GetEq() EventDeliveryStatus { return v.Eq }
+
+// GetIn returns EventDeliveryStatusFilter.In, and is useful for accessing the field via an interface.
+func (v *EventDeliveryStatusFilter) GetIn() []EventDeliveryStatus { return v.In }
+
+// How a destination receives events. `eventDestinationAdapters` lists the settings and credentials each
+// adapter takes.
+type EventDestinationAdapter string
+
+const (
+	// POST each event to a URL as a CloudEvent (`application/cloudevents+json`), signed with [Standard Webhooks](https://www.standardwebhooks.com) headers.
+	EventDestinationAdapterHttp EventDestinationAdapter = "HTTP"
+)
+
+var AllEventDestinationAdapter = []EventDestinationAdapter{
+	EventDestinationAdapterHttp,
+}
+
+// Whether a destination receives events.
+type EventDestinationStatus string
+
+const (
+	// The destination receives events.
+	EventDestinationStatusActive EventDestinationStatus = "ACTIVE"
+	// The destination sends nothing. When it is resumed, it sends the events recorded while it was paused. An event that waits for longer than the install's failed retention, 30 days by default, becomes `FAILED`. A destination is paused when a send fails and no send has succeeded for the install's pause time, 24 hours by default.
+	EventDestinationStatusPaused EventDestinationStatus = "PAUSED"
+)
+
+var AllEventDestinationStatus = []EventDestinationStatus{
+	EventDestinationStatusActive,
+	EventDestinationStatusPaused,
+}
+
+// Filter by destination status.
+type EventDestinationStatusFilter struct {
+	// Return only destinations with this status.
+	Eq EventDestinationStatus `json:"eq,omitempty"`
+	// Return destinations with any of these statuses.
+	In []EventDestinationStatus `json:"in,omitempty"`
+}
+
+// GetEq returns EventDestinationStatusFilter.Eq, and is useful for accessing the field via an interface.
+func (v *EventDestinationStatusFilter) GetEq() EventDestinationStatus { return v.Eq }
+
+// GetIn returns EventDestinationStatusFilter.In, and is useful for accessing the field via an interface.
+func (v *EventDestinationStatusFilter) GetIn() []EventDestinationStatus { return v.In }
+
+// Filter options for the `eventDestinations` query. All filters are combined with **AND**.
+type EventDestinationsFilter struct {
+	// Filter by whether the destination receives events.
+	Status *EventDestinationStatusFilter `json:"status,omitempty"`
+}
+
+// GetStatus returns EventDestinationsFilter.Status, and is useful for accessing the field via an interface.
+func (v *EventDestinationsFilter) GetStatus() *EventDestinationStatusFilter { return v.Status }
+
+// Sorting options for the `eventDestinations` query.
+type EventDestinationsSort struct {
+	// The field to sort by.
+	Field EventDestinationsSortField `json:"field"`
+	// `ASC` for A-Z / oldest first, `DESC` for Z-A / newest first.
+	Order SortOrder `json:"order"`
+}
+
+// GetField returns EventDestinationsSort.Field, and is useful for accessing the field via an interface.
+func (v *EventDestinationsSort) GetField() EventDestinationsSortField { return v.Field }
+
+// GetOrder returns EventDestinationsSort.Order, and is useful for accessing the field via an interface.
+func (v *EventDestinationsSort) GetOrder() SortOrder { return v.Order }
+
+// Fields to sort event destinations by.
+type EventDestinationsSortField string
+
+const (
+	// Sort alphabetically by name.
+	EventDestinationsSortFieldName EventDestinationsSortField = "NAME"
+	// Sort by when the destination was added.
+	EventDestinationsSortFieldCreatedAt EventDestinationsSortField = "CREATED_AT"
+)
+
+var AllEventDestinationsSortField = []EventDestinationsSortField{
+	EventDestinationsSortFieldName,
+	EventDestinationsSortFieldCreatedAt,
+}
+
+// The JSON type of an event metadata field's value.
+type EventMetadataType string
+
+const (
+	// A JSON string.
+	EventMetadataTypeString EventMetadataType = "STRING"
+	// A JSON boolean.
+	EventMetadataTypeBoolean EventMetadataType = "BOOLEAN"
+)
+
+var AllEventMetadataType = []EventMetadataType{
+	EventMetadataTypeString,
+	EventMetadataTypeBoolean,
+}
+
+// Filter criteria for narrowing the event type catalog.
+//
+// All filters are combined with AND logic. Omit a filter to not restrict on
+// that field.
+type EventTypesFilter struct {
+	// Filter by the entity the event applies to (e.g., `"environment"`, `"deployment"`). Use this to scope a subscription to a specific part of the platform.
+	Entity *StringFilter `json:"entity,omitempty"`
+}
+
+// GetEntity returns EventTypesFilter.Entity, and is useful for accessing the field via an interface.
+func (v *EventTypesFilter) GetEntity() *StringFilter { return v.Entity }
 
 // ExplainPolicyResponse is returned by ExplainPolicy on success.
 type ExplainPolicyResponse struct {
@@ -13809,6 +14657,228 @@ type GetEnvironmentUnfulfilledDependenciesResponse struct {
 // GetEnvironment returns GetEnvironmentUnfulfilledDependenciesResponse.Environment, and is useful for accessing the field via an interface.
 func (v *GetEnvironmentUnfulfilledDependenciesResponse) GetEnvironment() GetEnvironmentUnfulfilledDependenciesEnvironment {
 	return v.Environment
+}
+
+// GetEventDestinationEventDestination includes the requested fields of the GraphQL type EventDestination.
+// The GraphQL type's documentation follows.
+//
+// A place outside Massdriver that receives the organization's audit log events.
+//
+// The destination gets one delivery for each event of its `eventTypes` and `attributes`, and sends the ones its
+// `condition` passes. A failed send is retried with backoff until it succeeds or the delivery is `FAILED`.
+// Events go out in any order, and one event can arrive more than once: use the event `time` when order matters,
+// and the event `id` to drop duplicates.
+type GetEventDestinationEventDestination struct {
+	// Unique identifier of the destination.
+	Id string `json:"id"`
+	// Name of the destination, unique in the organization.
+	Name string `json:"name"`
+	// How the destination receives events.
+	Adapter EventDestinationAdapter `json:"adapter"`
+	// Where and how events are sent, in the shape of the adapter's `configSchema`. The destination's `auth` credentials are never returned.
+	Config map[string]any `json:"-"`
+	// The event types the destination receives, or `<entity>.*` for every event of an entity. An empty list receives every event.
+	EventTypes []string `json:"eventTypes"`
+	// Attribute values that the event's entity must have had when the event happened, such as `{"md-environment": "prod"}`. An event must have all of them. An empty map receives events of any attributes.
+	Attributes map[string]any `json:"-"`
+	// A jq expression run on each CloudEvent that the `eventTypes` and `attributes` select. The event is sent only when it outputs `true`. `null` sends every selected event.
+	Condition string `json:"condition"`
+	// Whether the destination receives events.
+	Status EventDestinationStatus `json:"status"`
+	// The secret that signs each request, in Standard Webhooks form (`whsec_` followed by base64). Use it to check the `webhook-signature` header. Treat it as a credential. `null` for adapters that do not sign.
+	SigningSecret string `json:"signingSecret"`
+	// When sends to the destination started to fail. `null` when the last send succeeded.
+	FailingSince time.Time `json:"failingSince"`
+	// When the destination last accepted an event (UTC).
+	LastDeliveredAt time.Time `json:"lastDeliveredAt"`
+	// Why the endpoint did not accept the last send, such as `HTTP 503`. `null` when the last send succeeded. Condition errors are on the deliveries, not here.
+	LastError string `json:"lastError"`
+	// When the destination was added (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When the destination last changed (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns GetEventDestinationEventDestination.Id, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetId() string { return v.Id }
+
+// GetName returns GetEventDestinationEventDestination.Name, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetName() string { return v.Name }
+
+// GetAdapter returns GetEventDestinationEventDestination.Adapter, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetAdapter() EventDestinationAdapter { return v.Adapter }
+
+// GetConfig returns GetEventDestinationEventDestination.Config, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetConfig() map[string]any { return v.Config }
+
+// GetEventTypes returns GetEventDestinationEventDestination.EventTypes, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetEventTypes() []string { return v.EventTypes }
+
+// GetAttributes returns GetEventDestinationEventDestination.Attributes, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetAttributes() map[string]any { return v.Attributes }
+
+// GetCondition returns GetEventDestinationEventDestination.Condition, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetCondition() string { return v.Condition }
+
+// GetStatus returns GetEventDestinationEventDestination.Status, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetStatus() EventDestinationStatus { return v.Status }
+
+// GetSigningSecret returns GetEventDestinationEventDestination.SigningSecret, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetSigningSecret() string { return v.SigningSecret }
+
+// GetFailingSince returns GetEventDestinationEventDestination.FailingSince, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetFailingSince() time.Time { return v.FailingSince }
+
+// GetLastDeliveredAt returns GetEventDestinationEventDestination.LastDeliveredAt, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetLastDeliveredAt() time.Time {
+	return v.LastDeliveredAt
+}
+
+// GetLastError returns GetEventDestinationEventDestination.LastError, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetLastError() string { return v.LastError }
+
+// GetCreatedAt returns GetEventDestinationEventDestination.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetCreatedAt() time.Time { return v.CreatedAt }
+
+// GetUpdatedAt returns GetEventDestinationEventDestination.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationEventDestination) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+func (v *GetEventDestinationEventDestination) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*GetEventDestinationEventDestination
+		Config     json.RawMessage `json:"config"`
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.GetEventDestinationEventDestination = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Config
+		src := firstPass.Config
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetEventDestinationEventDestination.Config: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetEventDestinationEventDestination.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalGetEventDestinationEventDestination struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Adapter EventDestinationAdapter `json:"adapter"`
+
+	Config json.RawMessage `json:"config"`
+
+	EventTypes []string `json:"eventTypes"`
+
+	Attributes json.RawMessage `json:"attributes"`
+
+	Condition string `json:"condition"`
+
+	Status EventDestinationStatus `json:"status"`
+
+	SigningSecret string `json:"signingSecret"`
+
+	FailingSince time.Time `json:"failingSince"`
+
+	LastDeliveredAt time.Time `json:"lastDeliveredAt"`
+
+	LastError string `json:"lastError"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *GetEventDestinationEventDestination) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *GetEventDestinationEventDestination) __premarshalJSON() (*__premarshalGetEventDestinationEventDestination, error) {
+	var retval __premarshalGetEventDestinationEventDestination
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Adapter = v.Adapter
+	{
+
+		dst := &retval.Config
+		src := v.Config
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetEventDestinationEventDestination.Config: %w", err)
+		}
+	}
+	retval.EventTypes = v.EventTypes
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetEventDestinationEventDestination.Attributes: %w", err)
+		}
+	}
+	retval.Condition = v.Condition
+	retval.Status = v.Status
+	retval.SigningSecret = v.SigningSecret
+	retval.FailingSince = v.FailingSince
+	retval.LastDeliveredAt = v.LastDeliveredAt
+	retval.LastError = v.LastError
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// GetEventDestinationResponse is returned by GetEventDestination on success.
+type GetEventDestinationResponse struct {
+	// Get one of the organization's event destinations.
+	EventDestination GetEventDestinationEventDestination `json:"eventDestination"`
+}
+
+// GetEventDestination returns GetEventDestinationResponse.EventDestination, and is useful for accessing the field via an interface.
+func (v *GetEventDestinationResponse) GetEventDestination() GetEventDestinationEventDestination {
+	return v.EventDestination
 }
 
 // GetGroupGroup includes the requested fields of the GraphQL type Group.
@@ -20239,6 +21309,935 @@ func (v *ListEnvironmentsResponse) GetEnvironments() ListEnvironmentsEnvironment
 	return v.Environments
 }
 
+// ListEventDeliveriesEventDestination includes the requested fields of the GraphQL type EventDestination.
+// The GraphQL type's documentation follows.
+//
+// A place outside Massdriver that receives the organization's audit log events.
+//
+// The destination gets one delivery for each event of its `eventTypes` and `attributes`, and sends the ones its
+// `condition` passes. A failed send is retried with backoff until it succeeds or the delivery is `FAILED`.
+// Events go out in any order, and one event can arrive more than once: use the event `time` when order matters,
+// and the event `id` to drop duplicates.
+type ListEventDeliveriesEventDestination struct {
+	// Unique identifier of the destination.
+	Id string `json:"id"`
+	// One delivery for each event the destination selects: sent, waiting, skipped by the condition, or failed.
+	// Delivered and skipped deliveries are kept for the install's retention, 7 days by default, and failed ones for
+	// 30 days. Newest first by default.
+	Deliveries ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPage `json:"deliveries"`
+}
+
+// GetId returns ListEventDeliveriesEventDestination.Id, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestination) GetId() string { return v.Id }
+
+// GetDeliveries returns ListEventDeliveriesEventDestination.Deliveries, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestination) GetDeliveries() ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPage {
+	return v.Deliveries
+}
+
+// ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPage includes the requested fields of the GraphQL type EventDeliveriesPage.
+type ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageCursorPaginationCursor `json:"cursor"`
+	// A list of type event_delivery.
+	Items []ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery `json:"items"`
+}
+
+// GetCursor returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPage) GetCursor() ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPage.Items, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPage) GetItems() []ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery {
+	return v.Items
+}
+
+// ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery includes the requested fields of the GraphQL type EventDelivery.
+// The GraphQL type's documentation follows.
+//
+// One event's delivery to a destination.
+type ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery struct {
+	// Unique identifier of the delivery.
+	Id string `json:"id"`
+	// Where the delivery is.
+	Status EventDeliveryStatus `json:"status"`
+	// Attempts to send the event.
+	Attempts int `json:"attempts"`
+	// The next attempt, while the delivery is `PENDING` (UTC).
+	NextAttemptAt time.Time `json:"nextAttemptAt"`
+	// Why the last attempt failed, such as `HTTP 503` or `connection refused`.
+	LastError string `json:"lastError"`
+	// When the destination accepted the event (UTC).
+	DeliveredAt time.Time `json:"deliveredAt"`
+	// When the event was given to the destination (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When the delivery last changed (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The audit log event. `null` when the event is older than the audit log retention.
+	Event *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog `json:"event"`
+}
+
+// GetId returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery.Id, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery) GetId() string {
+	return v.Id
+}
+
+// GetStatus returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery.Status, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery) GetStatus() EventDeliveryStatus {
+	return v.Status
+}
+
+// GetAttempts returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery.Attempts, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery) GetAttempts() int {
+	return v.Attempts
+}
+
+// GetNextAttemptAt returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery.NextAttemptAt, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery) GetNextAttemptAt() time.Time {
+	return v.NextAttemptAt
+}
+
+// GetLastError returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery.LastError, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery) GetLastError() string {
+	return v.LastError
+}
+
+// GetDeliveredAt returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery.DeliveredAt, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery) GetDeliveredAt() time.Time {
+	return v.DeliveredAt
+}
+
+// GetCreatedAt returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetEvent returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery.Event, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDelivery) GetEvent() *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog {
+	return v.Event
+}
+
+// ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog includes the requested fields of the GraphQL type AuditLog.
+// The GraphQL type's documentation follows.
+//
+// An audit log event recording a significant action in your organization.
+//
+// Every state-changing operation in Massdriver is captured as an audit log event, following
+// the [CloudEvents](https://cloudevents.io/) specification. Use audit logs to track who
+// made changes, investigate incidents, and satisfy compliance requirements.
+//
+// **Event types** use dot notation to categorize actions (e.g., `project.created`,
+// `deployment.completed`, `group.member_added`).
+//
+// **Subjects** use MRI (Massdriver Resource Identifier) format to identify the affected
+// resource (e.g., `mri://organization/my-org/project/backend`).
+type ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog struct {
+	// Unique identifier for this audit log event.
+	Id string `json:"id"`
+	// When the event occurred (UTC). This is the authoritative timestamp for the action.
+	OccurredAt time.Time `json:"occurredAt"`
+	// Event type in dot notation (e.g., `project.created`, `deployment.completed`).
+	Type string `json:"type"`
+	// The system component or service that generated this event.
+	Source string `json:"source"`
+	// The affected resource in MRI format (e.g., `mri://organization/my-org/project/backend`). May be `null` for organization-wide events.
+	Subject string `json:"subject"`
+	// The event body. `actor` holds the ids of the account, service account, or deployment that caused the event, and the organization. `entity` holds a copy of the entity the event is about, as it was when the event happened. The fields in `entity` depend on the entity type.
+	Data map[string]any `json:"-"`
+	// The actor (user, service account, deployment, or system) that performed this action.
+	Actor ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLogActor `json:"actor"`
+}
+
+// GetId returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog.Id, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog) GetId() string {
+	return v.Id
+}
+
+// GetOccurredAt returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog.OccurredAt, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog) GetOccurredAt() time.Time {
+	return v.OccurredAt
+}
+
+// GetType returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog.Type, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog) GetType() string {
+	return v.Type
+}
+
+// GetSource returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog.Source, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog) GetSource() string {
+	return v.Source
+}
+
+// GetSubject returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog.Subject, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog) GetSubject() string {
+	return v.Subject
+}
+
+// GetData returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog.Data, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog) GetData() map[string]any {
+	return v.Data
+}
+
+// GetActor returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog.Actor, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog) GetActor() ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLogActor {
+	return v.Actor
+}
+
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog
+		Data json.RawMessage `json:"data"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Data
+		src := firstPass.Data
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog.Data: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog struct {
+	Id string `json:"id"`
+
+	OccurredAt time.Time `json:"occurredAt"`
+
+	Type string `json:"type"`
+
+	Source string `json:"source"`
+
+	Subject string `json:"subject"`
+
+	Data json.RawMessage `json:"data"`
+
+	Actor ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLogActor `json:"actor"`
+}
+
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog) __premarshalJSON() (*__premarshalListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog, error) {
+	var retval __premarshalListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog
+
+	retval.Id = v.Id
+	retval.OccurredAt = v.OccurredAt
+	retval.Type = v.Type
+	retval.Source = v.Source
+	retval.Subject = v.Subject
+	{
+
+		dst := &retval.Data
+		src := v.Data
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLog.Data: %w", err)
+		}
+	}
+	retval.Actor = v.Actor
+	return &retval, nil
+}
+
+// ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLogActor includes the requested fields of the GraphQL type AuditLogActor.
+// The GraphQL type's documentation follows.
+//
+// The actor that performed an audit-logged action.
+//
+// Identifies who or what triggered the event. The `type` field tells you the category
+// of actor, and `name` provides a human-readable label:
+//
+// - **`ACCOUNT`** — `name` is the user's email address.
+// - **`SERVICE_ACCOUNT`** — `name` is the service account's name.
+// - **`DEPLOYMENT`** — `name` is a reference like `deployment:<id>`.
+// - **`SYSTEM`** — `name` is `system` for internal actions.
+//
+// If the actor has been deleted, `name` is a reference like `service_account:<id>`.
+type ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLogActor struct {
+	// Unique identifier of the actor that performed the action.
+	Id string `json:"id"`
+	// What kind of entity performed the action (human, service account, deployment, or system).
+	Type AuditLogActorType `json:"type"`
+	// Human-readable label for the actor. Email address for users, name for service accounts, or a reference identifier for deployments and system actions.
+	Name string `json:"name"`
+}
+
+// GetId returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLogActor.Id, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLogActor) GetId() string {
+	return v.Id
+}
+
+// GetType returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLogActor.Type, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLogActor) GetType() AuditLogActorType {
+	return v.Type
+}
+
+// GetName returns ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLogActor.Name, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesEventDestinationDeliveriesEventDeliveriesPageItemsEventDeliveryEventAuditLogActor) GetName() string {
+	return v.Name
+}
+
+// ListEventDeliveriesResponse is returned by ListEventDeliveries on success.
+type ListEventDeliveriesResponse struct {
+	// Get one of the organization's event destinations.
+	EventDestination ListEventDeliveriesEventDestination `json:"eventDestination"`
+}
+
+// GetEventDestination returns ListEventDeliveriesResponse.EventDestination, and is useful for accessing the field via an interface.
+func (v *ListEventDeliveriesResponse) GetEventDestination() ListEventDeliveriesEventDestination {
+	return v.EventDestination
+}
+
+// ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPage includes the requested fields of the GraphQL type EventDestinationAdaptersPage.
+type ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPage struct {
+	// A list of type event_destination_adapter_info.
+	Items []ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo `json:"items"`
+}
+
+// GetItems returns ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPage.Items, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPage) GetItems() []ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo {
+	return v.Items
+}
+
+// ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo includes the requested fields of the GraphQL type EventDestinationAdapterInfo.
+// The GraphQL type's documentation follows.
+//
+// A way to send events. Use `configSchema` and `authSchema` to build the `config` and `auth` of
+// `createEventDestination`.
+type ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo struct {
+	// The value to pass as `adapter`.
+	Id EventDestinationAdapter `json:"id"`
+	// Display name.
+	Name string `json:"name"`
+	// What the adapter does with each event.
+	Description string `json:"description"`
+	// JSON schema of a destination's `config`: where and how events are sent. The API returns it.
+	ConfigSchema map[string]any `json:"-"`
+	// JSON schema of a destination's `auth`: the credentials used to send events. The API never returns it.
+	AuthSchema map[string]any `json:"-"`
+	// Whether destinations get a `signingSecret` that signs each event.
+	Signs bool `json:"signs"`
+}
+
+// GetId returns ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo.Id, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo) GetId() EventDestinationAdapter {
+	return v.Id
+}
+
+// GetName returns ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo.Name, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo) GetName() string {
+	return v.Name
+}
+
+// GetDescription returns ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo.Description, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo) GetDescription() string {
+	return v.Description
+}
+
+// GetConfigSchema returns ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo.ConfigSchema, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo) GetConfigSchema() map[string]any {
+	return v.ConfigSchema
+}
+
+// GetAuthSchema returns ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo.AuthSchema, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo) GetAuthSchema() map[string]any {
+	return v.AuthSchema
+}
+
+// GetSigns returns ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo.Signs, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo) GetSigns() bool {
+	return v.Signs
+}
+
+func (v *ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo
+		ConfigSchema json.RawMessage `json:"configSchema"`
+		AuthSchema   json.RawMessage `json:"authSchema"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.ConfigSchema
+		src := firstPass.ConfigSchema
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo.ConfigSchema: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.AuthSchema
+		src := firstPass.AuthSchema
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo.AuthSchema: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo struct {
+	Id EventDestinationAdapter `json:"id"`
+
+	Name string `json:"name"`
+
+	Description string `json:"description"`
+
+	ConfigSchema json.RawMessage `json:"configSchema"`
+
+	AuthSchema json.RawMessage `json:"authSchema"`
+
+	Signs bool `json:"signs"`
+}
+
+func (v *ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo) __premarshalJSON() (*__premarshalListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo, error) {
+	var retval __premarshalListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Description = v.Description
+	{
+
+		dst := &retval.ConfigSchema
+		src := v.ConfigSchema
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo.ConfigSchema: %w", err)
+		}
+	}
+	{
+
+		dst := &retval.AuthSchema
+		src := v.AuthSchema
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPageItemsEventDestinationAdapterInfo.AuthSchema: %w", err)
+		}
+	}
+	retval.Signs = v.Signs
+	return &retval, nil
+}
+
+// ListEventDestinationAdaptersResponse is returned by ListEventDestinationAdapters on success.
+type ListEventDestinationAdaptersResponse struct {
+	// List the ways to send events, with the JSON schemas of the settings and credentials each one
+	// takes.
+	//
+	// ```graphql
+	// query {
+	// eventDestinationAdapters(organizationId: "my-org") {
+	// items {
+	// id
+	// name
+	// configSchema
+	// authSchema
+	// signs
+	// }
+	// }
+	// }
+	// ```
+	EventDestinationAdapters ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPage `json:"eventDestinationAdapters"`
+}
+
+// GetEventDestinationAdapters returns ListEventDestinationAdaptersResponse.EventDestinationAdapters, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationAdaptersResponse) GetEventDestinationAdapters() ListEventDestinationAdaptersEventDestinationAdaptersEventDestinationAdaptersPage {
+	return v.EventDestinationAdapters
+}
+
+// ListEventDestinationsEventDestinationsEventDestinationsPage includes the requested fields of the GraphQL type EventDestinationsPage.
+type ListEventDestinationsEventDestinationsEventDestinationsPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListEventDestinationsEventDestinationsEventDestinationsPageCursorPaginationCursor `json:"cursor"`
+	// A list of type event_destination.
+	Items []ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination `json:"items"`
+}
+
+// GetCursor returns ListEventDestinationsEventDestinationsEventDestinationsPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPage) GetCursor() ListEventDestinationsEventDestinationsEventDestinationsPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListEventDestinationsEventDestinationsEventDestinationsPage.Items, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPage) GetItems() []ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination {
+	return v.Items
+}
+
+// ListEventDestinationsEventDestinationsEventDestinationsPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListEventDestinationsEventDestinationsEventDestinationsPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListEventDestinationsEventDestinationsEventDestinationsPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListEventDestinationsEventDestinationsEventDestinationsPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination includes the requested fields of the GraphQL type EventDestination.
+// The GraphQL type's documentation follows.
+//
+// A place outside Massdriver that receives the organization's audit log events.
+//
+// The destination gets one delivery for each event of its `eventTypes` and `attributes`, and sends the ones its
+// `condition` passes. A failed send is retried with backoff until it succeeds or the delivery is `FAILED`.
+// Events go out in any order, and one event can arrive more than once: use the event `time` when order matters,
+// and the event `id` to drop duplicates.
+type ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination struct {
+	// Unique identifier of the destination.
+	Id string `json:"id"`
+	// Name of the destination, unique in the organization.
+	Name string `json:"name"`
+	// How the destination receives events.
+	Adapter EventDestinationAdapter `json:"adapter"`
+	// Where and how events are sent, in the shape of the adapter's `configSchema`. The destination's `auth` credentials are never returned.
+	Config map[string]any `json:"-"`
+	// The event types the destination receives, or `<entity>.*` for every event of an entity. An empty list receives every event.
+	EventTypes []string `json:"eventTypes"`
+	// Attribute values that the event's entity must have had when the event happened, such as `{"md-environment": "prod"}`. An event must have all of them. An empty map receives events of any attributes.
+	Attributes map[string]any `json:"-"`
+	// A jq expression run on each CloudEvent that the `eventTypes` and `attributes` select. The event is sent only when it outputs `true`. `null` sends every selected event.
+	Condition string `json:"condition"`
+	// Whether the destination receives events.
+	Status EventDestinationStatus `json:"status"`
+	// The secret that signs each request, in Standard Webhooks form (`whsec_` followed by base64). Use it to check the `webhook-signature` header. Treat it as a credential. `null` for adapters that do not sign.
+	SigningSecret string `json:"signingSecret"`
+	// When sends to the destination started to fail. `null` when the last send succeeded.
+	FailingSince time.Time `json:"failingSince"`
+	// When the destination last accepted an event (UTC).
+	LastDeliveredAt time.Time `json:"lastDeliveredAt"`
+	// Why the endpoint did not accept the last send, such as `HTTP 503`. `null` when the last send succeeded. Condition errors are on the deliveries, not here.
+	LastError string `json:"lastError"`
+	// When the destination was added (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When the destination last changed (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.Id, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetId() string {
+	return v.Id
+}
+
+// GetName returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.Name, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetName() string {
+	return v.Name
+}
+
+// GetAdapter returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.Adapter, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetAdapter() EventDestinationAdapter {
+	return v.Adapter
+}
+
+// GetConfig returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.Config, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetConfig() map[string]any {
+	return v.Config
+}
+
+// GetEventTypes returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.EventTypes, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetEventTypes() []string {
+	return v.EventTypes
+}
+
+// GetAttributes returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.Attributes, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetAttributes() map[string]any {
+	return v.Attributes
+}
+
+// GetCondition returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.Condition, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetCondition() string {
+	return v.Condition
+}
+
+// GetStatus returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.Status, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetStatus() EventDestinationStatus {
+	return v.Status
+}
+
+// GetSigningSecret returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.SigningSecret, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetSigningSecret() string {
+	return v.SigningSecret
+}
+
+// GetFailingSince returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.FailingSince, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetFailingSince() time.Time {
+	return v.FailingSince
+}
+
+// GetLastDeliveredAt returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.LastDeliveredAt, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetLastDeliveredAt() time.Time {
+	return v.LastDeliveredAt
+}
+
+// GetLastError returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.LastError, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetLastError() string {
+	return v.LastError
+}
+
+// GetCreatedAt returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination
+		Config     json.RawMessage `json:"config"`
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Config
+		src := firstPass.Config
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.Config: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Adapter EventDestinationAdapter `json:"adapter"`
+
+	Config json.RawMessage `json:"config"`
+
+	EventTypes []string `json:"eventTypes"`
+
+	Attributes json.RawMessage `json:"attributes"`
+
+	Condition string `json:"condition"`
+
+	Status EventDestinationStatus `json:"status"`
+
+	SigningSecret string `json:"signingSecret"`
+
+	FailingSince time.Time `json:"failingSince"`
+
+	LastDeliveredAt time.Time `json:"lastDeliveredAt"`
+
+	LastError string `json:"lastError"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination) __premarshalJSON() (*__premarshalListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination, error) {
+	var retval __premarshalListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Adapter = v.Adapter
+	{
+
+		dst := &retval.Config
+		src := v.Config
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.Config: %w", err)
+		}
+	}
+	retval.EventTypes = v.EventTypes
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListEventDestinationsEventDestinationsEventDestinationsPageItemsEventDestination.Attributes: %w", err)
+		}
+	}
+	retval.Condition = v.Condition
+	retval.Status = v.Status
+	retval.SigningSecret = v.SigningSecret
+	retval.FailingSince = v.FailingSince
+	retval.LastDeliveredAt = v.LastDeliveredAt
+	retval.LastError = v.LastError
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// ListEventDestinationsResponse is returned by ListEventDestinations on success.
+type ListEventDestinationsResponse struct {
+	// List the organization's event destinations.
+	//
+	// ```graphql
+	// query {
+	// eventDestinations(organizationId: "my-org", filter: { status: { eq: PAUSED } }) {
+	// items {
+	// id
+	// name
+	// status
+	// failingSince
+	// }
+	// cursor { next }
+	// }
+	// }
+	// ```
+	EventDestinations ListEventDestinationsEventDestinationsEventDestinationsPage `json:"eventDestinations"`
+}
+
+// GetEventDestinations returns ListEventDestinationsResponse.EventDestinations, and is useful for accessing the field via an interface.
+func (v *ListEventDestinationsResponse) GetEventDestinations() ListEventDestinationsEventDestinationsEventDestinationsPage {
+	return v.EventDestinations
+}
+
+// ListEventTypesEventTypesEventType includes the requested fields of the GraphQL type EventType.
+// The GraphQL type's documentation follows.
+//
+// A single event type in the Massdriver event catalog.
+//
+// The `id` field follows dotted `entity.action` notation in past tense
+// (e.g., `project.cloned`, `deployment.completed`).
+type ListEventTypesEventTypesEventType struct {
+	// Dotted, past-tense event id, e.g., `"environment.deployed"` or `"deployment.completed"`.
+	Id string `json:"id"`
+	// Human-readable summary of when this event fires and what its payload contains.
+	Description string `json:"description"`
+	// The entity this event applies to (e.g., `"environment"`, `"deployment"`, `"instance"`).
+	Entity string `json:"entity"`
+	// Past-tense verb describing what happened to the entity (e.g., `"created"`, `"deployed"`). Distinct from `PolicyAction.verb`, which is present-tense and describes what a principal may do.
+	Action string `json:"action"`
+	// How the entity was modified. Consumers use this for cache invalidation — `CREATED` / `UPDATED` / `DELETED` maps cleanly onto an in-memory cache's add / replace / remove.
+	ChangeType EventAction `json:"changeType"`
+	// The metadata recorded with every event of this type. Every event records `credential`
+	// and, when an access token was used, `access_token_id`. Some event types record more,
+	// such as `contains_secrets` on `resource.exported`.
+	Metadata []ListEventTypesEventTypesEventTypeMetadataEventMetadataField `json:"metadata"`
+}
+
+// GetId returns ListEventTypesEventTypesEventType.Id, and is useful for accessing the field via an interface.
+func (v *ListEventTypesEventTypesEventType) GetId() string { return v.Id }
+
+// GetDescription returns ListEventTypesEventTypesEventType.Description, and is useful for accessing the field via an interface.
+func (v *ListEventTypesEventTypesEventType) GetDescription() string { return v.Description }
+
+// GetEntity returns ListEventTypesEventTypesEventType.Entity, and is useful for accessing the field via an interface.
+func (v *ListEventTypesEventTypesEventType) GetEntity() string { return v.Entity }
+
+// GetAction returns ListEventTypesEventTypesEventType.Action, and is useful for accessing the field via an interface.
+func (v *ListEventTypesEventTypesEventType) GetAction() string { return v.Action }
+
+// GetChangeType returns ListEventTypesEventTypesEventType.ChangeType, and is useful for accessing the field via an interface.
+func (v *ListEventTypesEventTypesEventType) GetChangeType() EventAction { return v.ChangeType }
+
+// GetMetadata returns ListEventTypesEventTypesEventType.Metadata, and is useful for accessing the field via an interface.
+func (v *ListEventTypesEventTypesEventType) GetMetadata() []ListEventTypesEventTypesEventTypeMetadataEventMetadataField {
+	return v.Metadata
+}
+
+// ListEventTypesEventTypesEventTypeMetadataEventMetadataField includes the requested fields of the GraphQL type EventMetadataField.
+// The GraphQL type's documentation follows.
+//
+// A fact Massdriver records with an event, such as how the actor authenticated or
+// whether a resource export revealed a secret. Audit logs return these in
+// `AuditLog.metadata` and can be filtered on them with `AuditLogsFilter.metadata`.
+type ListEventTypesEventTypesEventTypeMetadataEventMetadataField struct {
+	// Key of the field in `AuditLog.metadata`, e.g. `contains_secrets`.
+	Name string `json:"name"`
+	// The JSON type of the field's value.
+	Type EventMetadataType `json:"type"`
+	// What the field's value means.
+	Description string `json:"description"`
+}
+
+// GetName returns ListEventTypesEventTypesEventTypeMetadataEventMetadataField.Name, and is useful for accessing the field via an interface.
+func (v *ListEventTypesEventTypesEventTypeMetadataEventMetadataField) GetName() string { return v.Name }
+
+// GetType returns ListEventTypesEventTypesEventTypeMetadataEventMetadataField.Type, and is useful for accessing the field via an interface.
+func (v *ListEventTypesEventTypesEventTypeMetadataEventMetadataField) GetType() EventMetadataType {
+	return v.Type
+}
+
+// GetDescription returns ListEventTypesEventTypesEventTypeMetadataEventMetadataField.Description, and is useful for accessing the field via an interface.
+func (v *ListEventTypesEventTypesEventTypeMetadataEventMetadataField) GetDescription() string {
+	return v.Description
+}
+
+// ListEventTypesResponse is returned by ListEventTypes on success.
+type ListEventTypesResponse struct {
+	// Return the catalog of V2 event types.
+	//
+	// Filter by `entity` to narrow the list.
+	//
+	// **Example:**
+	//
+	// ```graphql
+	// query {
+	// eventTypes(organizationId: "my-org") {
+	// id
+	// description
+	// entity
+	// action
+	// changeType
+	// }
+	// }
+	// ```
+	EventTypes []ListEventTypesEventTypesEventType `json:"eventTypes"`
+}
+
+// GetEventTypes returns ListEventTypesResponse.EventTypes, and is useful for accessing the field via an interface.
+func (v *ListEventTypesResponse) GetEventTypes() []ListEventTypesEventTypesEventType {
+	return v.EventTypes
+}
+
 // ListGroupInvitationsGroup includes the requested fields of the GraphQL type Group.
 // The GraphQL type's documentation follows.
 //
@@ -24975,6 +26974,336 @@ func (v *ParamDimensionFilter) GetIn() []string { return v.In }
 // GetContains returns ParamDimensionFilter.Contains, and is useful for accessing the field via an interface.
 func (v *ParamDimensionFilter) GetContains() string { return v.Contains }
 
+// PauseEventDestinationPauseEventDestinationEventDestinationPayload includes the requested fields of the GraphQL type EventDestinationPayload.
+type PauseEventDestinationPauseEventDestinationEventDestinationPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []PauseEventDestinationPauseEventDestinationEventDestinationPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns PauseEventDestinationPauseEventDestinationEventDestinationPayload.Result, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayload) GetResult() PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination {
+	return v.Result
+}
+
+// GetSuccessful returns PauseEventDestinationPauseEventDestinationEventDestinationPayload.Successful, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns PauseEventDestinationPauseEventDestinationEventDestinationPayload.Messages, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayload) GetMessages() []PauseEventDestinationPauseEventDestinationEventDestinationPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// PauseEventDestinationPauseEventDestinationEventDestinationPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type PauseEventDestinationPauseEventDestinationEventDestinationPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination includes the requested fields of the GraphQL type EventDestination.
+// The GraphQL type's documentation follows.
+//
+// A place outside Massdriver that receives the organization's audit log events.
+//
+// The destination gets one delivery for each event of its `eventTypes` and `attributes`, and sends the ones its
+// `condition` passes. A failed send is retried with backoff until it succeeds or the delivery is `FAILED`.
+// Events go out in any order, and one event can arrive more than once: use the event `time` when order matters,
+// and the event `id` to drop duplicates.
+type PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination struct {
+	// Unique identifier of the destination.
+	Id string `json:"id"`
+	// Name of the destination, unique in the organization.
+	Name string `json:"name"`
+	// How the destination receives events.
+	Adapter EventDestinationAdapter `json:"adapter"`
+	// Where and how events are sent, in the shape of the adapter's `configSchema`. The destination's `auth` credentials are never returned.
+	Config map[string]any `json:"-"`
+	// The event types the destination receives, or `<entity>.*` for every event of an entity. An empty list receives every event.
+	EventTypes []string `json:"eventTypes"`
+	// Attribute values that the event's entity must have had when the event happened, such as `{"md-environment": "prod"}`. An event must have all of them. An empty map receives events of any attributes.
+	Attributes map[string]any `json:"-"`
+	// A jq expression run on each CloudEvent that the `eventTypes` and `attributes` select. The event is sent only when it outputs `true`. `null` sends every selected event.
+	Condition string `json:"condition"`
+	// Whether the destination receives events.
+	Status EventDestinationStatus `json:"status"`
+	// The secret that signs each request, in Standard Webhooks form (`whsec_` followed by base64). Use it to check the `webhook-signature` header. Treat it as a credential. `null` for adapters that do not sign.
+	SigningSecret string `json:"signingSecret"`
+	// When sends to the destination started to fail. `null` when the last send succeeded.
+	FailingSince time.Time `json:"failingSince"`
+	// When the destination last accepted an event (UTC).
+	LastDeliveredAt time.Time `json:"lastDeliveredAt"`
+	// Why the endpoint did not accept the last send, such as `HTTP 503`. `null` when the last send succeeded. Condition errors are on the deliveries, not here.
+	LastError string `json:"lastError"`
+	// When the destination was added (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When the destination last changed (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.Id, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetId() string {
+	return v.Id
+}
+
+// GetName returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.Name, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetName() string {
+	return v.Name
+}
+
+// GetAdapter returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.Adapter, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetAdapter() EventDestinationAdapter {
+	return v.Adapter
+}
+
+// GetConfig returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.Config, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetConfig() map[string]any {
+	return v.Config
+}
+
+// GetEventTypes returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.EventTypes, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetEventTypes() []string {
+	return v.EventTypes
+}
+
+// GetAttributes returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.Attributes, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetAttributes() map[string]any {
+	return v.Attributes
+}
+
+// GetCondition returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.Condition, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetCondition() string {
+	return v.Condition
+}
+
+// GetStatus returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.Status, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetStatus() EventDestinationStatus {
+	return v.Status
+}
+
+// GetSigningSecret returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.SigningSecret, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetSigningSecret() string {
+	return v.SigningSecret
+}
+
+// GetFailingSince returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.FailingSince, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetFailingSince() time.Time {
+	return v.FailingSince
+}
+
+// GetLastDeliveredAt returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.LastDeliveredAt, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetLastDeliveredAt() time.Time {
+	return v.LastDeliveredAt
+}
+
+// GetLastError returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.LastError, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetLastError() string {
+	return v.LastError
+}
+
+// GetCreatedAt returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.CreatedAt, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination
+		Config     json.RawMessage `json:"config"`
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Config
+		src := firstPass.Config
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.Config: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalPauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Adapter EventDestinationAdapter `json:"adapter"`
+
+	Config json.RawMessage `json:"config"`
+
+	EventTypes []string `json:"eventTypes"`
+
+	Attributes json.RawMessage `json:"attributes"`
+
+	Condition string `json:"condition"`
+
+	Status EventDestinationStatus `json:"status"`
+
+	SigningSecret string `json:"signingSecret"`
+
+	FailingSince time.Time `json:"failingSince"`
+
+	LastDeliveredAt time.Time `json:"lastDeliveredAt"`
+
+	LastError string `json:"lastError"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination) __premarshalJSON() (*__premarshalPauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination, error) {
+	var retval __premarshalPauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Adapter = v.Adapter
+	{
+
+		dst := &retval.Config
+		src := v.Config
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.Config: %w", err)
+		}
+	}
+	retval.EventTypes = v.EventTypes
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal PauseEventDestinationPauseEventDestinationEventDestinationPayloadResultEventDestination.Attributes: %w", err)
+		}
+	}
+	retval.Condition = v.Condition
+	retval.Status = v.Status
+	retval.SigningSecret = v.SigningSecret
+	retval.FailingSince = v.FailingSince
+	retval.LastDeliveredAt = v.LastDeliveredAt
+	retval.LastError = v.LastError
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// PauseEventDestinationResponse is returned by PauseEventDestination on success.
+type PauseEventDestinationResponse struct {
+	// Stop sending events to a destination. Events recorded while it is paused wait, and are sent after it is
+	// resumed. An event that waits for longer than the install's failed retention, 30 days by default, becomes
+	// `FAILED`.
+	PauseEventDestination PauseEventDestinationPauseEventDestinationEventDestinationPayload `json:"pauseEventDestination"`
+}
+
+// GetPauseEventDestination returns PauseEventDestinationResponse.PauseEventDestination, and is useful for accessing the field via an interface.
+func (v *PauseEventDestinationResponse) GetPauseEventDestination() PauseEventDestinationPauseEventDestinationEventDestinationPayload {
+	return v.PauseEventDestination
+}
+
 // PlanDeploymentPlanDeploymentDeploymentPayload includes the requested fields of the GraphQL type DeploymentPayload.
 type PlanDeploymentPlanDeploymentDeploymentPayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -25224,6 +27553,264 @@ const (
 var AllPolicyEffect = []PolicyEffect{
 	PolicyEffectAllow,
 	PolicyEffectDeny,
+}
+
+// PreviewEventDestinationPreviewEventDestinationAuditLogsPage includes the requested fields of the GraphQL type AuditLogsPage.
+type PreviewEventDestinationPreviewEventDestinationAuditLogsPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor PreviewEventDestinationPreviewEventDestinationAuditLogsPageCursorPaginationCursor `json:"cursor"`
+	// A list of type audit_log.
+	Items []PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog `json:"items"`
+}
+
+// GetCursor returns PreviewEventDestinationPreviewEventDestinationAuditLogsPage.Cursor, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPage) GetCursor() PreviewEventDestinationPreviewEventDestinationAuditLogsPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns PreviewEventDestinationPreviewEventDestinationAuditLogsPage.Items, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPage) GetItems() []PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog {
+	return v.Items
+}
+
+// PreviewEventDestinationPreviewEventDestinationAuditLogsPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type PreviewEventDestinationPreviewEventDestinationAuditLogsPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns PreviewEventDestinationPreviewEventDestinationAuditLogsPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns PreviewEventDestinationPreviewEventDestinationAuditLogsPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog includes the requested fields of the GraphQL type AuditLog.
+// The GraphQL type's documentation follows.
+//
+// An audit log event recording a significant action in your organization.
+//
+// Every state-changing operation in Massdriver is captured as an audit log event, following
+// the [CloudEvents](https://cloudevents.io/) specification. Use audit logs to track who
+// made changes, investigate incidents, and satisfy compliance requirements.
+//
+// **Event types** use dot notation to categorize actions (e.g., `project.created`,
+// `deployment.completed`, `group.member_added`).
+//
+// **Subjects** use MRI (Massdriver Resource Identifier) format to identify the affected
+// resource (e.g., `mri://organization/my-org/project/backend`).
+type PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog struct {
+	// Unique identifier for this audit log event.
+	Id string `json:"id"`
+	// When the event occurred (UTC). This is the authoritative timestamp for the action.
+	OccurredAt time.Time `json:"occurredAt"`
+	// Event type in dot notation (e.g., `project.created`, `deployment.completed`).
+	Type string `json:"type"`
+	// The system component or service that generated this event.
+	Source string `json:"source"`
+	// The affected resource in MRI format (e.g., `mri://organization/my-org/project/backend`). May be `null` for organization-wide events.
+	Subject string `json:"subject"`
+	// The event body. `actor` holds the ids of the account, service account, or deployment that caused the event, and the organization. `entity` holds a copy of the entity the event is about, as it was when the event happened. The fields in `entity` depend on the entity type.
+	Data map[string]any `json:"-"`
+	// The actor (user, service account, deployment, or system) that performed this action.
+	Actor PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLogActor `json:"actor"`
+}
+
+// GetId returns PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog.Id, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog) GetId() string {
+	return v.Id
+}
+
+// GetOccurredAt returns PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog.OccurredAt, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog) GetOccurredAt() time.Time {
+	return v.OccurredAt
+}
+
+// GetType returns PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog.Type, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog) GetType() string {
+	return v.Type
+}
+
+// GetSource returns PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog.Source, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog) GetSource() string {
+	return v.Source
+}
+
+// GetSubject returns PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog.Subject, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog) GetSubject() string {
+	return v.Subject
+}
+
+// GetData returns PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog.Data, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog) GetData() map[string]any {
+	return v.Data
+}
+
+// GetActor returns PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog.Actor, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog) GetActor() PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLogActor {
+	return v.Actor
+}
+
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog
+		Data json.RawMessage `json:"data"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Data
+		src := firstPass.Data
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog.Data: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalPreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog struct {
+	Id string `json:"id"`
+
+	OccurredAt time.Time `json:"occurredAt"`
+
+	Type string `json:"type"`
+
+	Source string `json:"source"`
+
+	Subject string `json:"subject"`
+
+	Data json.RawMessage `json:"data"`
+
+	Actor PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLogActor `json:"actor"`
+}
+
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog) __premarshalJSON() (*__premarshalPreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog, error) {
+	var retval __premarshalPreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog
+
+	retval.Id = v.Id
+	retval.OccurredAt = v.OccurredAt
+	retval.Type = v.Type
+	retval.Source = v.Source
+	retval.Subject = v.Subject
+	{
+
+		dst := &retval.Data
+		src := v.Data
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLog.Data: %w", err)
+		}
+	}
+	retval.Actor = v.Actor
+	return &retval, nil
+}
+
+// PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLogActor includes the requested fields of the GraphQL type AuditLogActor.
+// The GraphQL type's documentation follows.
+//
+// The actor that performed an audit-logged action.
+//
+// Identifies who or what triggered the event. The `type` field tells you the category
+// of actor, and `name` provides a human-readable label:
+//
+// - **`ACCOUNT`** — `name` is the user's email address.
+// - **`SERVICE_ACCOUNT`** — `name` is the service account's name.
+// - **`DEPLOYMENT`** — `name` is a reference like `deployment:<id>`.
+// - **`SYSTEM`** — `name` is `system` for internal actions.
+//
+// If the actor has been deleted, `name` is a reference like `service_account:<id>`.
+type PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLogActor struct {
+	// Unique identifier of the actor that performed the action.
+	Id string `json:"id"`
+	// What kind of entity performed the action (human, service account, deployment, or system).
+	Type AuditLogActorType `json:"type"`
+	// Human-readable label for the actor. Email address for users, name for service accounts, or a reference identifier for deployments and system actions.
+	Name string `json:"name"`
+}
+
+// GetId returns PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLogActor.Id, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLogActor) GetId() string {
+	return v.Id
+}
+
+// GetType returns PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLogActor.Type, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLogActor) GetType() AuditLogActorType {
+	return v.Type
+}
+
+// GetName returns PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLogActor.Name, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationPreviewEventDestinationAuditLogsPageItemsAuditLogActor) GetName() string {
+	return v.Name
+}
+
+// PreviewEventDestinationResponse is returned by PreviewEventDestination on success.
+type PreviewEventDestinationResponse struct {
+	// List the organization's recent audit log events of the event types and attributes that a condition passes,
+	// newest first. Use it to check event types, attributes, and a condition before you create or change a
+	// destination with them.
+	//
+	// The condition runs on each page after the event types and attributes select it, so a page can hold fewer
+	// items than `limit`.
+	// Follow `cursor.next` until it is `null` to see every match. If the condition cannot run on an event, the
+	// preview stops at that event and returns an error that names it. Events after it are not checked.
+	//
+	// ```graphql
+	// query {
+	// previewEventDestination(organizationId: "my-org", eventTypes: ["deployment.*"]) {
+	// items {
+	// id
+	// type
+	// occurredAt
+	// }
+	// }
+	// }
+	// ```
+	PreviewEventDestination PreviewEventDestinationPreviewEventDestinationAuditLogsPage `json:"previewEventDestination"`
+}
+
+// GetPreviewEventDestination returns PreviewEventDestinationResponse.PreviewEventDestination, and is useful for accessing the field via an interface.
+func (v *PreviewEventDestinationResponse) GetPreviewEventDestination() PreviewEventDestinationPreviewEventDestinationAuditLogsPage {
+	return v.PreviewEventDestination
 }
 
 // Filters for narrowing the projects list. All filters are optional and combine with AND logic.
@@ -25605,6 +28192,125 @@ type ProposeDeploymentResponse struct {
 // GetProposeDeployment returns ProposeDeploymentResponse.ProposeDeployment, and is useful for accessing the field via an interface.
 func (v *ProposeDeploymentResponse) GetProposeDeployment() ProposeDeploymentProposeDeploymentDeploymentPayload {
 	return v.ProposeDeployment
+}
+
+// RedeliverEventsRedeliverEventsEventDestinationPayload includes the requested fields of the GraphQL type EventDestinationPayload.
+type RedeliverEventsRedeliverEventsEventDestinationPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result RedeliverEventsRedeliverEventsEventDestinationPayloadResultEventDestination `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []RedeliverEventsRedeliverEventsEventDestinationPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns RedeliverEventsRedeliverEventsEventDestinationPayload.Result, and is useful for accessing the field via an interface.
+func (v *RedeliverEventsRedeliverEventsEventDestinationPayload) GetResult() RedeliverEventsRedeliverEventsEventDestinationPayloadResultEventDestination {
+	return v.Result
+}
+
+// GetSuccessful returns RedeliverEventsRedeliverEventsEventDestinationPayload.Successful, and is useful for accessing the field via an interface.
+func (v *RedeliverEventsRedeliverEventsEventDestinationPayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns RedeliverEventsRedeliverEventsEventDestinationPayload.Messages, and is useful for accessing the field via an interface.
+func (v *RedeliverEventsRedeliverEventsEventDestinationPayload) GetMessages() []RedeliverEventsRedeliverEventsEventDestinationPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// RedeliverEventsRedeliverEventsEventDestinationPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type RedeliverEventsRedeliverEventsEventDestinationPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns RedeliverEventsRedeliverEventsEventDestinationPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *RedeliverEventsRedeliverEventsEventDestinationPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns RedeliverEventsRedeliverEventsEventDestinationPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *RedeliverEventsRedeliverEventsEventDestinationPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns RedeliverEventsRedeliverEventsEventDestinationPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *RedeliverEventsRedeliverEventsEventDestinationPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// RedeliverEventsRedeliverEventsEventDestinationPayloadResultEventDestination includes the requested fields of the GraphQL type EventDestination.
+// The GraphQL type's documentation follows.
+//
+// A place outside Massdriver that receives the organization's audit log events.
+//
+// The destination gets one delivery for each event of its `eventTypes` and `attributes`, and sends the ones its
+// `condition` passes. A failed send is retried with backoff until it succeeds or the delivery is `FAILED`.
+// Events go out in any order, and one event can arrive more than once: use the event `time` when order matters,
+// and the event `id` to drop duplicates.
+type RedeliverEventsRedeliverEventsEventDestinationPayloadResultEventDestination struct {
+	// Unique identifier of the destination.
+	Id string `json:"id"`
+	// Name of the destination, unique in the organization.
+	Name string `json:"name"`
+}
+
+// GetId returns RedeliverEventsRedeliverEventsEventDestinationPayloadResultEventDestination.Id, and is useful for accessing the field via an interface.
+func (v *RedeliverEventsRedeliverEventsEventDestinationPayloadResultEventDestination) GetId() string {
+	return v.Id
+}
+
+// GetName returns RedeliverEventsRedeliverEventsEventDestinationPayloadResultEventDestination.Name, and is useful for accessing the field via an interface.
+func (v *RedeliverEventsRedeliverEventsEventDestinationPayloadResultEventDestination) GetName() string {
+	return v.Name
+}
+
+// RedeliverEventsResponse is returned by RedeliverEvents on success.
+type RedeliverEventsResponse struct {
+	// Send a destination's `FAILED` deliveries again, with a new set of retries. Leave out `deliveryIds` to send
+	// every failed delivery again. `deliveryIds: null` is an error. A paused destination sends them after it is
+	// resumed.
+	RedeliverEvents RedeliverEventsRedeliverEventsEventDestinationPayload `json:"redeliverEvents"`
+}
+
+// GetRedeliverEvents returns RedeliverEventsResponse.RedeliverEvents, and is useful for accessing the field via an interface.
+func (v *RedeliverEventsResponse) GetRedeliverEvents() RedeliverEventsRedeliverEventsEventDestinationPayload {
+	return v.RedeliverEvents
 }
 
 // RejectDeploymentRejectDeploymentDeploymentPayload includes the requested fields of the GraphQL type DeploymentPayload.
@@ -26626,6 +29332,334 @@ const (
 var AllResourcesSortField = []ResourcesSortField{
 	ResourcesSortFieldName,
 	ResourcesSortFieldCreatedAt,
+}
+
+// ResumeEventDestinationResponse is returned by ResumeEventDestination on success.
+type ResumeEventDestinationResponse struct {
+	// Start sending events to a paused destination again, beginning with the events that were waiting.
+	ResumeEventDestination ResumeEventDestinationResumeEventDestinationEventDestinationPayload `json:"resumeEventDestination"`
+}
+
+// GetResumeEventDestination returns ResumeEventDestinationResponse.ResumeEventDestination, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResponse) GetResumeEventDestination() ResumeEventDestinationResumeEventDestinationEventDestinationPayload {
+	return v.ResumeEventDestination
+}
+
+// ResumeEventDestinationResumeEventDestinationEventDestinationPayload includes the requested fields of the GraphQL type EventDestinationPayload.
+type ResumeEventDestinationResumeEventDestinationEventDestinationPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []ResumeEventDestinationResumeEventDestinationEventDestinationPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns ResumeEventDestinationResumeEventDestinationEventDestinationPayload.Result, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayload) GetResult() ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination {
+	return v.Result
+}
+
+// GetSuccessful returns ResumeEventDestinationResumeEventDestinationEventDestinationPayload.Successful, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns ResumeEventDestinationResumeEventDestinationEventDestinationPayload.Messages, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayload) GetMessages() []ResumeEventDestinationResumeEventDestinationEventDestinationPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// ResumeEventDestinationResumeEventDestinationEventDestinationPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type ResumeEventDestinationResumeEventDestinationEventDestinationPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination includes the requested fields of the GraphQL type EventDestination.
+// The GraphQL type's documentation follows.
+//
+// A place outside Massdriver that receives the organization's audit log events.
+//
+// The destination gets one delivery for each event of its `eventTypes` and `attributes`, and sends the ones its
+// `condition` passes. A failed send is retried with backoff until it succeeds or the delivery is `FAILED`.
+// Events go out in any order, and one event can arrive more than once: use the event `time` when order matters,
+// and the event `id` to drop duplicates.
+type ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination struct {
+	// Unique identifier of the destination.
+	Id string `json:"id"`
+	// Name of the destination, unique in the organization.
+	Name string `json:"name"`
+	// How the destination receives events.
+	Adapter EventDestinationAdapter `json:"adapter"`
+	// Where and how events are sent, in the shape of the adapter's `configSchema`. The destination's `auth` credentials are never returned.
+	Config map[string]any `json:"-"`
+	// The event types the destination receives, or `<entity>.*` for every event of an entity. An empty list receives every event.
+	EventTypes []string `json:"eventTypes"`
+	// Attribute values that the event's entity must have had when the event happened, such as `{"md-environment": "prod"}`. An event must have all of them. An empty map receives events of any attributes.
+	Attributes map[string]any `json:"-"`
+	// A jq expression run on each CloudEvent that the `eventTypes` and `attributes` select. The event is sent only when it outputs `true`. `null` sends every selected event.
+	Condition string `json:"condition"`
+	// Whether the destination receives events.
+	Status EventDestinationStatus `json:"status"`
+	// The secret that signs each request, in Standard Webhooks form (`whsec_` followed by base64). Use it to check the `webhook-signature` header. Treat it as a credential. `null` for adapters that do not sign.
+	SigningSecret string `json:"signingSecret"`
+	// When sends to the destination started to fail. `null` when the last send succeeded.
+	FailingSince time.Time `json:"failingSince"`
+	// When the destination last accepted an event (UTC).
+	LastDeliveredAt time.Time `json:"lastDeliveredAt"`
+	// Why the endpoint did not accept the last send, such as `HTTP 503`. `null` when the last send succeeded. Condition errors are on the deliveries, not here.
+	LastError string `json:"lastError"`
+	// When the destination was added (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When the destination last changed (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.Id, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetId() string {
+	return v.Id
+}
+
+// GetName returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.Name, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetName() string {
+	return v.Name
+}
+
+// GetAdapter returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.Adapter, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetAdapter() EventDestinationAdapter {
+	return v.Adapter
+}
+
+// GetConfig returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.Config, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetConfig() map[string]any {
+	return v.Config
+}
+
+// GetEventTypes returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.EventTypes, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetEventTypes() []string {
+	return v.EventTypes
+}
+
+// GetAttributes returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.Attributes, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetAttributes() map[string]any {
+	return v.Attributes
+}
+
+// GetCondition returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.Condition, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetCondition() string {
+	return v.Condition
+}
+
+// GetStatus returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.Status, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetStatus() EventDestinationStatus {
+	return v.Status
+}
+
+// GetSigningSecret returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.SigningSecret, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetSigningSecret() string {
+	return v.SigningSecret
+}
+
+// GetFailingSince returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.FailingSince, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetFailingSince() time.Time {
+	return v.FailingSince
+}
+
+// GetLastDeliveredAt returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.LastDeliveredAt, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetLastDeliveredAt() time.Time {
+	return v.LastDeliveredAt
+}
+
+// GetLastError returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.LastError, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetLastError() string {
+	return v.LastError
+}
+
+// GetCreatedAt returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination
+		Config     json.RawMessage `json:"config"`
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Config
+		src := firstPass.Config
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.Config: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Adapter EventDestinationAdapter `json:"adapter"`
+
+	Config json.RawMessage `json:"config"`
+
+	EventTypes []string `json:"eventTypes"`
+
+	Attributes json.RawMessage `json:"attributes"`
+
+	Condition string `json:"condition"`
+
+	Status EventDestinationStatus `json:"status"`
+
+	SigningSecret string `json:"signingSecret"`
+
+	FailingSince time.Time `json:"failingSince"`
+
+	LastDeliveredAt time.Time `json:"lastDeliveredAt"`
+
+	LastError string `json:"lastError"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination) __premarshalJSON() (*__premarshalResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination, error) {
+	var retval __premarshalResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Adapter = v.Adapter
+	{
+
+		dst := &retval.Config
+		src := v.Config
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.Config: %w", err)
+		}
+	}
+	retval.EventTypes = v.EventTypes
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ResumeEventDestinationResumeEventDestinationEventDestinationPayloadResultEventDestination.Attributes: %w", err)
+		}
+	}
+	retval.Condition = v.Condition
+	retval.Status = v.Status
+	retval.SigningSecret = v.SigningSecret
+	retval.FailingSince = v.FailingSince
+	retval.LastDeliveredAt = v.LastDeliveredAt
+	retval.LastError = v.LastError
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
 }
 
 // RevokeAccessTokenResponse is returned by RevokeAccessToken on success.
@@ -29066,6 +32100,499 @@ func (v *UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironmentPr
 				"unable to marshal UpdateEnvironmentUpdateEnvironmentEnvironmentPayloadResultEnvironmentProject.Attributes: %w", err)
 		}
 	}
+	retval.CreatedAt = v.CreatedAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// Change a destination's name, config, auth, event types, attributes, or condition. Fields you leave out do not change.
+type UpdateEventDestinationInput struct {
+	// Replaces the current attributes. Attribute values that the event's entity must have had when the event happened. An event must have all of them. Pass `{}` to receive events of any attributes. For other logic, use the condition.
+	Attributes map[string]any `json:"-"`
+	// Replaces the current credentials. In the shape of the adapter's `authSchema` from `eventDestinationAdapters`. The API never returns them. Pass `null` to remove them.
+	Auth map[string]any `json:"-"`
+	// A jq expression run on each CloudEvent that the event types and attributes select. The event is sent only when it outputs `true`. The CloudEvent's `data` holds the `entity`, its `attributes` (such as `md-environment`), and the event's `metadata`. It must finish within the install's timeout (1 second by default) and cannot use `import`, `include`, `module`, `modulemeta`, or `get_search_list`. Pass an empty string to remove the condition.
+	Condition *string `json:"condition,omitempty"`
+	// Replaces the current config. Where and how events are sent, in the shape of the adapter's `configSchema` from `eventDestinationAdapters`. The API returns it, so put credentials in `auth`.
+	Config map[string]any `json:"-"`
+	// The event types the destination receives, or `<entity>.*` for every event of an entity. Leave it empty to receive every event. The `eventTypes` query lists the event types. Leave the field out to keep the current event types.
+	EventTypes *[]string `json:"eventTypes,omitempty"`
+	// Name of the destination, unique in the organization.
+	Name *string `json:"name,omitempty"`
+}
+
+// GetAttributes returns UpdateEventDestinationInput.Attributes, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationInput) GetAttributes() map[string]any { return v.Attributes }
+
+// GetAuth returns UpdateEventDestinationInput.Auth, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationInput) GetAuth() map[string]any { return v.Auth }
+
+// GetCondition returns UpdateEventDestinationInput.Condition, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationInput) GetCondition() *string { return v.Condition }
+
+// GetConfig returns UpdateEventDestinationInput.Config, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationInput) GetConfig() map[string]any { return v.Config }
+
+// GetEventTypes returns UpdateEventDestinationInput.EventTypes, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationInput) GetEventTypes() *[]string { return v.EventTypes }
+
+// GetName returns UpdateEventDestinationInput.Name, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationInput) GetName() *string { return v.Name }
+
+func (v *UpdateEventDestinationInput) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*UpdateEventDestinationInput
+		Attributes json.RawMessage `json:"attributes"`
+		Auth       json.RawMessage `json:"auth"`
+		Config     json.RawMessage `json:"config"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.UpdateEventDestinationInput = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal UpdateEventDestinationInput.Attributes: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Auth
+		src := firstPass.Auth
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal UpdateEventDestinationInput.Auth: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Config
+		src := firstPass.Config
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal UpdateEventDestinationInput.Config: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalUpdateEventDestinationInput struct {
+	Attributes json.RawMessage `json:"attributes,omitempty"`
+
+	Auth json.RawMessage `json:"auth,omitempty"`
+
+	Condition *string `json:"condition,omitempty"`
+
+	Config json.RawMessage `json:"config,omitempty"`
+
+	EventTypes *[]string `json:"eventTypes,omitempty"`
+
+	Name *string `json:"name,omitempty"`
+}
+
+func (v *UpdateEventDestinationInput) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *UpdateEventDestinationInput) __premarshalJSON() (*__premarshalUpdateEventDestinationInput, error) {
+	var retval __premarshalUpdateEventDestinationInput
+
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal UpdateEventDestinationInput.Attributes: %w", err)
+		}
+	}
+	{
+
+		dst := &retval.Auth
+		src := v.Auth
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal UpdateEventDestinationInput.Auth: %w", err)
+		}
+	}
+	retval.Condition = v.Condition
+	{
+
+		dst := &retval.Config
+		src := v.Config
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal UpdateEventDestinationInput.Config: %w", err)
+		}
+	}
+	retval.EventTypes = v.EventTypes
+	retval.Name = v.Name
+	return &retval, nil
+}
+
+// UpdateEventDestinationResponse is returned by UpdateEventDestination on success.
+type UpdateEventDestinationResponse struct {
+	// Change a destination's name, config, auth, event types, attributes, or condition. Fields you leave out do not
+	// change. A new `config`, `auth`, or `attributes` replaces the current one. An empty `condition` removes it.
+	// New event types and attributes apply to events recorded after the change. A new condition also applies to
+	// events that are waiting to be sent.
+	UpdateEventDestination UpdateEventDestinationUpdateEventDestinationEventDestinationPayload `json:"updateEventDestination"`
+}
+
+// GetUpdateEventDestination returns UpdateEventDestinationResponse.UpdateEventDestination, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationResponse) GetUpdateEventDestination() UpdateEventDestinationUpdateEventDestinationEventDestinationPayload {
+	return v.UpdateEventDestination
+}
+
+// UpdateEventDestinationUpdateEventDestinationEventDestinationPayload includes the requested fields of the GraphQL type EventDestinationPayload.
+type UpdateEventDestinationUpdateEventDestinationEventDestinationPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayload.Result, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayload) GetResult() UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination {
+	return v.Result
+}
+
+// GetSuccessful returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayload.Successful, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayload) GetSuccessful() bool {
+	return v.Successful
+}
+
+// GetMessages returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayload.Messages, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayload) GetMessages() []UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination includes the requested fields of the GraphQL type EventDestination.
+// The GraphQL type's documentation follows.
+//
+// A place outside Massdriver that receives the organization's audit log events.
+//
+// The destination gets one delivery for each event of its `eventTypes` and `attributes`, and sends the ones its
+// `condition` passes. A failed send is retried with backoff until it succeeds or the delivery is `FAILED`.
+// Events go out in any order, and one event can arrive more than once: use the event `time` when order matters,
+// and the event `id` to drop duplicates.
+type UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination struct {
+	// Unique identifier of the destination.
+	Id string `json:"id"`
+	// Name of the destination, unique in the organization.
+	Name string `json:"name"`
+	// How the destination receives events.
+	Adapter EventDestinationAdapter `json:"adapter"`
+	// Where and how events are sent, in the shape of the adapter's `configSchema`. The destination's `auth` credentials are never returned.
+	Config map[string]any `json:"-"`
+	// The event types the destination receives, or `<entity>.*` for every event of an entity. An empty list receives every event.
+	EventTypes []string `json:"eventTypes"`
+	// Attribute values that the event's entity must have had when the event happened, such as `{"md-environment": "prod"}`. An event must have all of them. An empty map receives events of any attributes.
+	Attributes map[string]any `json:"-"`
+	// A jq expression run on each CloudEvent that the `eventTypes` and `attributes` select. The event is sent only when it outputs `true`. `null` sends every selected event.
+	Condition string `json:"condition"`
+	// Whether the destination receives events.
+	Status EventDestinationStatus `json:"status"`
+	// The secret that signs each request, in Standard Webhooks form (`whsec_` followed by base64). Use it to check the `webhook-signature` header. Treat it as a credential. `null` for adapters that do not sign.
+	SigningSecret string `json:"signingSecret"`
+	// When sends to the destination started to fail. `null` when the last send succeeded.
+	FailingSince time.Time `json:"failingSince"`
+	// When the destination last accepted an event (UTC).
+	LastDeliveredAt time.Time `json:"lastDeliveredAt"`
+	// Why the endpoint did not accept the last send, such as `HTTP 503`. `null` when the last send succeeded. Condition errors are on the deliveries, not here.
+	LastError string `json:"lastError"`
+	// When the destination was added (UTC).
+	CreatedAt time.Time `json:"createdAt"`
+	// When the destination last changed (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetId returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.Id, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetId() string {
+	return v.Id
+}
+
+// GetName returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.Name, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetName() string {
+	return v.Name
+}
+
+// GetAdapter returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.Adapter, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetAdapter() EventDestinationAdapter {
+	return v.Adapter
+}
+
+// GetConfig returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.Config, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetConfig() map[string]any {
+	return v.Config
+}
+
+// GetEventTypes returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.EventTypes, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetEventTypes() []string {
+	return v.EventTypes
+}
+
+// GetAttributes returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.Attributes, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetAttributes() map[string]any {
+	return v.Attributes
+}
+
+// GetCondition returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.Condition, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetCondition() string {
+	return v.Condition
+}
+
+// GetStatus returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.Status, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetStatus() EventDestinationStatus {
+	return v.Status
+}
+
+// GetSigningSecret returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.SigningSecret, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetSigningSecret() string {
+	return v.SigningSecret
+}
+
+// GetFailingSince returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.FailingSince, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetFailingSince() time.Time {
+	return v.FailingSince
+}
+
+// GetLastDeliveredAt returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.LastDeliveredAt, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetLastDeliveredAt() time.Time {
+	return v.LastDeliveredAt
+}
+
+// GetLastError returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.LastError, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetLastError() string {
+	return v.LastError
+}
+
+// GetCreatedAt returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.CreatedAt, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetCreatedAt() time.Time {
+	return v.CreatedAt
+}
+
+// GetUpdatedAt returns UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination
+		Config     json.RawMessage `json:"config"`
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Config
+		src := firstPass.Config
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.Config: %w", err)
+			}
+		}
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalUpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination struct {
+	Id string `json:"id"`
+
+	Name string `json:"name"`
+
+	Adapter EventDestinationAdapter `json:"adapter"`
+
+	Config json.RawMessage `json:"config"`
+
+	EventTypes []string `json:"eventTypes"`
+
+	Attributes json.RawMessage `json:"attributes"`
+
+	Condition string `json:"condition"`
+
+	Status EventDestinationStatus `json:"status"`
+
+	SigningSecret string `json:"signingSecret"`
+
+	FailingSince time.Time `json:"failingSince"`
+
+	LastDeliveredAt time.Time `json:"lastDeliveredAt"`
+
+	LastError string `json:"lastError"`
+
+	CreatedAt time.Time `json:"createdAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination) __premarshalJSON() (*__premarshalUpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination, error) {
+	var retval __premarshalUpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination
+
+	retval.Id = v.Id
+	retval.Name = v.Name
+	retval.Adapter = v.Adapter
+	{
+
+		dst := &retval.Config
+		src := v.Config
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.Config: %w", err)
+		}
+	}
+	retval.EventTypes = v.EventTypes
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal UpdateEventDestinationUpdateEventDestinationEventDestinationPayloadResultEventDestination.Attributes: %w", err)
+		}
+	}
+	retval.Condition = v.Condition
+	retval.Status = v.Status
+	retval.SigningSecret = v.SigningSecret
+	retval.FailingSince = v.FailingSince
+	retval.LastDeliveredAt = v.LastDeliveredAt
+	retval.LastError = v.LastError
 	retval.CreatedAt = v.CreatedAt
 	retval.UpdatedAt = v.UpdatedAt
 	return &retval, nil
@@ -31765,6 +35292,18 @@ func (v *__CreateEnvironmentInput) GetProjectId() string { return v.ProjectId }
 // GetInput returns __CreateEnvironmentInput.Input, and is useful for accessing the field via an interface.
 func (v *__CreateEnvironmentInput) GetInput() CreateEnvironmentInput { return v.Input }
 
+// __CreateEventDestinationInput is used internally by genqlient
+type __CreateEventDestinationInput struct {
+	OrganizationId string                      `json:"organizationId"`
+	Input          CreateEventDestinationInput `json:"input"`
+}
+
+// GetOrganizationId returns __CreateEventDestinationInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__CreateEventDestinationInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetInput returns __CreateEventDestinationInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreateEventDestinationInput) GetInput() CreateEventDestinationInput { return v.Input }
+
 // __CreateGroupInput is used internally by genqlient
 type __CreateGroupInput struct {
 	OrganizationId string           `json:"organizationId"`
@@ -31990,6 +35529,18 @@ func (v *__DeleteEnvironmentInput) GetOrganizationId() string { return v.Organiz
 
 // GetId returns __DeleteEnvironmentInput.Id, and is useful for accessing the field via an interface.
 func (v *__DeleteEnvironmentInput) GetId() string { return v.Id }
+
+// __DeleteEventDestinationInput is used internally by genqlient
+type __DeleteEventDestinationInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __DeleteEventDestinationInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__DeleteEventDestinationInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __DeleteEventDestinationInput.Id, and is useful for accessing the field via an interface.
+func (v *__DeleteEventDestinationInput) GetId() string { return v.Id }
 
 // __DeleteGrantInput is used internally by genqlient
 type __DeleteGrantInput struct {
@@ -32313,6 +35864,18 @@ func (v *__GetEnvironmentUnfulfilledDependenciesInput) GetOrganizationId() strin
 // GetId returns __GetEnvironmentUnfulfilledDependenciesInput.Id, and is useful for accessing the field via an interface.
 func (v *__GetEnvironmentUnfulfilledDependenciesInput) GetId() string { return v.Id }
 
+// __GetEventDestinationInput is used internally by genqlient
+type __GetEventDestinationInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __GetEventDestinationInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__GetEventDestinationInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __GetEventDestinationInput.Id, and is useful for accessing the field via an interface.
+func (v *__GetEventDestinationInput) GetId() string { return v.Id }
+
 // __GetGroupInput is used internally by genqlient
 type __GetGroupInput struct {
 	OrganizationId string `json:"organizationId"`
@@ -32548,6 +36111,70 @@ func (v *__ListEnvironmentsInput) GetSort() *EnvironmentsSort { return v.Sort }
 
 // GetCursor returns __ListEnvironmentsInput.Cursor, and is useful for accessing the field via an interface.
 func (v *__ListEnvironmentsInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+// __ListEventDeliveriesInput is used internally by genqlient
+type __ListEventDeliveriesInput struct {
+	OrganizationId string                 `json:"organizationId"`
+	Id             string                 `json:"id"`
+	Filter         *EventDeliveriesFilter `json:"filter,omitempty"`
+	Sort           *EventDeliveriesSort   `json:"sort,omitempty"`
+	Cursor         *scalars.Cursor        `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListEventDeliveriesInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListEventDeliveriesInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __ListEventDeliveriesInput.Id, and is useful for accessing the field via an interface.
+func (v *__ListEventDeliveriesInput) GetId() string { return v.Id }
+
+// GetFilter returns __ListEventDeliveriesInput.Filter, and is useful for accessing the field via an interface.
+func (v *__ListEventDeliveriesInput) GetFilter() *EventDeliveriesFilter { return v.Filter }
+
+// GetSort returns __ListEventDeliveriesInput.Sort, and is useful for accessing the field via an interface.
+func (v *__ListEventDeliveriesInput) GetSort() *EventDeliveriesSort { return v.Sort }
+
+// GetCursor returns __ListEventDeliveriesInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListEventDeliveriesInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+// __ListEventDestinationAdaptersInput is used internally by genqlient
+type __ListEventDestinationAdaptersInput struct {
+	OrganizationId string `json:"organizationId"`
+}
+
+// GetOrganizationId returns __ListEventDestinationAdaptersInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListEventDestinationAdaptersInput) GetOrganizationId() string { return v.OrganizationId }
+
+// __ListEventDestinationsInput is used internally by genqlient
+type __ListEventDestinationsInput struct {
+	OrganizationId string                   `json:"organizationId"`
+	Filter         *EventDestinationsFilter `json:"filter,omitempty"`
+	Sort           *EventDestinationsSort   `json:"sort,omitempty"`
+	Cursor         *scalars.Cursor          `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListEventDestinationsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListEventDestinationsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetFilter returns __ListEventDestinationsInput.Filter, and is useful for accessing the field via an interface.
+func (v *__ListEventDestinationsInput) GetFilter() *EventDestinationsFilter { return v.Filter }
+
+// GetSort returns __ListEventDestinationsInput.Sort, and is useful for accessing the field via an interface.
+func (v *__ListEventDestinationsInput) GetSort() *EventDestinationsSort { return v.Sort }
+
+// GetCursor returns __ListEventDestinationsInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListEventDestinationsInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+// __ListEventTypesInput is used internally by genqlient
+type __ListEventTypesInput struct {
+	OrganizationId string            `json:"organizationId"`
+	Filter         *EventTypesFilter `json:"filter,omitempty"`
+}
+
+// GetOrganizationId returns __ListEventTypesInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListEventTypesInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetFilter returns __ListEventTypesInput.Filter, and is useful for accessing the field via an interface.
+func (v *__ListEventTypesInput) GetFilter() *EventTypesFilter { return v.Filter }
 
 // __ListGroupInvitationsInput is used internally by genqlient
 type __ListGroupInvitationsInput struct {
@@ -32853,6 +36480,18 @@ func (v *__OrphanInstanceInput) GetId() string { return v.Id }
 // GetInput returns __OrphanInstanceInput.Input, and is useful for accessing the field via an interface.
 func (v *__OrphanInstanceInput) GetInput() OrphanInstanceInput { return v.Input }
 
+// __PauseEventDestinationInput is used internally by genqlient
+type __PauseEventDestinationInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __PauseEventDestinationInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__PauseEventDestinationInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __PauseEventDestinationInput.Id, and is useful for accessing the field via an interface.
+func (v *__PauseEventDestinationInput) GetId() string { return v.Id }
+
 // __PlanDeploymentInput is used internally by genqlient
 type __PlanDeploymentInput struct {
 	OrganizationId string `json:"organizationId"`
@@ -32864,6 +36503,105 @@ func (v *__PlanDeploymentInput) GetOrganizationId() string { return v.Organizati
 
 // GetId returns __PlanDeploymentInput.Id, and is useful for accessing the field via an interface.
 func (v *__PlanDeploymentInput) GetId() string { return v.Id }
+
+// __PreviewEventDestinationInput is used internally by genqlient
+type __PreviewEventDestinationInput struct {
+	OrganizationId string          `json:"organizationId"`
+	EventTypes     []string        `json:"eventTypes,omitempty"`
+	Attributes     map[string]any  `json:"-"`
+	Condition      string          `json:"condition,omitempty"`
+	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __PreviewEventDestinationInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__PreviewEventDestinationInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetEventTypes returns __PreviewEventDestinationInput.EventTypes, and is useful for accessing the field via an interface.
+func (v *__PreviewEventDestinationInput) GetEventTypes() []string { return v.EventTypes }
+
+// GetAttributes returns __PreviewEventDestinationInput.Attributes, and is useful for accessing the field via an interface.
+func (v *__PreviewEventDestinationInput) GetAttributes() map[string]any { return v.Attributes }
+
+// GetCondition returns __PreviewEventDestinationInput.Condition, and is useful for accessing the field via an interface.
+func (v *__PreviewEventDestinationInput) GetCondition() string { return v.Condition }
+
+// GetCursor returns __PreviewEventDestinationInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__PreviewEventDestinationInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+func (v *__PreviewEventDestinationInput) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*__PreviewEventDestinationInput
+		Attributes json.RawMessage `json:"attributes"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.__PreviewEventDestinationInput = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Attributes
+		src := firstPass.Attributes
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal __PreviewEventDestinationInput.Attributes: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshal__PreviewEventDestinationInput struct {
+	OrganizationId string `json:"organizationId"`
+
+	EventTypes []string `json:"eventTypes,omitempty"`
+
+	Attributes json.RawMessage `json:"attributes,omitempty"`
+
+	Condition string `json:"condition,omitempty"`
+
+	Cursor *scalars.Cursor `json:"cursor,omitempty"`
+}
+
+func (v *__PreviewEventDestinationInput) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *__PreviewEventDestinationInput) __premarshalJSON() (*__premarshal__PreviewEventDestinationInput, error) {
+	var retval __premarshal__PreviewEventDestinationInput
+
+	retval.OrganizationId = v.OrganizationId
+	retval.EventTypes = v.EventTypes
+	{
+
+		dst := &retval.Attributes
+		src := v.Attributes
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal __PreviewEventDestinationInput.Attributes: %w", err)
+		}
+	}
+	retval.Condition = v.Condition
+	retval.Cursor = v.Cursor
+	return &retval, nil
+}
 
 // __ProposeDeploymentInput is used internally by genqlient
 type __ProposeDeploymentInput struct {
@@ -32880,6 +36618,22 @@ func (v *__ProposeDeploymentInput) GetId() string { return v.Id }
 
 // GetInput returns __ProposeDeploymentInput.Input, and is useful for accessing the field via an interface.
 func (v *__ProposeDeploymentInput) GetInput() ProposeDeploymentInput { return v.Input }
+
+// __RedeliverEventsInput is used internally by genqlient
+type __RedeliverEventsInput struct {
+	OrganizationId     string   `json:"organizationId"`
+	EventDestinationId string   `json:"eventDestinationId"`
+	DeliveryIds        []string `json:"deliveryIds,omitempty"`
+}
+
+// GetOrganizationId returns __RedeliverEventsInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__RedeliverEventsInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetEventDestinationId returns __RedeliverEventsInput.EventDestinationId, and is useful for accessing the field via an interface.
+func (v *__RedeliverEventsInput) GetEventDestinationId() string { return v.EventDestinationId }
+
+// GetDeliveryIds returns __RedeliverEventsInput.DeliveryIds, and is useful for accessing the field via an interface.
+func (v *__RedeliverEventsInput) GetDeliveryIds() []string { return v.DeliveryIds }
 
 // __RejectDeploymentInput is used internally by genqlient
 type __RejectDeploymentInput struct {
@@ -32966,6 +36720,18 @@ func (v *__RemoveServiceAccountFromGroupInput) GetServiceAccountId() string {
 
 // GetGroupId returns __RemoveServiceAccountFromGroupInput.GroupId, and is useful for accessing the field via an interface.
 func (v *__RemoveServiceAccountFromGroupInput) GetGroupId() string { return v.GroupId }
+
+// __ResumeEventDestinationInput is used internally by genqlient
+type __ResumeEventDestinationInput struct {
+	OrganizationId string `json:"organizationId"`
+	Id             string `json:"id"`
+}
+
+// GetOrganizationId returns __ResumeEventDestinationInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ResumeEventDestinationInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __ResumeEventDestinationInput.Id, and is useful for accessing the field via an interface.
+func (v *__ResumeEventDestinationInput) GetId() string { return v.Id }
 
 // __RevokeAccessTokenInput is used internally by genqlient
 type __RevokeAccessTokenInput struct {
@@ -33118,6 +36884,22 @@ func (v *__UpdateEnvironmentInput) GetId() string { return v.Id }
 
 // GetInput returns __UpdateEnvironmentInput.Input, and is useful for accessing the field via an interface.
 func (v *__UpdateEnvironmentInput) GetInput() UpdateEnvironmentInput { return v.Input }
+
+// __UpdateEventDestinationInput is used internally by genqlient
+type __UpdateEventDestinationInput struct {
+	OrganizationId string                      `json:"organizationId"`
+	Id             string                      `json:"id"`
+	Input          UpdateEventDestinationInput `json:"input"`
+}
+
+// GetOrganizationId returns __UpdateEventDestinationInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__UpdateEventDestinationInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetId returns __UpdateEventDestinationInput.Id, and is useful for accessing the field via an interface.
+func (v *__UpdateEventDestinationInput) GetId() string { return v.Id }
+
+// GetInput returns __UpdateEventDestinationInput.Input, and is useful for accessing the field via an interface.
+func (v *__UpdateEventDestinationInput) GetInput() UpdateEventDestinationInput { return v.Input }
 
 // __UpdateGroupInput is used internally by genqlient
 type __UpdateGroupInput struct {
@@ -33998,6 +37780,63 @@ func CreateEnvironment(
 	return data_, err_
 }
 
+// The mutation executed by CreateEventDestination.
+const CreateEventDestination_Operation = `
+mutation CreateEventDestination ($organizationId: ID!, $input: CreateEventDestinationInput!) {
+	createEventDestination(organizationId: $organizationId, input: $input) {
+		result {
+			id
+			name
+			adapter
+			config
+			eventTypes
+			attributes
+			condition
+			status
+			signingSecret
+			failingSince
+			lastDeliveredAt
+			lastError
+			createdAt
+			updatedAt
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func CreateEventDestination(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	input CreateEventDestinationInput,
+) (data_ *CreateEventDestinationResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "CreateEventDestination",
+		Query:  CreateEventDestination_Operation,
+		Variables: &__CreateEventDestinationInput{
+			OrganizationId: organizationId,
+			Input:          input,
+		},
+	}
+
+	data_ = &CreateEventDestinationResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The mutation executed by CreateGroup.
 const CreateGroup_Operation = `
 mutation CreateGroup ($organizationId: ID!, $input: CreateGroupInput!) {
@@ -34817,6 +38656,51 @@ func DeleteEnvironment(
 	}
 
 	data_ = &DeleteEnvironmentResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by DeleteEventDestination.
+const DeleteEventDestination_Operation = `
+mutation DeleteEventDestination ($organizationId: ID!, $id: UUID!) {
+	deleteEventDestination(organizationId: $organizationId, id: $id) {
+		result {
+			id
+			name
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func DeleteEventDestination(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *DeleteEventDestinationResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "DeleteEventDestination",
+		Query:  DeleteEventDestination_Operation,
+		Variables: &__DeleteEventDestinationInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &DeleteEventDestinationResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -36094,6 +39978,55 @@ func GetEnvironmentUnfulfilledDependencies(
 	return data_, err_
 }
 
+// The query executed by GetEventDestination.
+const GetEventDestination_Operation = `
+query GetEventDestination ($organizationId: ID!, $id: UUID!) {
+	eventDestination(organizationId: $organizationId, id: $id) {
+		id
+		name
+		adapter
+		config
+		eventTypes
+		attributes
+		condition
+		status
+		signingSecret
+		failingSince
+		lastDeliveredAt
+		lastError
+		createdAt
+		updatedAt
+	}
+}
+`
+
+func GetEventDestination(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *GetEventDestinationResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetEventDestination",
+		Query:  GetEventDestination_Operation,
+		Variables: &__GetEventDestinationInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &GetEventDestinationResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The query executed by GetGroup.
 const GetGroup_Operation = `
 query GetGroup ($organizationId: ID!, $id: UUID!) {
@@ -37242,6 +41175,222 @@ func ListEnvironments(
 	return data_, err_
 }
 
+// The query executed by ListEventDeliveries.
+const ListEventDeliveries_Operation = `
+query ListEventDeliveries ($organizationId: ID!, $id: UUID!, $filter: EventDeliveriesFilter, $sort: EventDeliveriesSort, $cursor: Cursor) {
+	eventDestination(organizationId: $organizationId, id: $id) {
+		id
+		deliveries(filter: $filter, sort: $sort, cursor: $cursor) {
+			cursor {
+				next
+				previous
+			}
+			items {
+				id
+				status
+				attempts
+				nextAttemptAt
+				lastError
+				deliveredAt
+				createdAt
+				updatedAt
+				event {
+					id
+					occurredAt
+					type
+					source
+					subject
+					data
+					actor {
+						id
+						type
+						name
+					}
+				}
+			}
+		}
+	}
+}
+`
+
+func ListEventDeliveries(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+	filter *EventDeliveriesFilter,
+	sort *EventDeliveriesSort,
+	cursor *scalars.Cursor,
+) (data_ *ListEventDeliveriesResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListEventDeliveries",
+		Query:  ListEventDeliveries_Operation,
+		Variables: &__ListEventDeliveriesInput{
+			OrganizationId: organizationId,
+			Id:             id,
+			Filter:         filter,
+			Sort:           sort,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListEventDeliveriesResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListEventDestinationAdapters.
+const ListEventDestinationAdapters_Operation = `
+query ListEventDestinationAdapters ($organizationId: ID!) {
+	eventDestinationAdapters(organizationId: $organizationId) {
+		items {
+			id
+			name
+			description
+			configSchema
+			authSchema
+			signs
+		}
+	}
+}
+`
+
+func ListEventDestinationAdapters(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+) (data_ *ListEventDestinationAdaptersResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListEventDestinationAdapters",
+		Query:  ListEventDestinationAdapters_Operation,
+		Variables: &__ListEventDestinationAdaptersInput{
+			OrganizationId: organizationId,
+		},
+	}
+
+	data_ = &ListEventDestinationAdaptersResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListEventDestinations.
+const ListEventDestinations_Operation = `
+query ListEventDestinations ($organizationId: ID!, $filter: EventDestinationsFilter, $sort: EventDestinationsSort, $cursor: Cursor) {
+	eventDestinations(organizationId: $organizationId, filter: $filter, sort: $sort, cursor: $cursor) {
+		cursor {
+			next
+			previous
+		}
+		items {
+			id
+			name
+			adapter
+			config
+			eventTypes
+			attributes
+			condition
+			status
+			signingSecret
+			failingSince
+			lastDeliveredAt
+			lastError
+			createdAt
+			updatedAt
+		}
+	}
+}
+`
+
+func ListEventDestinations(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	filter *EventDestinationsFilter,
+	sort *EventDestinationsSort,
+	cursor *scalars.Cursor,
+) (data_ *ListEventDestinationsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListEventDestinations",
+		Query:  ListEventDestinations_Operation,
+		Variables: &__ListEventDestinationsInput{
+			OrganizationId: organizationId,
+			Filter:         filter,
+			Sort:           sort,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListEventDestinationsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListEventTypes.
+const ListEventTypes_Operation = `
+query ListEventTypes ($organizationId: ID!, $filter: EventTypesFilter) {
+	eventTypes(organizationId: $organizationId, filter: $filter) {
+		id
+		description
+		entity
+		action
+		changeType
+		metadata {
+			name
+			type
+			description
+		}
+	}
+}
+`
+
+func ListEventTypes(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	filter *EventTypesFilter,
+) (data_ *ListEventTypesResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListEventTypes",
+		Query:  ListEventTypes_Operation,
+		Variables: &__ListEventTypesInput{
+			OrganizationId: organizationId,
+			Filter:         filter,
+		},
+	}
+
+	data_ = &ListEventTypesResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The query executed by ListGroupInvitations.
 const ListGroupInvitations_Operation = `
 query ListGroupInvitations ($organizationId: ID!, $id: UUID!, $cursor: Cursor) {
@@ -38299,6 +42448,63 @@ func OrphanInstance(
 	return data_, err_
 }
 
+// The mutation executed by PauseEventDestination.
+const PauseEventDestination_Operation = `
+mutation PauseEventDestination ($organizationId: ID!, $id: UUID!) {
+	pauseEventDestination(organizationId: $organizationId, id: $id) {
+		result {
+			id
+			name
+			adapter
+			config
+			eventTypes
+			attributes
+			condition
+			status
+			signingSecret
+			failingSince
+			lastDeliveredAt
+			lastError
+			createdAt
+			updatedAt
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func PauseEventDestination(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *PauseEventDestinationResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "PauseEventDestination",
+		Query:  PauseEventDestination_Operation,
+		Variables: &__PauseEventDestinationInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &PauseEventDestinationResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The mutation executed by PlanDeployment.
 const PlanDeployment_Operation = `
 mutation PlanDeployment ($organizationId: ID!, $id: UUID!) {
@@ -38341,6 +42547,64 @@ func PlanDeployment(
 	}
 
 	data_ = &PlanDeploymentResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by PreviewEventDestination.
+const PreviewEventDestination_Operation = `
+query PreviewEventDestination ($organizationId: ID!, $eventTypes: [String!], $attributes: Map, $condition: String, $cursor: Cursor) {
+	previewEventDestination(organizationId: $organizationId, eventTypes: $eventTypes, attributes: $attributes, condition: $condition, cursor: $cursor) {
+		cursor {
+			next
+			previous
+		}
+		items {
+			id
+			occurredAt
+			type
+			source
+			subject
+			data
+			actor {
+				id
+				type
+				name
+			}
+		}
+	}
+}
+`
+
+func PreviewEventDestination(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	eventTypes []string,
+	attributes map[string]any,
+	condition string,
+	cursor *scalars.Cursor,
+) (data_ *PreviewEventDestinationResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "PreviewEventDestination",
+		Query:  PreviewEventDestination_Operation,
+		Variables: &__PreviewEventDestinationInput{
+			OrganizationId: organizationId,
+			EventTypes:     eventTypes,
+			Attributes:     attributes,
+			Condition:      condition,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &PreviewEventDestinationResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -38396,6 +42660,55 @@ func ProposeDeployment(
 	}
 
 	data_ = &ProposeDeploymentResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by RedeliverEvents.
+const RedeliverEvents_Operation = `
+mutation RedeliverEvents ($organizationId: ID!, $eventDestinationId: UUID!, $deliveryIds: [UUID!]) {
+	redeliverEvents(organizationId: $organizationId, eventDestinationId: $eventDestinationId, deliveryIds: $deliveryIds) {
+		result {
+			id
+			name
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+// `deliveryIds: null` is an error, so an empty list must stay off the wire,
+// which redelivers every failed delivery.
+func RedeliverEvents(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	eventDestinationId string,
+	deliveryIds []string,
+) (data_ *RedeliverEventsResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "RedeliverEvents",
+		Query:  RedeliverEvents_Operation,
+		Variables: &__RedeliverEventsInput{
+			OrganizationId:     organizationId,
+			EventDestinationId: eventDestinationId,
+			DeliveryIds:        deliveryIds,
+		},
+	}
+
+	data_ = &RedeliverEventsResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -38688,6 +43001,63 @@ func RemoveServiceAccountFromGroup(
 	}
 
 	data_ = &RemoveServiceAccountFromGroupResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by ResumeEventDestination.
+const ResumeEventDestination_Operation = `
+mutation ResumeEventDestination ($organizationId: ID!, $id: UUID!) {
+	resumeEventDestination(organizationId: $organizationId, id: $id) {
+		result {
+			id
+			name
+			adapter
+			config
+			eventTypes
+			attributes
+			condition
+			status
+			signingSecret
+			failingSince
+			lastDeliveredAt
+			lastError
+			createdAt
+			updatedAt
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func ResumeEventDestination(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+) (data_ *ResumeEventDestinationResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ResumeEventDestination",
+		Query:  ResumeEventDestination_Operation,
+		Variables: &__ResumeEventDestinationInput{
+			OrganizationId: organizationId,
+			Id:             id,
+		},
+	}
+
+	data_ = &ResumeEventDestinationResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -39219,6 +43589,68 @@ func UpdateEnvironment(
 	}
 
 	data_ = &UpdateEnvironmentResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by UpdateEventDestination.
+const UpdateEventDestination_Operation = `
+mutation UpdateEventDestination ($organizationId: ID!, $id: UUID!, $input: UpdateEventDestinationInput!) {
+	updateEventDestination(organizationId: $organizationId, id: $id, input: $input) {
+		result {
+			id
+			name
+			adapter
+			config
+			eventTypes
+			attributes
+			condition
+			status
+			signingSecret
+			failingSince
+			lastDeliveredAt
+			lastError
+			createdAt
+			updatedAt
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+// Omitted fields keep their current values, so unset fields must stay off the
+// wire — see UpdateComponent. An empty event type list is a real value (every
+// event), so eventTypes is a slice pointer rather than an omitempty slice.
+func UpdateEventDestination(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	id string,
+	input UpdateEventDestinationInput,
+) (data_ *UpdateEventDestinationResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "UpdateEventDestination",
+		Query:  UpdateEventDestination_Operation,
+		Variables: &__UpdateEventDestinationInput{
+			OrganizationId: organizationId,
+			Id:             id,
+			Input:          input,
+		},
+	}
+
+	data_ = &UpdateEventDestinationResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

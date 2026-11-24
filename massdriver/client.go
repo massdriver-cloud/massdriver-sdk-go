@@ -9,6 +9,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/components"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/deployments"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/environments"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/eventdestinations"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/groups"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/instances"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/ocirepos"
@@ -46,6 +47,9 @@ type Client struct {
 	Deployments *deployments.Service
 	// Environments manages deployment contexts within a project.
 	Environments *environments.Service
+	// EventDestinations manages the places outside Massdriver that receive
+	// the organization's audit log events, and lists the event catalog.
+	EventDestinations *eventdestinations.Service
 	// Groups manages access-control groups, members, and invitations.
 	Groups *groups.Service
 	// Instances manages deployed bundle instances and their alarms,
@@ -151,24 +155,25 @@ func NewClient(opts ...Option) (*Client, error) {
 // Internal — used by [NewClient] and by internal tests.
 func wrap(c *client.Client) *Client {
 	return &Client{
-		config:          c.Config,
-		AccessTokens:    accesstokens.New(c),
-		AuditLogs:       auditlogs.New(c),
-		Bundles:         bundles.New(c),
-		Components:      components.New(c),
-		Deployments:     deployments.New(c),
-		Environments:    environments.New(c),
-		Groups:          groups.New(c),
-		Instances:       instances.New(c),
-		OciRepos:        ocirepos.New(c),
-		Organizations:   organizations.New(c),
-		Policies:        policies.New(c),
-		Projects:        projects.New(c),
-		Resources:       resources.New(c),
-		ResourceTypes:   resourcetypes.New(c),
-		Server:          server.New(c),
-		ServiceAccounts: serviceaccounts.New(c),
-		URLs:            urls.New(c),
-		Viewer:          viewer.New(c),
+		config:            c.Config,
+		AccessTokens:      accesstokens.New(c),
+		AuditLogs:         auditlogs.New(c),
+		Bundles:           bundles.New(c),
+		Components:        components.New(c),
+		Deployments:       deployments.New(c),
+		Environments:      environments.New(c),
+		EventDestinations: eventdestinations.New(c),
+		Groups:            groups.New(c),
+		Instances:         instances.New(c),
+		OciRepos:          ocirepos.New(c),
+		Organizations:     organizations.New(c),
+		Policies:          policies.New(c),
+		Projects:          projects.New(c),
+		Resources:         resources.New(c),
+		ResourceTypes:     resourcetypes.New(c),
+		Server:            server.New(c),
+		ServiceAccounts:   serviceaccounts.New(c),
+		URLs:              urls.New(c),
+		Viewer:            viewer.New(c),
 	}
 }

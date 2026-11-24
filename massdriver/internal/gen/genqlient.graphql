@@ -1099,6 +1099,358 @@ mutation RemoveEnvironmentDefault($organizationId: ID!, $id: UUID!) {
 }
 
 
+# EVENT DESTINATIONS
+
+# The API never returns `auth`, so no selection asks for it.
+
+query GetEventDestination($organizationId: ID!, $id: UUID!) {
+  eventDestination(organizationId: $organizationId, id: $id) {
+    id
+    name
+    adapter
+    config
+    eventTypes
+    attributes
+    condition
+    status
+    signingSecret
+    failingSince
+    lastDeliveredAt
+    lastError
+    createdAt
+    updatedAt
+  }
+}
+
+# @genqlient(for: "EventDestinationsFilter.status", omitempty: true, pointer: true)
+# @genqlient(for: "EventDestinationStatusFilter.eq", omitempty: true)
+# @genqlient(for: "EventDestinationStatusFilter.in", omitempty: true)
+query ListEventDestinations(
+  $organizationId: ID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $filter: EventDestinationsFilter,
+  # @genqlient(omitempty: true, pointer: true)
+  $sort: EventDestinationsSort,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  eventDestinations(organizationId: $organizationId, filter: $filter, sort: $sort, cursor: $cursor) {
+    cursor {
+      next
+      previous
+    }
+    items {
+      id
+      name
+      adapter
+      config
+      eventTypes
+      attributes
+      condition
+      status
+      signingSecret
+      failingSince
+      lastDeliveredAt
+      lastError
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+# @genqlient(for: "EventDeliveriesFilter.status", omitempty: true, pointer: true)
+# @genqlient(for: "EventDeliveriesFilter.createdAt", omitempty: true, pointer: true)
+# @genqlient(for: "EventDeliveryStatusFilter.eq", omitempty: true)
+# @genqlient(for: "EventDeliveryStatusFilter.in", omitempty: true)
+# @genqlient(for: "DatetimeFilter.eq", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.gt", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.gte", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.lt", omitempty: true, pointer: true)
+# @genqlient(for: "DatetimeFilter.lte", omitempty: true, pointer: true)
+query ListEventDeliveries(
+  $organizationId: ID!,
+  $id: UUID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $filter: EventDeliveriesFilter,
+  # @genqlient(omitempty: true, pointer: true)
+  $sort: EventDeliveriesSort,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  eventDestination(organizationId: $organizationId, id: $id) {
+    id
+    deliveries(filter: $filter, sort: $sort, cursor: $cursor) {
+      cursor {
+        next
+        previous
+      }
+      items {
+        id
+        status
+        attempts
+        nextAttemptAt
+        lastError
+        deliveredAt
+        createdAt
+        updatedAt
+        # @genqlient(pointer: true)
+        event {
+          id
+          occurredAt
+          type
+          source
+          subject
+          data
+          actor {
+            id
+            type
+            name
+          }
+        }
+      }
+    }
+  }
+}
+
+query ListEventDestinationAdapters($organizationId: ID!) {
+  eventDestinationAdapters(organizationId: $organizationId) {
+    items {
+      id
+      name
+      description
+      configSchema
+      authSchema
+      signs
+    }
+  }
+}
+
+query PreviewEventDestination(
+  $organizationId: ID!,
+  # @genqlient(omitempty: true)
+  $eventTypes: [String!],
+  # @genqlient(omitempty: true)
+  $attributes: Map,
+  # @genqlient(omitempty: true)
+  $condition: String,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  previewEventDestination(
+    organizationId: $organizationId,
+    eventTypes: $eventTypes,
+    attributes: $attributes,
+    condition: $condition,
+    cursor: $cursor
+  ) {
+    cursor {
+      next
+      previous
+    }
+    items {
+      id
+      occurredAt
+      type
+      source
+      subject
+      data
+      actor {
+        id
+        type
+        name
+      }
+    }
+  }
+}
+
+# @genqlient(for: "EventTypesFilter.entity", omitempty: true, pointer: true)
+# @genqlient(for: "StringFilter.eq", omitempty: true)
+# @genqlient(for: "StringFilter.in", omitempty: true)
+query ListEventTypes(
+  $organizationId: ID!,
+  # @genqlient(omitempty: true, pointer: true)
+  $filter: EventTypesFilter
+) {
+  eventTypes(organizationId: $organizationId, filter: $filter) {
+    id
+    description
+    entity
+    action
+    changeType
+    metadata {
+      name
+      type
+      description
+    }
+  }
+}
+
+# @genqlient(for: "CreateEventDestinationInput.attributes", omitempty: true)
+# @genqlient(for: "CreateEventDestinationInput.auth", omitempty: true)
+# @genqlient(for: "CreateEventDestinationInput.condition", omitempty: true)
+# @genqlient(for: "CreateEventDestinationInput.eventTypes", omitempty: true)
+mutation CreateEventDestination(
+  $organizationId: ID!,
+  $input: CreateEventDestinationInput!
+) {
+  createEventDestination(organizationId: $organizationId, input: $input) {
+    result {
+      id
+      name
+      adapter
+      config
+      eventTypes
+      attributes
+      condition
+      status
+      signingSecret
+      failingSince
+      lastDeliveredAt
+      lastError
+      createdAt
+      updatedAt
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+# Omitted fields keep their current values, so unset fields must stay off the
+# wire — see UpdateComponent. An empty event type list is a real value (every
+# event), so eventTypes is a slice pointer rather than an omitempty slice.
+# @genqlient(for: "UpdateEventDestinationInput.name", omitempty: true, pointer: true)
+# @genqlient(for: "UpdateEventDestinationInput.config", omitempty: true)
+# @genqlient(for: "UpdateEventDestinationInput.auth", omitempty: true)
+# @genqlient(for: "UpdateEventDestinationInput.attributes", omitempty: true)
+# @genqlient(for: "UpdateEventDestinationInput.condition", omitempty: true, pointer: true)
+# @genqlient(for: "UpdateEventDestinationInput.eventTypes", omitempty: true, bind: "*[]string")
+mutation UpdateEventDestination(
+  $organizationId: ID!,
+  $id: UUID!,
+  $input: UpdateEventDestinationInput!
+) {
+  updateEventDestination(organizationId: $organizationId, id: $id, input: $input) {
+    result {
+      id
+      name
+      adapter
+      config
+      eventTypes
+      attributes
+      condition
+      status
+      signingSecret
+      failingSince
+      lastDeliveredAt
+      lastError
+      createdAt
+      updatedAt
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+mutation PauseEventDestination($organizationId: ID!, $id: UUID!) {
+  pauseEventDestination(organizationId: $organizationId, id: $id) {
+    result {
+      id
+      name
+      adapter
+      config
+      eventTypes
+      attributes
+      condition
+      status
+      signingSecret
+      failingSince
+      lastDeliveredAt
+      lastError
+      createdAt
+      updatedAt
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+mutation ResumeEventDestination($organizationId: ID!, $id: UUID!) {
+  resumeEventDestination(organizationId: $organizationId, id: $id) {
+    result {
+      id
+      name
+      adapter
+      config
+      eventTypes
+      attributes
+      condition
+      status
+      signingSecret
+      failingSince
+      lastDeliveredAt
+      lastError
+      createdAt
+      updatedAt
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+mutation DeleteEventDestination($organizationId: ID!, $id: UUID!) {
+  deleteEventDestination(organizationId: $organizationId, id: $id) {
+    result {
+      id
+      name
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+# `deliveryIds: null` is an error, so an empty list must stay off the wire,
+# which redelivers every failed delivery.
+mutation RedeliverEvents(
+  $organizationId: ID!,
+  $eventDestinationId: UUID!,
+  # @genqlient(omitempty: true)
+  $deliveryIds: [UUID!]
+) {
+  redeliverEvents(organizationId: $organizationId, eventDestinationId: $eventDestinationId, deliveryIds: $deliveryIds) {
+    result {
+      id
+      name
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+
 # GROUPS
 
 # The group's membership and policy sub-lists are paginated and exposed

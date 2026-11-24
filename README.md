@@ -101,6 +101,7 @@ field. Common entry points:
 | `c.Groups`, `c.Policies` | ABAC groups, members, and policies. |
 | `c.AccessTokens`, `c.ServiceAccounts` | Programmatic identities. |
 | `c.AuditLogs` | The organization's audit trail (use `Iter` for large queries). |
+| `c.EventDestinations` | Places that receive the organization's audit log events, their deliveries, and the event catalog. |
 | `c.Organizations` | Organization metadata + custom-attribute schema. |
 | `c.Server`, `c.Viewer`, `c.URLs` | Server metadata, current identity, deep links. |
 
