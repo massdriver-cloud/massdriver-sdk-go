@@ -3538,6 +3538,7 @@ query GetStashEntry(
 ) {
   stashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
     key
+    label
     # @genqlient(pointer: true)
     value
     data
@@ -3562,6 +3563,7 @@ query ListStashEntries(
     }
     items {
       key
+      label
       # @genqlient(pointer: true)
       value
       data
@@ -3575,6 +3577,7 @@ query ListStashEntries(
 }
 
 # @genqlient(for: "SetStashEntryInput.ttl", omitempty: true)
+# @genqlient(for: "SetStashEntryInput.label", omitempty: true)
 mutation SetStashEntry(
   $organizationId: ID!,
   $scope: StashScope!,
@@ -3584,6 +3587,7 @@ mutation SetStashEntry(
   setStashEntry(organizationId: $organizationId, scope: $scope, key: $key, input: $input) {
     result {
       key
+      label
       # @genqlient(pointer: true)
       value
       data

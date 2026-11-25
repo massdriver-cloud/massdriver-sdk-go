@@ -23,6 +23,7 @@ func newService(gqlClient *gqltest.Client) *stash.Service {
 func textEntry() map[string]any {
 	return map[string]any{
 		"key":       "db/hostname",
+		"label":     "Database hostname",
 		"value":     "db.internal",
 		"data":      nil,
 		"format":    "TEXT",
@@ -44,7 +45,7 @@ func TestGet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
-	if got.Key != "db/hostname" || got.Value == nil || *got.Value != "db.internal" || got.Format != "TEXT" {
+	if got.Key != "db/hostname" || got.Label != "Database hostname" || got.Value == nil || *got.Value != "db.internal" || got.Format != "TEXT" {
 		t.Errorf("got %+v", got)
 	}
 	if !got.ExpiresAt.IsZero() {
@@ -199,6 +200,7 @@ func TestSet(t *testing.T) {
 
 	got, err := newService(gqlClient).Set(t.Context(), stash.Scope{Kind: stash.ScopeEnvironment, ID: "api-staging"}, "ami-id", stash.SetInput{
 		Value:     "ami-0abc",
+		Label:     "Base image",
 		Format:    stash.FormatText,
 		TTL:       24 * time.Hour,
 		Immutable: true,
@@ -218,6 +220,7 @@ func TestSet(t *testing.T) {
 	input, _ := vars["input"].(map[string]any)
 	want := map[string]any{
 		"value":     "ami-0abc",
+		"label":     "Base image",
 		"format":    "TEXT",
 		"ttl":       float64(86400),
 		"immutable": true,

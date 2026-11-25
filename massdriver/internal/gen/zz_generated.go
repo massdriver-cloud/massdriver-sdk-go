@@ -19213,6 +19213,8 @@ func (v *GetStashEntryResponse) GetStashEntry() GetStashEntryStashEntry { return
 type GetStashEntryStashEntry struct {
 	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
 	Key string `json:"key"`
+	// A human-readable name for the entry, shown in the Massdriver UI. Null when the entry has no label. The label is not encrypted and is returned even when the entry is sensitive, so do not put secrets in it.
+	Label string `json:"label"`
 	// The value exactly as it was written. Null when the entry is sensitive and you cannot change this stash.
 	Value *string `json:"value"`
 	// The value parsed as a JSON object when the format is `JSON`. Null for `TEXT` entries.
@@ -19231,6 +19233,9 @@ type GetStashEntryStashEntry struct {
 
 // GetKey returns GetStashEntryStashEntry.Key, and is useful for accessing the field via an interface.
 func (v *GetStashEntryStashEntry) GetKey() string { return v.Key }
+
+// GetLabel returns GetStashEntryStashEntry.Label, and is useful for accessing the field via an interface.
+func (v *GetStashEntryStashEntry) GetLabel() string { return v.Label }
 
 // GetValue returns GetStashEntryStashEntry.Value, and is useful for accessing the field via an interface.
 func (v *GetStashEntryStashEntry) GetValue() *string { return v.Value }
@@ -19289,6 +19294,8 @@ func (v *GetStashEntryStashEntry) UnmarshalJSON(b []byte) error {
 type __premarshalGetStashEntryStashEntry struct {
 	Key string `json:"key"`
 
+	Label string `json:"label"`
+
 	Value *string `json:"value"`
 
 	Data json.RawMessage `json:"data"`
@@ -19316,6 +19323,7 @@ func (v *GetStashEntryStashEntry) __premarshalJSON() (*__premarshalGetStashEntry
 	var retval __premarshalGetStashEntryStashEntry
 
 	retval.Key = v.Key
+	retval.Label = v.Label
 	retval.Value = v.Value
 	{
 
@@ -26918,6 +26926,8 @@ func (v *ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor) Get
 type ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry struct {
 	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
 	Key string `json:"key"`
+	// A human-readable name for the entry, shown in the Massdriver UI. Null when the entry has no label. The label is not encrypted and is returned even when the entry is sensitive, so do not put secrets in it.
+	Label string `json:"label"`
 	// The value exactly as it was written. Null when the entry is sensitive and you cannot change this stash.
 	Value *string `json:"value"`
 	// The value parsed as a JSON object when the format is `JSON`. Null for `TEXT` entries.
@@ -26936,6 +26946,11 @@ type ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry struct {
 
 // GetKey returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Key, and is useful for accessing the field via an interface.
 func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetKey() string { return v.Key }
+
+// GetLabel returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Label, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetLabel() string {
+	return v.Label
+}
 
 // GetValue returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Value, and is useful for accessing the field via an interface.
 func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetValue() *string {
@@ -27008,6 +27023,8 @@ func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) UnmarshalJ
 type __premarshalListStashEntriesStashEntriesStashEntriesPageItemsStashEntry struct {
 	Key string `json:"key"`
 
+	Label string `json:"label"`
+
 	Value *string `json:"value"`
 
 	Data json.RawMessage `json:"data"`
@@ -27035,6 +27052,7 @@ func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) __premarsh
 	var retval __premarshalListStashEntriesStashEntriesStashEntriesPageItemsStashEntry
 
 	retval.Key = v.Key
+	retval.Label = v.Label
 	retval.Value = v.Value
 	{
 
@@ -31346,6 +31364,8 @@ type SetStashEntryInput struct {
 	Format StashFormat `json:"format"`
 	// When true, the key cannot be set again until the entry expires or is deleted. Setting an immutable entry fails if the key already has a value.
 	Immutable bool `json:"immutable"`
+	// A human-readable name for the entry, shown in the Massdriver UI. Up to 255 characters. An empty label is the same as no label. The label is not encrypted and is shown even when the entry is sensitive, so do not put secrets in it.
+	Label string `json:"label,omitempty"`
 	// When true, the value is encrypted and is returned only to callers who can change the stash.
 	Sensitive bool `json:"sensitive"`
 	// Seconds until the entry expires. An expired entry is not returned and is deleted soon after. At most 315360000 (10 years). Leave empty to keep the entry until you delete it.
@@ -31359,6 +31379,9 @@ func (v *SetStashEntryInput) GetFormat() StashFormat { return v.Format }
 
 // GetImmutable returns SetStashEntryInput.Immutable, and is useful for accessing the field via an interface.
 func (v *SetStashEntryInput) GetImmutable() bool { return v.Immutable }
+
+// GetLabel returns SetStashEntryInput.Label, and is useful for accessing the field via an interface.
+func (v *SetStashEntryInput) GetLabel() string { return v.Label }
 
 // GetSensitive returns SetStashEntryInput.Sensitive, and is useful for accessing the field via an interface.
 func (v *SetStashEntryInput) GetSensitive() bool { return v.Sensitive }
@@ -31498,6 +31521,8 @@ func (v *SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage) G
 type SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry struct {
 	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
 	Key string `json:"key"`
+	// A human-readable name for the entry, shown in the Massdriver UI. Null when the entry has no label. The label is not encrypted and is returned even when the entry is sensitive, so do not put secrets in it.
+	Label string `json:"label"`
 	// The value exactly as it was written. Null when the entry is sensitive and you cannot change this stash.
 	Value *string `json:"value"`
 	// The value parsed as a JSON object when the format is `JSON`. Null for `TEXT` entries.
@@ -31516,6 +31541,11 @@ type SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry struct {
 
 // GetKey returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Key, and is useful for accessing the field via an interface.
 func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetKey() string { return v.Key }
+
+// GetLabel returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Label, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetLabel() string {
+	return v.Label
+}
 
 // GetValue returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Value, and is useful for accessing the field via an interface.
 func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetValue() *string {
@@ -31588,6 +31618,8 @@ func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) UnmarshalJ
 type __premarshalSetStashEntrySetStashEntryStashEntryPayloadResultStashEntry struct {
 	Key string `json:"key"`
 
+	Label string `json:"label"`
+
 	Value *string `json:"value"`
 
 	Data json.RawMessage `json:"data"`
@@ -31615,6 +31647,7 @@ func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) __premarsh
 	var retval __premarshalSetStashEntrySetStashEntryStashEntryPayloadResultStashEntry
 
 	retval.Key = v.Key
+	retval.Label = v.Label
 	retval.Value = v.Value
 	{
 
@@ -41680,6 +41713,7 @@ const GetStashEntry_Operation = `
 query GetStashEntry ($organizationId: ID!, $scope: StashScope!, $key: String!) {
 	stashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
 		key
+		label
 		value
 		data
 		format
@@ -43390,6 +43424,7 @@ query ListStashEntries ($organizationId: ID!, $scope: StashScope!, $cursor: Curs
 		}
 		items {
 			key
+			label
 			value
 			data
 			format
@@ -44422,6 +44457,7 @@ mutation SetStashEntry ($organizationId: ID!, $scope: StashScope!, $key: String!
 	setStashEntry(organizationId: $organizationId, scope: $scope, key: $key, input: $input) {
 		result {
 			key
+			label
 			value
 			data
 			format

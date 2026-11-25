@@ -7,9 +7,11 @@ import "time"
 //
 // Value is nil when the entry is sensitive and the caller cannot write its
 // scope. When Format is JSON, Value is a JSON object and Data holds it
-// parsed. ExpiresAt is zero for an entry that does not expire.
+// parsed. Label is a human-readable name, empty when none is set.
+// ExpiresAt is zero for an entry that does not expire.
 type StashEntry struct {
 	Key       string         `json:"key" mapstructure:"key"`
+	Label     string         `json:"label" mapstructure:"label"`
 	Value     *string        `json:"value" mapstructure:"value"`
 	Data      map[string]any `json:"data,omitempty" mapstructure:"data"`
 	Format    string         `json:"format" mapstructure:"format"`

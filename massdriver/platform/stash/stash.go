@@ -82,9 +82,13 @@ type ListInput struct {
 	After string
 }
 
-// SetInput is the input for [Service.Set].
+// SetInput is the input for [Service.Set]. Label is not encrypted and is
+// returned even for sensitive entries, so keep secrets out of it.
 type SetInput struct {
 	Value string
+	// Label is a human-readable name for the entry, up to 255 characters.
+	// Empty leaves the entry without one.
+	Label string
 	// Format is how Value is read. Empty is [FormatText]. With
 	// [FormatJSON], Value must be a JSON object.
 	Format Format
@@ -171,6 +175,7 @@ func (s *Service) Set(ctx context.Context, scope Scope, key string, input SetInp
 	}
 	resp, err := gen.SetStashEntry(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gs, key, gen.SetStashEntryInput{
 		Value:     input.Value,
+		Label:     input.Label,
 		Format:    gen.StashFormat(format),
 		Ttl:       int(input.TTL / time.Second),
 		Immutable: input.Immutable,
