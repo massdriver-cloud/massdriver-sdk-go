@@ -82,6 +82,7 @@ func TestGet_JSONData(t *testing.T) {
 func TestGet_SensitiveRedacted(t *testing.T) {
 	entry := textEntry()
 	entry["value"] = nil
+	entry["label"] = nil
 	entry["sensitive"] = true
 	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"stashEntry": entry}))
 
@@ -89,8 +90,8 @@ func TestGet_SensitiveRedacted(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
-	if got.Value != nil || !got.Sensitive {
-		t.Errorf("got Value = %v, Sensitive = %v; want nil, true", got.Value, got.Sensitive)
+	if got.Value != nil || !got.Sensitive || got.Label != "" {
+		t.Errorf("got Value = %v, Sensitive = %v, Label = %q; want nil, true, empty", got.Value, got.Sensitive, got.Label)
 	}
 }
 

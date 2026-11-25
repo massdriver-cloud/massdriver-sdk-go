@@ -87,7 +87,7 @@ type ListInput struct {
 type SetInput struct {
 	Value string
 	// Label is a human-readable name for the entry, up to 255 characters.
-	// Empty leaves the entry without one.
+	// Empty clears any label the entry had.
 	Label string
 	// Format is how Value is read. Empty is [FormatText]. With
 	// [FormatJSON], Value must be a JSON object.
