@@ -3525,3 +3525,96 @@ query GetViewer {
 }
 
 
+
+# @genqlient(for: "StashScope.project", omitempty: true)
+# @genqlient(for: "StashScope.environment", omitempty: true)
+# @genqlient(for: "StashScope.component", omitempty: true)
+# @genqlient(for: "StashScope.instance", omitempty: true)
+# @genqlient(for: "StashScope.deployment", omitempty: true)
+query GetStashEntry(
+  $organizationId: ID!,
+  $scope: StashScope!,
+  $key: String!
+) {
+  stashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
+    key
+    # @genqlient(pointer: true)
+    value
+    data
+    format
+    immutable
+    sensitive
+    expiresAt
+    updatedAt
+  }
+}
+
+query ListStashEntries(
+  $organizationId: ID!,
+  $scope: StashScope!,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  stashEntries(organizationId: $organizationId, scope: $scope, cursor: $cursor) {
+    cursor {
+      next
+      previous
+    }
+    items {
+      key
+      # @genqlient(pointer: true)
+      value
+      data
+      format
+      immutable
+      sensitive
+      expiresAt
+      updatedAt
+    }
+  }
+}
+
+# @genqlient(for: "SetStashEntryInput.format", omitempty: true)
+# @genqlient(for: "SetStashEntryInput.ttl", omitempty: true)
+# @genqlient(for: "SetStashEntryInput.immutable", omitempty: true)
+# @genqlient(for: "SetStashEntryInput.sensitive", omitempty: true)
+mutation SetStashEntry(
+  $organizationId: ID!,
+  $scope: StashScope!,
+  $key: String!,
+  $input: SetStashEntryInput!
+) {
+  setStashEntry(organizationId: $organizationId, scope: $scope, key: $key, input: $input) {
+    result {
+      key
+      # @genqlient(pointer: true)
+      value
+      data
+      format
+      immutable
+      sensitive
+      expiresAt
+      updatedAt
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+mutation DeleteStashEntry($organizationId: ID!, $scope: StashScope!, $key: String!) {
+  deleteStashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
+    result {
+      key
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}

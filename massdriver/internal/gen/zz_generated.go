@@ -10715,6 +10715,108 @@ func (v *DeleteServiceAccountResponse) GetDeleteServiceAccount() DeleteServiceAc
 	return v.DeleteServiceAccount
 }
 
+// DeleteStashEntryDeleteStashEntryStashEntryPayload includes the requested fields of the GraphQL type StashEntryPayload.
+type DeleteStashEntryDeleteStashEntryStashEntryPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns DeleteStashEntryDeleteStashEntryStashEntryPayload.Result, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryDeleteStashEntryStashEntryPayload) GetResult() DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry {
+	return v.Result
+}
+
+// GetSuccessful returns DeleteStashEntryDeleteStashEntryStashEntryPayload.Successful, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryDeleteStashEntryStashEntryPayload) GetSuccessful() bool { return v.Successful }
+
+// GetMessages returns DeleteStashEntryDeleteStashEntryStashEntryPayload.Messages, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryDeleteStashEntryStashEntryPayload) GetMessages() []DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry includes the requested fields of the GraphQL type StashEntry.
+// The GraphQL type's documentation follows.
+//
+// A key and value stored in a scope.
+type DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry struct {
+	Key string `json:"key"`
+}
+
+// GetKey returns DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry.Key, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry) GetKey() string {
+	return v.Key
+}
+
+// DeleteStashEntryResponse is returned by DeleteStashEntry on success.
+type DeleteStashEntryResponse struct {
+	// Delete a stash entry.
+	DeleteStashEntry DeleteStashEntryDeleteStashEntryStashEntryPayload `json:"deleteStashEntry"`
+}
+
+// GetDeleteStashEntry returns DeleteStashEntryResponse.DeleteStashEntry, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryResponse) GetDeleteStashEntry() DeleteStashEntryDeleteStashEntryStashEntryPayload {
+	return v.DeleteStashEntry
+}
+
 // DeployEnvironmentDeployEnvironmentEnvironmentPayload includes the requested fields of the GraphQL type EnvironmentPayload.
 type DeployEnvironmentDeployEnvironmentEnvironmentPayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -19070,6 +19172,138 @@ func (v *GetServiceAccountServiceAccount) GetCreatedAt() time.Time { return v.Cr
 // GetUpdatedAt returns GetServiceAccountServiceAccount.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *GetServiceAccountServiceAccount) GetUpdatedAt() time.Time { return v.UpdatedAt }
 
+// GetStashEntryResponse is returned by GetStashEntry on success.
+type GetStashEntryResponse struct {
+	// Get one stash entry by scope and key.
+	StashEntry GetStashEntryStashEntry `json:"stashEntry"`
+}
+
+// GetStashEntry returns GetStashEntryResponse.StashEntry, and is useful for accessing the field via an interface.
+func (v *GetStashEntryResponse) GetStashEntry() GetStashEntryStashEntry { return v.StashEntry }
+
+// GetStashEntryStashEntry includes the requested fields of the GraphQL type StashEntry.
+// The GraphQL type's documentation follows.
+//
+// A key and value stored in a scope.
+type GetStashEntryStashEntry struct {
+	Key       string         `json:"key"`
+	Value     *string        `json:"value"`
+	Data      map[string]any `json:"-"`
+	Format    StashFormat    `json:"format"`
+	Immutable bool           `json:"immutable"`
+	Sensitive bool           `json:"sensitive"`
+	ExpiresAt time.Time      `json:"expiresAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+}
+
+// GetKey returns GetStashEntryStashEntry.Key, and is useful for accessing the field via an interface.
+func (v *GetStashEntryStashEntry) GetKey() string { return v.Key }
+
+// GetValue returns GetStashEntryStashEntry.Value, and is useful for accessing the field via an interface.
+func (v *GetStashEntryStashEntry) GetValue() *string { return v.Value }
+
+// GetData returns GetStashEntryStashEntry.Data, and is useful for accessing the field via an interface.
+func (v *GetStashEntryStashEntry) GetData() map[string]any { return v.Data }
+
+// GetFormat returns GetStashEntryStashEntry.Format, and is useful for accessing the field via an interface.
+func (v *GetStashEntryStashEntry) GetFormat() StashFormat { return v.Format }
+
+// GetImmutable returns GetStashEntryStashEntry.Immutable, and is useful for accessing the field via an interface.
+func (v *GetStashEntryStashEntry) GetImmutable() bool { return v.Immutable }
+
+// GetSensitive returns GetStashEntryStashEntry.Sensitive, and is useful for accessing the field via an interface.
+func (v *GetStashEntryStashEntry) GetSensitive() bool { return v.Sensitive }
+
+// GetExpiresAt returns GetStashEntryStashEntry.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *GetStashEntryStashEntry) GetExpiresAt() time.Time { return v.ExpiresAt }
+
+// GetUpdatedAt returns GetStashEntryStashEntry.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *GetStashEntryStashEntry) GetUpdatedAt() time.Time { return v.UpdatedAt }
+
+func (v *GetStashEntryStashEntry) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*GetStashEntryStashEntry
+		Data json.RawMessage `json:"data"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.GetStashEntryStashEntry = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Data
+		src := firstPass.Data
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetStashEntryStashEntry.Data: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalGetStashEntryStashEntry struct {
+	Key string `json:"key"`
+
+	Value *string `json:"value"`
+
+	Data json.RawMessage `json:"data"`
+
+	Format StashFormat `json:"format"`
+
+	Immutable bool `json:"immutable"`
+
+	Sensitive bool `json:"sensitive"`
+
+	ExpiresAt time.Time `json:"expiresAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *GetStashEntryStashEntry) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *GetStashEntryStashEntry) __premarshalJSON() (*__premarshalGetStashEntryStashEntry, error) {
+	var retval __premarshalGetStashEntryStashEntry
+
+	retval.Key = v.Key
+	retval.Value = v.Value
+	{
+
+		dst := &retval.Data
+		src := v.Data
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetStashEntryStashEntry.Data: %w", err)
+		}
+	}
+	retval.Format = v.Format
+	retval.Immutable = v.Immutable
+	retval.Sensitive = v.Sensitive
+	retval.ExpiresAt = v.ExpiresAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
 // GetViewerResponse is returned by GetViewer on success.
 type GetViewerResponse struct {
 	// Get information about the currently authenticated entity.
@@ -26578,6 +26812,197 @@ func (v *ListServiceAccountsServiceAccountsServiceAccountsPageItemsServiceAccoun
 	return v.UpdatedAt
 }
 
+// ListStashEntriesResponse is returned by ListStashEntries on success.
+type ListStashEntriesResponse struct {
+	// List the stash entries in one scope.
+	StashEntries ListStashEntriesStashEntriesStashEntriesPage `json:"stashEntries"`
+}
+
+// GetStashEntries returns ListStashEntriesResponse.StashEntries, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesResponse) GetStashEntries() ListStashEntriesStashEntriesStashEntriesPage {
+	return v.StashEntries
+}
+
+// ListStashEntriesStashEntriesStashEntriesPage includes the requested fields of the GraphQL type StashEntriesPage.
+type ListStashEntriesStashEntriesStashEntriesPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor `json:"cursor"`
+	// A list of type stash_entry.
+	Items []ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry `json:"items"`
+}
+
+// GetCursor returns ListStashEntriesStashEntriesStashEntriesPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPage) GetCursor() ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListStashEntriesStashEntriesStashEntriesPage.Items, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPage) GetItems() []ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry {
+	return v.Items
+}
+
+// ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry includes the requested fields of the GraphQL type StashEntry.
+// The GraphQL type's documentation follows.
+//
+// A key and value stored in a scope.
+type ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry struct {
+	Key       string         `json:"key"`
+	Value     *string        `json:"value"`
+	Data      map[string]any `json:"-"`
+	Format    StashFormat    `json:"format"`
+	Immutable bool           `json:"immutable"`
+	Sensitive bool           `json:"sensitive"`
+	ExpiresAt time.Time      `json:"expiresAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+}
+
+// GetKey returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Key, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetKey() string { return v.Key }
+
+// GetValue returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Value, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetValue() *string {
+	return v.Value
+}
+
+// GetData returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Data, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetData() map[string]any {
+	return v.Data
+}
+
+// GetFormat returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Format, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetFormat() StashFormat {
+	return v.Format
+}
+
+// GetImmutable returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Immutable, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetImmutable() bool {
+	return v.Immutable
+}
+
+// GetSensitive returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Sensitive, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetSensitive() bool {
+	return v.Sensitive
+}
+
+// GetExpiresAt returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetExpiresAt() time.Time {
+	return v.ExpiresAt
+}
+
+// GetUpdatedAt returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry
+		Data json.RawMessage `json:"data"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Data
+		src := firstPass.Data
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Data: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalListStashEntriesStashEntriesStashEntriesPageItemsStashEntry struct {
+	Key string `json:"key"`
+
+	Value *string `json:"value"`
+
+	Data json.RawMessage `json:"data"`
+
+	Format StashFormat `json:"format"`
+
+	Immutable bool `json:"immutable"`
+
+	Sensitive bool `json:"sensitive"`
+
+	ExpiresAt time.Time `json:"expiresAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) __premarshalJSON() (*__premarshalListStashEntriesStashEntriesStashEntriesPageItemsStashEntry, error) {
+	var retval __premarshalListStashEntriesStashEntriesStashEntriesPageItemsStashEntry
+
+	retval.Key = v.Key
+	retval.Value = v.Value
+	{
+
+		dst := &retval.Data
+		src := v.Data
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Data: %w", err)
+		}
+	}
+	retval.Format = v.Format
+	retval.Immutable = v.Immutable
+	retval.Sensitive = v.Sensitive
+	retval.ExpiresAt = v.ExpiresAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
 // The kind of artifact stored in an OCI repository.
 //
 // Each value maps to a concrete [OCI artifact type](https://github.com/opencontainers/image-spec/blob/main/manifest.md#guidelines-for-artifact-usage)
@@ -30862,6 +31287,255 @@ func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteR
 	return v.Icon
 }
 
+type SetStashEntryInput struct {
+	Value     string      `json:"value"`
+	Format    StashFormat `json:"format,omitempty"`
+	Ttl       int         `json:"ttl,omitempty"`
+	Immutable bool        `json:"immutable,omitempty"`
+	Sensitive bool        `json:"sensitive,omitempty"`
+}
+
+// GetValue returns SetStashEntryInput.Value, and is useful for accessing the field via an interface.
+func (v *SetStashEntryInput) GetValue() string { return v.Value }
+
+// GetFormat returns SetStashEntryInput.Format, and is useful for accessing the field via an interface.
+func (v *SetStashEntryInput) GetFormat() StashFormat { return v.Format }
+
+// GetTtl returns SetStashEntryInput.Ttl, and is useful for accessing the field via an interface.
+func (v *SetStashEntryInput) GetTtl() int { return v.Ttl }
+
+// GetImmutable returns SetStashEntryInput.Immutable, and is useful for accessing the field via an interface.
+func (v *SetStashEntryInput) GetImmutable() bool { return v.Immutable }
+
+// GetSensitive returns SetStashEntryInput.Sensitive, and is useful for accessing the field via an interface.
+func (v *SetStashEntryInput) GetSensitive() bool { return v.Sensitive }
+
+// SetStashEntryResponse is returned by SetStashEntry on success.
+type SetStashEntryResponse struct {
+	// Set a stash entry's value.
+	SetStashEntry SetStashEntrySetStashEntryStashEntryPayload `json:"setStashEntry"`
+}
+
+// GetSetStashEntry returns SetStashEntryResponse.SetStashEntry, and is useful for accessing the field via an interface.
+func (v *SetStashEntryResponse) GetSetStashEntry() SetStashEntrySetStashEntryStashEntryPayload {
+	return v.SetStashEntry
+}
+
+// SetStashEntrySetStashEntryStashEntryPayload includes the requested fields of the GraphQL type StashEntryPayload.
+type SetStashEntrySetStashEntryStashEntryPayload struct {
+	// The object created/updated/deleted by the mutation. May be null if mutation failed.
+	Result SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry `json:"result"`
+	// Indicates if the mutation completed successfully or not.
+	Successful bool `json:"successful"`
+	// A list of failed validations. May be blank or null if mutation succeeded.
+	Messages []SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage `json:"messages"`
+}
+
+// GetResult returns SetStashEntrySetStashEntryStashEntryPayload.Result, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayload) GetResult() SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry {
+	return v.Result
+}
+
+// GetSuccessful returns SetStashEntrySetStashEntryStashEntryPayload.Successful, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayload) GetSuccessful() bool { return v.Successful }
+
+// GetMessages returns SetStashEntrySetStashEntryStashEntryPayload.Messages, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayload) GetMessages() []SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage {
+	return v.Messages
+}
+
+// SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// The GraphQL type's documentation follows.
+//
+// Validation messages are returned when mutation input does not meet the requirements.
+// While client-side validation is highly recommended to provide the best User Experience,
+// All inputs will always be validated server-side.
+//
+// Some examples of validations are:
+//
+// * Username must be at least 10 characters
+// * Email field does not contain an email address
+// * Birth Date is required
+//
+// While GraphQL has support for required values, mutation data fields are always
+// set to optional in our API. This allows 'required field' messages
+// to be returned in the same manner as other validations. The only exceptions
+// are id fields, which may be required to perform updates or deletes.
+type SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage struct {
+	// A unique error code for the type of validation used.
+	Code string `json:"code"`
+	// The input field that the error applies to. The field can be used to
+	// identify which field the error message should be displayed next to in the
+	// presentation layer.
+	//
+	// If there are multiple errors to display for a field, multiple validation
+	// messages will be in the result.
+	//
+	// This field may be null in cases where an error cannot be applied to a specific field.
+	Field string `json:"field"`
+	// A friendly error message, appropriate for display to the end user.
+	//
+	// The message is interpolated to include the appropriate variables.
+	//
+	// Example: `Username must be at least 10 characters`
+	//
+	// This message may change without notice, so we do not recommend you match against the text.
+	// Instead, use the *code* field for matching.
+	Message string `json:"message"`
+}
+
+// GetCode returns SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage) GetCode() string {
+	return v.Code
+}
+
+// GetField returns SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage) GetField() string {
+	return v.Field
+}
+
+// GetMessage returns SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage) GetMessage() string {
+	return v.Message
+}
+
+// SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry includes the requested fields of the GraphQL type StashEntry.
+// The GraphQL type's documentation follows.
+//
+// A key and value stored in a scope.
+type SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry struct {
+	Key       string         `json:"key"`
+	Value     *string        `json:"value"`
+	Data      map[string]any `json:"-"`
+	Format    StashFormat    `json:"format"`
+	Immutable bool           `json:"immutable"`
+	Sensitive bool           `json:"sensitive"`
+	ExpiresAt time.Time      `json:"expiresAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+}
+
+// GetKey returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Key, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetKey() string { return v.Key }
+
+// GetValue returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Value, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetValue() *string {
+	return v.Value
+}
+
+// GetData returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Data, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetData() map[string]any {
+	return v.Data
+}
+
+// GetFormat returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Format, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetFormat() StashFormat {
+	return v.Format
+}
+
+// GetImmutable returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Immutable, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetImmutable() bool {
+	return v.Immutable
+}
+
+// GetSensitive returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Sensitive, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetSensitive() bool {
+	return v.Sensitive
+}
+
+// GetExpiresAt returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetExpiresAt() time.Time {
+	return v.ExpiresAt
+}
+
+// GetUpdatedAt returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry
+		Data json.RawMessage `json:"data"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Data
+		src := firstPass.Data
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Data: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalSetStashEntrySetStashEntryStashEntryPayloadResultStashEntry struct {
+	Key string `json:"key"`
+
+	Value *string `json:"value"`
+
+	Data json.RawMessage `json:"data"`
+
+	Format StashFormat `json:"format"`
+
+	Immutable bool `json:"immutable"`
+
+	Sensitive bool `json:"sensitive"`
+
+	ExpiresAt time.Time `json:"expiresAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) __premarshalJSON() (*__premarshalSetStashEntrySetStashEntryStashEntryPayloadResultStashEntry, error) {
+	var retval __premarshalSetStashEntrySetStashEntryStashEntryPayloadResultStashEntry
+
+	retval.Key = v.Key
+	retval.Value = v.Value
+	{
+
+		dst := &retval.Data
+		src := v.Data
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Data: %w", err)
+		}
+	}
+	retval.Format = v.Format
+	retval.Immutable = v.Immutable
+	retval.Sensitive = v.Sensitive
+	retval.ExpiresAt = v.ExpiresAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
 // Sort direction for ordering paginated results.
 //
 // Applied via the `sort` argument on any list query. When combined with a sort field,
@@ -30879,6 +31553,43 @@ var AllSortOrder = []SortOrder{
 	SortOrderAsc,
 	SortOrderDesc,
 }
+
+// How a stash entry's value is read.
+type StashFormat string
+
+const (
+	StashFormatText StashFormat = "TEXT"
+	StashFormatJson StashFormat = "JSON"
+)
+
+var AllStashFormat = []StashFormat{
+	StashFormatText,
+	StashFormatJson,
+}
+
+// The one project, environment, component, instance, or deployment that holds a stash entry. Set exactly one field.
+type StashScope struct {
+	Project     string `json:"project,omitempty"`
+	Environment string `json:"environment,omitempty"`
+	Component   string `json:"component,omitempty"`
+	Instance    string `json:"instance,omitempty"`
+	Deployment  string `json:"deployment,omitempty"`
+}
+
+// GetProject returns StashScope.Project, and is useful for accessing the field via an interface.
+func (v *StashScope) GetProject() string { return v.Project }
+
+// GetEnvironment returns StashScope.Environment, and is useful for accessing the field via an interface.
+func (v *StashScope) GetEnvironment() string { return v.Environment }
+
+// GetComponent returns StashScope.Component, and is useful for accessing the field via an interface.
+func (v *StashScope) GetComponent() string { return v.Component }
+
+// GetInstance returns StashScope.Instance, and is useful for accessing the field via an interface.
+func (v *StashScope) GetInstance() string { return v.Instance }
+
+// GetDeployment returns StashScope.Deployment, and is useful for accessing the field via an interface.
+func (v *StashScope) GetDeployment() string { return v.Deployment }
 
 // Filter by a string field.
 //
@@ -35682,6 +36393,22 @@ func (v *__DeleteServiceAccountInput) GetOrganizationId() string { return v.Orga
 // GetId returns __DeleteServiceAccountInput.Id, and is useful for accessing the field via an interface.
 func (v *__DeleteServiceAccountInput) GetId() string { return v.Id }
 
+// __DeleteStashEntryInput is used internally by genqlient
+type __DeleteStashEntryInput struct {
+	OrganizationId string     `json:"organizationId"`
+	Scope          StashScope `json:"scope"`
+	Key            string     `json:"key"`
+}
+
+// GetOrganizationId returns __DeleteStashEntryInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__DeleteStashEntryInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetScope returns __DeleteStashEntryInput.Scope, and is useful for accessing the field via an interface.
+func (v *__DeleteStashEntryInput) GetScope() StashScope { return v.Scope }
+
+// GetKey returns __DeleteStashEntryInput.Key, and is useful for accessing the field via an interface.
+func (v *__DeleteStashEntryInput) GetKey() string { return v.Key }
+
 // __DeployEnvironmentInput is used internally by genqlient
 type __DeployEnvironmentInput struct {
 	OrganizationId string `json:"organizationId"`
@@ -35999,6 +36726,22 @@ func (v *__GetServiceAccountInput) GetOrganizationId() string { return v.Organiz
 
 // GetId returns __GetServiceAccountInput.Id, and is useful for accessing the field via an interface.
 func (v *__GetServiceAccountInput) GetId() string { return v.Id }
+
+// __GetStashEntryInput is used internally by genqlient
+type __GetStashEntryInput struct {
+	OrganizationId string     `json:"organizationId"`
+	Scope          StashScope `json:"scope"`
+	Key            string     `json:"key"`
+}
+
+// GetOrganizationId returns __GetStashEntryInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__GetStashEntryInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetScope returns __GetStashEntryInput.Scope, and is useful for accessing the field via an interface.
+func (v *__GetStashEntryInput) GetScope() StashScope { return v.Scope }
+
+// GetKey returns __GetStashEntryInput.Key, and is useful for accessing the field via an interface.
+func (v *__GetStashEntryInput) GetKey() string { return v.Key }
 
 // __LinkComponentsInput is used internally by genqlient
 type __LinkComponentsInput struct {
@@ -36464,6 +37207,22 @@ func (v *__ListServiceAccountsInput) GetSort() *ServiceAccountsSort { return v.S
 // GetCursor returns __ListServiceAccountsInput.Cursor, and is useful for accessing the field via an interface.
 func (v *__ListServiceAccountsInput) GetCursor() *scalars.Cursor { return v.Cursor }
 
+// __ListStashEntriesInput is used internally by genqlient
+type __ListStashEntriesInput struct {
+	OrganizationId string          `json:"organizationId"`
+	Scope          StashScope      `json:"scope"`
+	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListStashEntriesInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListStashEntriesInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetScope returns __ListStashEntriesInput.Scope, and is useful for accessing the field via an interface.
+func (v *__ListStashEntriesInput) GetScope() StashScope { return v.Scope }
+
+// GetCursor returns __ListStashEntriesInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListStashEntriesInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
 // __OrphanInstanceInput is used internally by genqlient
 type __OrphanInstanceInput struct {
 	OrganizationId string              `json:"organizationId"`
@@ -36824,6 +37583,26 @@ func (v *__SetRemoteReferenceInput) GetResourceId() string { return v.ResourceId
 
 // GetInput returns __SetRemoteReferenceInput.Input, and is useful for accessing the field via an interface.
 func (v *__SetRemoteReferenceInput) GetInput() SetRemoteReferenceInput { return v.Input }
+
+// __SetStashEntryInput is used internally by genqlient
+type __SetStashEntryInput struct {
+	OrganizationId string             `json:"organizationId"`
+	Scope          StashScope         `json:"scope"`
+	Key            string             `json:"key"`
+	Input          SetStashEntryInput `json:"input"`
+}
+
+// GetOrganizationId returns __SetStashEntryInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__SetStashEntryInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetScope returns __SetStashEntryInput.Scope, and is useful for accessing the field via an interface.
+func (v *__SetStashEntryInput) GetScope() StashScope { return v.Scope }
+
+// GetKey returns __SetStashEntryInput.Key, and is useful for accessing the field via an interface.
+func (v *__SetStashEntryInput) GetKey() string { return v.Key }
+
+// GetInput returns __SetStashEntryInput.Input, and is useful for accessing the field via an interface.
+func (v *__SetStashEntryInput) GetInput() SetStashEntryInput { return v.Input }
 
 // __UnlinkComponentsInput is used internally by genqlient
 type __UnlinkComponentsInput struct {
@@ -39223,6 +40002,52 @@ func DeleteServiceAccount(
 	return data_, err_
 }
 
+// The mutation executed by DeleteStashEntry.
+const DeleteStashEntry_Operation = `
+mutation DeleteStashEntry ($organizationId: ID!, $scope: StashScope!, $key: String!) {
+	deleteStashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
+		result {
+			key
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func DeleteStashEntry(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	scope StashScope,
+	key string,
+) (data_ *DeleteStashEntryResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "DeleteStashEntry",
+		Query:  DeleteStashEntry_Operation,
+		Variables: &__DeleteStashEntryInput{
+			OrganizationId: organizationId,
+			Scope:          scope,
+			Key:            key,
+		},
+	}
+
+	data_ = &DeleteStashEntryResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The mutation executed by DeployEnvironment.
 const DeployEnvironment_Operation = `
 mutation DeployEnvironment ($organizationId: ID!, $id: ID!) {
@@ -40729,6 +41554,51 @@ func GetServiceAccount(
 	}
 
 	data_ = &GetServiceAccountResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by GetStashEntry.
+const GetStashEntry_Operation = `
+query GetStashEntry ($organizationId: ID!, $scope: StashScope!, $key: String!) {
+	stashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
+		key
+		value
+		data
+		format
+		immutable
+		sensitive
+		expiresAt
+		updatedAt
+	}
+}
+`
+
+func GetStashEntry(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	scope StashScope,
+	key string,
+) (data_ *GetStashEntryResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetStashEntry",
+		Query:  GetStashEntry_Operation,
+		Variables: &__GetStashEntryInput{
+			OrganizationId: organizationId,
+			Scope:          scope,
+			Key:            key,
+		},
+	}
+
+	data_ = &GetStashEntryResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -42400,6 +43270,57 @@ func ListServiceAccounts(
 	return data_, err_
 }
 
+// The query executed by ListStashEntries.
+const ListStashEntries_Operation = `
+query ListStashEntries ($organizationId: ID!, $scope: StashScope!, $cursor: Cursor) {
+	stashEntries(organizationId: $organizationId, scope: $scope, cursor: $cursor) {
+		cursor {
+			next
+			previous
+		}
+		items {
+			key
+			value
+			data
+			format
+			immutable
+			sensitive
+			expiresAt
+			updatedAt
+		}
+	}
+}
+`
+
+func ListStashEntries(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	scope StashScope,
+	cursor *scalars.Cursor,
+) (data_ *ListStashEntriesResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListStashEntries",
+		Query:  ListStashEntries_Operation,
+		Variables: &__ListStashEntriesInput{
+			OrganizationId: organizationId,
+			Scope:          scope,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListStashEntriesResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
 // The mutation executed by OrphanInstance.
 const OrphanInstance_Operation = `
 mutation OrphanInstance ($organizationId: ID!, $id: ID!, $input: OrphanInstanceInput!) {
@@ -43374,6 +44295,61 @@ func SetRemoteReference(
 	}
 
 	data_ = &SetRemoteReferenceResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by SetStashEntry.
+const SetStashEntry_Operation = `
+mutation SetStashEntry ($organizationId: ID!, $scope: StashScope!, $key: String!, $input: SetStashEntryInput!) {
+	setStashEntry(organizationId: $organizationId, scope: $scope, key: $key, input: $input) {
+		result {
+			key
+			value
+			data
+			format
+			immutable
+			sensitive
+			expiresAt
+			updatedAt
+		}
+		successful
+		messages {
+			code
+			field
+			message
+		}
+	}
+}
+`
+
+func SetStashEntry(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	scope StashScope,
+	key string,
+	input SetStashEntryInput,
+) (data_ *SetStashEntryResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "SetStashEntry",
+		Query:  SetStashEntry_Operation,
+		Variables: &__SetStashEntryInput{
+			OrganizationId: organizationId,
+			Scope:          scope,
+			Key:            key,
+			Input:          input,
+		},
+	}
+
+	data_ = &SetStashEntryResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

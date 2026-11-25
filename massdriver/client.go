@@ -20,6 +20,7 @@ import (
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/resourcetypes"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/server"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/serviceaccounts"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/stash"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/urls"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/viewer"
 )
@@ -78,6 +79,9 @@ type Client struct {
 	Server *server.Service
 	// ServiceAccounts manages programmatic API client identities.
 	ServiceAccounts *serviceaccounts.Service
+	// Stash stores small keyed values in a project, environment,
+	// component, instance, or deployment.
+	Stash *stash.Service
 	// URLs builds deep links into the Massdriver web app.
 	URLs *urls.Service
 	// Viewer reports the currently-authenticated identity.
@@ -173,6 +177,7 @@ func wrap(c *client.Client) *Client {
 		ResourceTypes:     resourcetypes.New(c),
 		Server:            server.New(c),
 		ServiceAccounts:   serviceaccounts.New(c),
+		Stash:             stash.New(c),
 		URLs:              urls.New(c),
 		Viewer:            viewer.New(c),
 	}
