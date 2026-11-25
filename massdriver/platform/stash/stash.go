@@ -88,8 +88,8 @@ type SetInput struct {
 	// Format is how Value is read. Empty is [FormatText]. With
 	// [FormatJSON], Value must be a JSON object.
 	Format Format
-	// TTL is how long the entry lives after this write, in whole seconds.
-	// Zero keeps the entry until it is deleted.
+	// TTL is how long the entry lives after this write, truncated to whole
+	// seconds. Zero keeps the entry until it is deleted.
 	TTL time.Duration
 	// Immutable entries keep their first value. A later Set returns an
 	// error.
@@ -165,9 +165,13 @@ func (s *Service) Set(ctx context.Context, scope Scope, key string, input SetInp
 	if input.TTL < 0 || (input.TTL > 0 && input.TTL < time.Second) {
 		return nil, fmt.Errorf("set stash entry %s in %s: ttl must be zero or at least one second, got %s", key, scope, input.TTL)
 	}
+	format := input.Format
+	if format == "" {
+		format = FormatText
+	}
 	resp, err := gen.SetStashEntry(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gs, key, gen.SetStashEntryInput{
 		Value:     input.Value,
-		Format:    gen.StashFormat(input.Format),
+		Format:    gen.StashFormat(format),
 		Ttl:       int(input.TTL / time.Second),
 		Immutable: input.Immutable,
 		Sensitive: input.Sensitive,

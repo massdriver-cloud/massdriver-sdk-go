@@ -230,7 +230,7 @@ func TestSet(t *testing.T) {
 	}
 }
 
-func TestSet_OmitsUnsetOptions(t *testing.T) {
+func TestSet_SendsDefaults(t *testing.T) {
 	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"setStashEntry": payload(textEntry())}))
 
 	if _, err := newService(gqlClient).Set(t.Context(), stash.Scope{Kind: stash.ScopeProject, ID: "api"}, "db/hostname", stash.SetInput{Value: "db.internal"}); err != nil {
@@ -238,8 +238,14 @@ func TestSet_OmitsUnsetOptions(t *testing.T) {
 	}
 
 	input, _ := gqlClient.Requests()[0].Variables["input"].(map[string]any)
-	if len(input) != 1 || input["value"] != "db.internal" {
-		t.Errorf("input = %v, want only value", input)
+	want := map[string]any{"value": "db.internal", "format": "TEXT", "immutable": false, "sensitive": false}
+	if len(input) != len(want) {
+		t.Errorf("input = %v, want %v", input, want)
+	}
+	for k, v := range want {
+		if input[k] != v {
+			t.Errorf("input.%s = %v, want %v", k, input[k], v)
+		}
 	}
 }
 

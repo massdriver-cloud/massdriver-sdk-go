@@ -31289,10 +31289,10 @@ func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteR
 
 type SetStashEntryInput struct {
 	Value     string      `json:"value"`
-	Format    StashFormat `json:"format,omitempty"`
+	Format    StashFormat `json:"format"`
 	Ttl       int         `json:"ttl,omitempty"`
-	Immutable bool        `json:"immutable,omitempty"`
-	Sensitive bool        `json:"sensitive,omitempty"`
+	Immutable bool        `json:"immutable"`
+	Sensitive bool        `json:"sensitive"`
 }
 
 // GetValue returns SetStashEntryInput.Value, and is useful for accessing the field via an interface.

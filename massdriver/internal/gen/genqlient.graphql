@@ -3574,10 +3574,7 @@ query ListStashEntries(
   }
 }
 
-# @genqlient(for: "SetStashEntryInput.format", omitempty: true)
 # @genqlient(for: "SetStashEntryInput.ttl", omitempty: true)
-# @genqlient(for: "SetStashEntryInput.immutable", omitempty: true)
-# @genqlient(for: "SetStashEntryInput.sensitive", omitempty: true)
 mutation SetStashEntry(
   $organizationId: ID!,
   $scope: StashScope!,
