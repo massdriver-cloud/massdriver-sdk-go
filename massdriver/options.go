@@ -59,7 +59,8 @@ func WithDeploymentTokenAuth() Option {
 // (MASSDRIVER_DEPLOYMENT_ID + MASSDRIVER_TOKEN) when no API key or
 // personal access token resolves from options, environment, or the
 // config file. It suits tools that run both on a workstation and inside
-// a provisioner. An API key, when one resolves, always wins.
+// a provisioner. An API key, when one resolves, always wins. A profile
+// name that does not exist does not block the fallback.
 func WithDeploymentTokenFallback() Option {
 	return func(o *options) { o.deploymentFallback = true }
 }

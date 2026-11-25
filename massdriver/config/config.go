@@ -127,7 +127,7 @@ func initializeConfig(o Overrides) (Config, error) {
 	if profileConfig, exists := configFile.lookup(selection.name); exists {
 		profile = profileConfig
 		cfg.Profile = selection.name
-	} else if selection.explicit && o.AuthMethod != AuthDeployment {
+	} else if selection.explicit && o.AuthMethod != AuthDeployment && !fallsBackToDeployment(o, configEnvs) {
 		// Deployment tokens come from the environment and never from a
 		// profile, so a stale profile name must not block a provisioner.
 		return Config{}, selection.notFoundError(configFile)
@@ -223,4 +223,12 @@ func validateConfig(cfg Config) error {
 	}
 
 	return nil
+}
+
+// fallsBackToDeployment reports whether [Overrides.DeploymentFallback]
+// resolves the deployment token without reading a profile: no API key
+// comes from an option or the environment, and both token env vars are
+// set.
+func fallsBackToDeployment(o Overrides, envs *configEnvs) bool {
+	return o.DeploymentFallback && envs.APIKey == "" && envs.hasDeploymentToken()
 }

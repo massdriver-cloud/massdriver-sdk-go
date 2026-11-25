@@ -85,8 +85,8 @@ func redact(s string) string {
 // resolveCredentials resolves the credential for the requested
 // [AuthMethod]. The default is API-key/PAT auth; deployment tokens
 // (MASSDRIVER_DEPLOYMENT_ID + MASSDRIVER_TOKEN) resolve only when
-// explicitly requested, never as an ambient fallback — they
-// authenticate just the provisioning API subset.
+// requested with [AuthDeployment], or with deploymentFallback when no
+// API key resolves — they authenticate just a subset of the API.
 //
 // origin identifies which layer supplied an explicit API-key
 // override; empty means "infer from envs vs profile."
@@ -95,7 +95,7 @@ func resolveCredentials(envs *configEnvs, profile *Profile, origin CredentialSou
 	case AuthDeployment:
 		return resolveDeploymentCredentials(envs)
 	case "", AuthAPIKey, AuthPAT:
-		if deploymentFallback && cmp.Or(envs.APIKey, profile.APIKey) == "" && envs.DeploymentID != "" && envs.DeploymentToken != "" {
+		if deploymentFallback && apiKeyFrom(envs, profile) == "" && envs.hasDeploymentToken() {
 			return resolveDeploymentCredentials(envs)
 		}
 		return resolveAPIKeyCredentials(envs, profile, origin)
@@ -104,8 +104,16 @@ func resolveCredentials(envs *configEnvs, profile *Profile, origin CredentialSou
 	}
 }
 
+func apiKeyFrom(envs *configEnvs, profile *Profile) string {
+	return cmp.Or(envs.APIKey, profile.APIKey)
+}
+
+func (e *configEnvs) hasDeploymentToken() bool {
+	return e.DeploymentID != "" && e.DeploymentToken != ""
+}
+
 func resolveDeploymentCredentials(envs *configEnvs) (Credentials, error) {
-	if envs.DeploymentID == "" || envs.DeploymentToken == "" {
+	if !envs.hasDeploymentToken() {
 		return Credentials{}, ErrDeploymentCredentialsMissing
 	}
 
@@ -121,11 +129,11 @@ func resolveDeploymentCredentials(envs *configEnvs) (Credentials, error) {
 
 func resolveAPIKeyCredentials(envs *configEnvs, profile *Profile, origin CredentialSource) (Credentials, error) {
 	organizationID := cmp.Or(envs.OrganizationID, envs.OrgId, profile.OrganizationID)
-	apiKey := cmp.Or(envs.APIKey, profile.APIKey)
+	apiKey := apiKeyFrom(envs, profile)
 
 	if apiKey == "" {
-		if envs.DeploymentID != "" && envs.DeploymentToken != "" {
-			return Credentials{}, fmt.Errorf("%w; MASSDRIVER_DEPLOYMENT_ID and MASSDRIVER_TOKEN are set, but deployment token authentication requires explicit opt-in (massdriver.WithDeploymentTokenAuth)", ErrNoCredentials)
+		if envs.hasDeploymentToken() {
+			return Credentials{}, fmt.Errorf("%w; MASSDRIVER_DEPLOYMENT_ID and MASSDRIVER_TOKEN are set, but deployment token authentication requires explicit opt-in (massdriver.WithDeploymentTokenAuth or massdriver.WithDeploymentTokenFallback)", ErrNoCredentials)
 		}
 		return Credentials{}, ErrNoCredentials
 	}
