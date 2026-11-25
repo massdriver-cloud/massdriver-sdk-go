@@ -44,7 +44,9 @@ Deployment tokens (MASSDRIVER_DEPLOYMENT_ID + MASSDRIVER_TOKEN,
 injected into provisioner containers) are never resolved implicitly —
 they authenticate only a small provisioning-related subset of the
 platform API. Deploy-time tooling that needs one opts in with
-[WithDeploymentTokenAuth].
+[WithDeploymentTokenAuth]. A tool that runs both on a workstation and
+inside a provisioner passes [WithDeploymentTokenFallback], which uses
+the deployment token only when no API key resolves.
 
 Construction errors classify with [errors.Is] against the sentinels in
 [github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config]:

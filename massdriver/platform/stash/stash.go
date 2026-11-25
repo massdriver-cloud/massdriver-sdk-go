@@ -102,7 +102,7 @@ type SetInput struct {
 // Get retrieves the entry stored under key in scope.
 //
 // Returns [gql.ErrNotFound] (wrapped, match with [errors.Is]) when the scope
-// has no entry under key, or the entry has expired.
+// does not exist, the scope has no entry under key, or the entry has expired.
 func (s *Service) Get(ctx context.Context, scope Scope, key string) (*Entry, error) {
 	gs, err := toGenScope(scope)
 	if err != nil {
@@ -185,9 +185,12 @@ func (s *Service) Set(ctx context.Context, scope Scope, key string, input SetInp
 	return toEntry(resp.SetStashEntry.Result)
 }
 
-// Delete removes the entry stored under key in scope.
+// Delete removes the entry stored under key in scope. Immutable entries can
+// be deleted.
 //
-// Returns [gql.ErrNotFound] (wrapped) when the scope has no entry under key.
+// Returns a [*gql.MutationFailedError] (wrapped) when the scope does not
+// exist or has no entry under key. The server reports both as a failed
+// payload, not as a not-found error.
 func (s *Service) Delete(ctx context.Context, scope Scope, key string) error {
 	gs, err := toGenScope(scope)
 	if err != nil {

@@ -10796,8 +10796,10 @@ func (v *DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMess
 // DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry includes the requested fields of the GraphQL type StashEntry.
 // The GraphQL type's documentation follows.
 //
-// A key and value stored in a scope.
+// A key and value stored on a project, environment, component, instance, or deployment. Massdriver stores the
+// value and returns it as written. It does not read the value or act on it.
 type DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry struct {
+	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
 	Key string `json:"key"`
 }
 
@@ -10808,7 +10810,17 @@ func (v *DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry) GetK
 
 // DeleteStashEntryResponse is returned by DeleteStashEntry on success.
 type DeleteStashEntryResponse struct {
-	// Delete a stash entry.
+	// Delete a key from a stash. Needs the same permission as `setStashEntry`. Immutable entries can be deleted.
+	// The result has the deleted entry. Its value is null when the entry is sensitive.
+	//
+	// ```graphql
+	// mutation {
+	// deleteStashEntry(organizationId: "my-org", scope: { project: "ecomm" }, key: "release") {
+	// successful
+	// result { key }
+	// }
+	// }
+	// ```
 	DeleteStashEntry DeleteStashEntryDeleteStashEntryStashEntryPayload `json:"deleteStashEntry"`
 }
 
@@ -19174,7 +19186,19 @@ func (v *GetServiceAccountServiceAccount) GetUpdatedAt() time.Time { return v.Up
 
 // GetStashEntryResponse is returned by GetStashEntry on success.
 type GetStashEntryResponse struct {
-	// Get one stash entry by scope and key.
+	// Get one entry from a stash. Expired entries are not returned.
+	//
+	// You need `project:view` on the stash's project. A sensitive value is null unless you can change the stash.
+	//
+	// ```graphql
+	// query {
+	// stashEntry(organizationId: "my-org", scope: { instance: "ecomm-prod-database" }, key: "schema.version") {
+	// key
+	// value
+	// expiresAt
+	// }
+	// }
+	// ```
 	StashEntry GetStashEntryStashEntry `json:"stashEntry"`
 }
 
@@ -19184,16 +19208,25 @@ func (v *GetStashEntryResponse) GetStashEntry() GetStashEntryStashEntry { return
 // GetStashEntryStashEntry includes the requested fields of the GraphQL type StashEntry.
 // The GraphQL type's documentation follows.
 //
-// A key and value stored in a scope.
+// A key and value stored on a project, environment, component, instance, or deployment. Massdriver stores the
+// value and returns it as written. It does not read the value or act on it.
 type GetStashEntryStashEntry struct {
-	Key       string         `json:"key"`
-	Value     *string        `json:"value"`
-	Data      map[string]any `json:"-"`
-	Format    StashFormat    `json:"format"`
-	Immutable bool           `json:"immutable"`
-	Sensitive bool           `json:"sensitive"`
-	ExpiresAt time.Time      `json:"expiresAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
+	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
+	Key string `json:"key"`
+	// The value exactly as it was written. Null when the entry is sensitive and you cannot change this stash.
+	Value *string `json:"value"`
+	// The value parsed as a JSON object when the format is `JSON`. Null for `TEXT` entries.
+	Data map[string]any `json:"-"`
+	// How the value is stored and returned.
+	Format StashFormat `json:"format"`
+	// When true, the key cannot be set again until the entry expires or is deleted.
+	Immutable bool `json:"immutable"`
+	// When true, the value is encrypted and is returned only to callers who can change this stash.
+	Sensitive bool `json:"sensitive"`
+	// When the entry expires (UTC). Null when the entry does not expire.
+	ExpiresAt time.Time `json:"expiresAt"`
+	// When the value was last set (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // GetKey returns GetStashEntryStashEntry.Key, and is useful for accessing the field via an interface.
@@ -26814,7 +26847,18 @@ func (v *ListServiceAccountsServiceAccountsServiceAccountsPageItemsServiceAccoun
 
 // ListStashEntriesResponse is returned by ListStashEntries on success.
 type ListStashEntriesResponse struct {
-	// List the stash entries in one scope.
+	// List the entries in a stash, ordered by key. Expired entries are not returned.
+	//
+	// You need `project:view` on the stash's project. Sensitive values are null unless you can change the stash.
+	//
+	// ```graphql
+	// query {
+	// stashEntries(organizationId: "my-org", scope: { environment: "ecomm-prod" }) {
+	// items { key value format }
+	// cursor { next }
+	// }
+	// }
+	// ```
 	StashEntries ListStashEntriesStashEntriesStashEntriesPage `json:"stashEntries"`
 }
 
@@ -26869,16 +26913,25 @@ func (v *ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor) Get
 // ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry includes the requested fields of the GraphQL type StashEntry.
 // The GraphQL type's documentation follows.
 //
-// A key and value stored in a scope.
+// A key and value stored on a project, environment, component, instance, or deployment. Massdriver stores the
+// value and returns it as written. It does not read the value or act on it.
 type ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry struct {
-	Key       string         `json:"key"`
-	Value     *string        `json:"value"`
-	Data      map[string]any `json:"-"`
-	Format    StashFormat    `json:"format"`
-	Immutable bool           `json:"immutable"`
-	Sensitive bool           `json:"sensitive"`
-	ExpiresAt time.Time      `json:"expiresAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
+	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
+	Key string `json:"key"`
+	// The value exactly as it was written. Null when the entry is sensitive and you cannot change this stash.
+	Value *string `json:"value"`
+	// The value parsed as a JSON object when the format is `JSON`. Null for `TEXT` entries.
+	Data map[string]any `json:"-"`
+	// How the value is stored and returned.
+	Format StashFormat `json:"format"`
+	// When true, the key cannot be set again until the entry expires or is deleted.
+	Immutable bool `json:"immutable"`
+	// When true, the value is encrypted and is returned only to callers who can change this stash.
+	Sensitive bool `json:"sensitive"`
+	// When the entry expires (UTC). Null when the entry does not expire.
+	ExpiresAt time.Time `json:"expiresAt"`
+	// When the value was last set (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // GetKey returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Key, and is useful for accessing the field via an interface.
@@ -31287,22 +31340,22 @@ func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteR
 	return v.Icon
 }
 
+// Set the value of a key in a stash. Setting a key that has a value replaces the value and every other setting of the entry.
 type SetStashEntryInput struct {
-	Value     string      `json:"value"`
-	Format    StashFormat `json:"format"`
-	Ttl       int         `json:"ttl,omitempty"`
-	Immutable bool        `json:"immutable"`
-	Sensitive bool        `json:"sensitive"`
+	// TEXT stores any string. JSON requires a JSON object, and the entry's `data` field returns it parsed. Defaults to TEXT.
+	Format StashFormat `json:"format"`
+	// When true, the key cannot be set again until the entry expires or is deleted. Setting an immutable entry fails if the key already has a value.
+	Immutable bool `json:"immutable"`
+	// When true, the value is encrypted and is returned only to callers who can change the stash.
+	Sensitive bool `json:"sensitive"`
+	// Seconds until the entry expires. An expired entry is not returned and is deleted soon after. At most 315360000 (10 years). Leave empty to keep the entry until you delete it.
+	Ttl int `json:"ttl,omitempty"`
+	// The value to store. Massdriver returns it exactly as written. The size limit is 65536 bytes unless your installation sets another.
+	Value string `json:"value"`
 }
-
-// GetValue returns SetStashEntryInput.Value, and is useful for accessing the field via an interface.
-func (v *SetStashEntryInput) GetValue() string { return v.Value }
 
 // GetFormat returns SetStashEntryInput.Format, and is useful for accessing the field via an interface.
 func (v *SetStashEntryInput) GetFormat() StashFormat { return v.Format }
-
-// GetTtl returns SetStashEntryInput.Ttl, and is useful for accessing the field via an interface.
-func (v *SetStashEntryInput) GetTtl() int { return v.Ttl }
 
 // GetImmutable returns SetStashEntryInput.Immutable, and is useful for accessing the field via an interface.
 func (v *SetStashEntryInput) GetImmutable() bool { return v.Immutable }
@@ -31310,9 +31363,47 @@ func (v *SetStashEntryInput) GetImmutable() bool { return v.Immutable }
 // GetSensitive returns SetStashEntryInput.Sensitive, and is useful for accessing the field via an interface.
 func (v *SetStashEntryInput) GetSensitive() bool { return v.Sensitive }
 
+// GetTtl returns SetStashEntryInput.Ttl, and is useful for accessing the field via an interface.
+func (v *SetStashEntryInput) GetTtl() int { return v.Ttl }
+
+// GetValue returns SetStashEntryInput.Value, and is useful for accessing the field via an interface.
+func (v *SetStashEntryInput) GetValue() string { return v.Value }
+
 // SetStashEntryResponse is returned by SetStashEntry on success.
 type SetStashEntryResponse struct {
-	// Set a stash entry's value.
+	// Set the value of a key in a stash. Setting a key that has a value replaces the value and every other setting
+	// of the entry.
+	//
+	// The permission you need depends on the stash:
+	//
+	// | Stash       | Permission                                         |
+	// |-------------|----------------------------------------------------|
+	// | Project     | `project:update`                                   |
+	// | Environment | `environment:update`                               |
+	// | Component   | `project:design`                                   |
+	// | Instance    | `instance:configure`                               |
+	// | Deployment  | `instance:configure` on the deployment's instance  |
+	//
+	// A deployment's own credentials can set keys on that deployment and on its instance, environment, component,
+	// and project.
+	//
+	// The mutation fails when the key has an immutable entry that has not expired, or when the stash already has
+	// its maximum number of keys (1000 unless your installation sets another).
+	//
+	// ```graphql
+	// mutation {
+	// setStashEntry(
+	// organizationId: "my-org"
+	// scope: { instance: "ecomm-prod-database" }
+	// key: "schema.version"
+	// input: { value: "42", ttl: 86400 }
+	// ) {
+	// successful
+	// result { key value expiresAt }
+	// messages { field message }
+	// }
+	// }
+	// ```
 	SetStashEntry SetStashEntrySetStashEntryStashEntryPayload `json:"setStashEntry"`
 }
 
@@ -31402,16 +31493,25 @@ func (v *SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage) G
 // SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry includes the requested fields of the GraphQL type StashEntry.
 // The GraphQL type's documentation follows.
 //
-// A key and value stored in a scope.
+// A key and value stored on a project, environment, component, instance, or deployment. Massdriver stores the
+// value and returns it as written. It does not read the value or act on it.
 type SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry struct {
-	Key       string         `json:"key"`
-	Value     *string        `json:"value"`
-	Data      map[string]any `json:"-"`
-	Format    StashFormat    `json:"format"`
-	Immutable bool           `json:"immutable"`
-	Sensitive bool           `json:"sensitive"`
-	ExpiresAt time.Time      `json:"expiresAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
+	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
+	Key string `json:"key"`
+	// The value exactly as it was written. Null when the entry is sensitive and you cannot change this stash.
+	Value *string `json:"value"`
+	// The value parsed as a JSON object when the format is `JSON`. Null for `TEXT` entries.
+	Data map[string]any `json:"-"`
+	// How the value is stored and returned.
+	Format StashFormat `json:"format"`
+	// When true, the key cannot be set again until the entry expires or is deleted.
+	Immutable bool `json:"immutable"`
+	// When true, the value is encrypted and is returned only to callers who can change this stash.
+	Sensitive bool `json:"sensitive"`
+	// When the entry expires (UTC). Null when the entry does not expire.
+	ExpiresAt time.Time `json:"expiresAt"`
+	// When the value was last set (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // GetKey returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Key, and is useful for accessing the field via an interface.
@@ -31554,11 +31654,13 @@ var AllSortOrder = []SortOrder{
 	SortOrderDesc,
 }
 
-// How a stash entry's value is read.
+// How a stash value is stored and returned.
 type StashFormat string
 
 const (
+	// Any string.
 	StashFormatText StashFormat = "TEXT"
+	// A JSON object. The entry's `data` field returns it parsed.
 	StashFormatJson StashFormat = "JSON"
 )
 
@@ -31567,13 +31669,21 @@ var AllStashFormat = []StashFormat{
 	StashFormatJson,
 }
 
-// The one project, environment, component, instance, or deployment that holds a stash entry. Set exactly one field.
+// The project, environment, component, instance, or deployment that owns a stash. Set exactly one field.
+//
+// Each one has its own stash. A key set on an environment is not returned when you read the stash of an
+// instance in that environment.
 type StashScope struct {
-	Project     string `json:"project,omitempty"`
+	// A project ID, for example `ecomm`.
+	Project string `json:"project,omitempty"`
+	// An environment ID, for example `ecomm-prod`.
 	Environment string `json:"environment,omitempty"`
-	Component   string `json:"component,omitempty"`
-	Instance    string `json:"instance,omitempty"`
-	Deployment  string `json:"deployment,omitempty"`
+	// A component ID, for example `ecomm-database`.
+	Component string `json:"component,omitempty"`
+	// An instance ID, for example `ecomm-prod-database`.
+	Instance string `json:"instance,omitempty"`
+	// A deployment ID (a UUID).
+	Deployment string `json:"deployment,omitempty"`
 }
 
 // GetProject returns StashScope.Project, and is useful for accessing the field via an interface.

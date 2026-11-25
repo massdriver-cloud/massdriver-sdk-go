@@ -134,6 +134,47 @@ func TestNewClient_DeploymentTokenIsOptIn(t *testing.T) {
 		}
 	})
 
+	t.Run("fallback uses the deployment token when no API key resolves", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		c, err := massdriver.NewClient(massdriver.WithDeploymentTokenFallback())
+		if err != nil {
+			t.Fatalf("NewClient: %v", err)
+		}
+		if got := string(c.Config().Credentials.Method); got != "deployment" {
+			t.Errorf("Config.Credentials.Method = %q, want deployment", got)
+		}
+	})
+
+	t.Run("fallback keeps the API key when one resolves", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_API_KEY", "env-key")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		c, err := massdriver.NewClient(massdriver.WithDeploymentTokenFallback())
+		if err != nil {
+			t.Fatalf("NewClient: %v", err)
+		}
+		if got := string(c.Config().Credentials.Method); got != "api_key" {
+			t.Errorf("Config.Credentials.Method = %q, want api_key", got)
+		}
+	})
+
+	t.Run("fallback without any credentials errors", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+
+		_, err := massdriver.NewClient(massdriver.WithDeploymentTokenFallback())
+		if !errors.Is(err, config.ErrNoCredentials) {
+			t.Errorf("err = %v, want errors.Is(err, config.ErrNoCredentials)", err)
+		}
+	})
+
 	t.Run("opt-in without deployment envs errors", func(t *testing.T) {
 		isolateEnv(t)
 		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")

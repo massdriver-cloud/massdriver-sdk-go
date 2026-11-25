@@ -143,6 +143,8 @@ func NewClient(opts ...Option) (*Client, error) {
 		URL:            o.baseURL,
 		Profile:        o.profile,
 		AuthMethod:     o.authMethod,
+
+		DeploymentFallback: o.deploymentFallback,
 	})
 	if err != nil {
 		return nil, err

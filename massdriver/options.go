@@ -29,7 +29,9 @@ type options struct {
 	baseURL        string
 	profile        string
 	authMethod     config.AuthMethod
-	gqlClient      graphql.Client
+	// deploymentFallback is set by [WithDeploymentTokenFallback].
+	deploymentFallback bool
+	gqlClient          graphql.Client
 
 	timeout    time.Duration
 	timeoutSet bool
@@ -51,6 +53,15 @@ func WithAPIKey(key string) Option {
 // the only way [NewClient] uses one. Takes precedence over [WithAPIKey].
 func WithDeploymentTokenAuth() Option {
 	return func(o *options) { o.authMethod = config.AuthDeployment }
+}
+
+// WithDeploymentTokenFallback uses the deployment token
+// (MASSDRIVER_DEPLOYMENT_ID + MASSDRIVER_TOKEN) when no API key or
+// personal access token resolves from options, environment, or the
+// config file. It suits tools that run both on a workstation and inside
+// a provisioner. An API key, when one resolves, always wins.
+func WithDeploymentTokenFallback() Option {
+	return func(o *options) { o.deploymentFallback = true }
 }
 
 // WithOrganizationID sets the organization id this client operates

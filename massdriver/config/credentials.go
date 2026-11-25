@@ -90,11 +90,14 @@ func redact(s string) string {
 //
 // origin identifies which layer supplied an explicit API-key
 // override; empty means "infer from envs vs profile."
-func resolveCredentials(envs *configEnvs, profile *Profile, origin CredentialSource, method AuthMethod) (Credentials, error) {
+func resolveCredentials(envs *configEnvs, profile *Profile, origin CredentialSource, method AuthMethod, deploymentFallback bool) (Credentials, error) {
 	switch method {
 	case AuthDeployment:
 		return resolveDeploymentCredentials(envs)
 	case "", AuthAPIKey, AuthPAT:
+		if deploymentFallback && cmp.Or(envs.APIKey, profile.APIKey) == "" && envs.DeploymentID != "" && envs.DeploymentToken != "" {
+			return resolveDeploymentCredentials(envs)
+		}
 		return resolveAPIKeyCredentials(envs, profile, origin)
 	default:
 		return Credentials{}, fmt.Errorf("unsupported auth method: %q", method)

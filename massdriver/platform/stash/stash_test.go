@@ -302,17 +302,36 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestDelete_NotFound(t *testing.T) {
+func TestDelete_Missing(t *testing.T) {
+	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{
+		"deleteStashEntry": map[string]any{
+			"result":     nil,
+			"successful": false,
+			"messages":   []map[string]any{{"code": "unknown", "message": "Stash entry not found"}},
+		},
+	}))
+
+	err := newService(gqlClient).Delete(t.Context(), stash.Scope{Kind: stash.ScopeProject, ID: "api"}, "missing")
+	var mutErr *gql.MutationFailedError
+	if !errors.As(err, &mutErr) {
+		t.Fatalf("err = %v, want *gql.MutationFailedError", err)
+	}
+	if len(mutErr.Messages) != 1 || mutErr.Messages[0].Message != "Stash entry not found" {
+		t.Errorf("messages = %+v", mutErr.Messages)
+	}
+}
+
+func TestListPage_UnknownScope(t *testing.T) {
 	gqlClient := gqltest.NewClient(gqltest.RespondWithJSON(map[string]any{
-		"data": map[string]any{"deleteStashEntry": nil},
+		"data": map[string]any{"stashEntries": nil},
 		"errors": []map[string]any{{
-			"message":    "not found",
-			"path":       []string{"deleteStashEntry"},
+			"message":    "Environment not found",
+			"path":       []string{"stashEntries"},
 			"extensions": map[string]any{"code": "NOT_FOUND"},
 		}},
 	}))
 
-	err := newService(gqlClient).Delete(t.Context(), stash.Scope{Kind: stash.ScopeProject, ID: "api"}, "missing")
+	_, err := newService(gqlClient).ListPage(t.Context(), stash.Scope{Kind: stash.ScopeEnvironment, ID: "api-gone"}, stash.ListInput{})
 	if !errors.Is(err, gql.ErrNotFound) {
 		t.Errorf("err = %v, want it to wrap gql.ErrNotFound", err)
 	}

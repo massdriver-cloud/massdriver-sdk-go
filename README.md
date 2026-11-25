@@ -67,7 +67,7 @@ profiles:
 
 The first three are explicit requests — naming a profile that doesn't exist fails with `config.ErrProfileNotFound` rather than quietly falling back to whatever credentials the environment happens to hold. The `default` fallback is only a convenience, so it may be absent; that's the case when a caller is configured entirely through environment variables.
 
-Deployment tokens (`MASSDRIVER_DEPLOYMENT_ID` + `MASSDRIVER_TOKEN`, injected into provisioner containers) are never picked up implicitly — they authenticate only a small provisioning-related subset of the platform API. Deploy-time tooling that needs one opts in with `massdriver.WithDeploymentTokenAuth()`.
+Deployment tokens (`MASSDRIVER_DEPLOYMENT_ID` + `MASSDRIVER_TOKEN`, injected into provisioner containers) are never picked up implicitly — they authenticate only a small provisioning-related subset of the platform API. Deploy-time tooling that needs one opts in with `massdriver.WithDeploymentTokenAuth()`. A tool that runs both on a workstation and inside a provisioner passes `massdriver.WithDeploymentTokenFallback()`, which uses the deployment token only when no API key resolves.
 
 ```go
 // Explicit credentials (e.g. CI):

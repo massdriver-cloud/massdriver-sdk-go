@@ -49,6 +49,10 @@ type Overrides struct {
 	// API-key/PAT auth; [AuthDeployment] opts into the deployment
 	// token env vars.
 	AuthMethod AuthMethod
+	// DeploymentFallback resolves the deployment token env vars when
+	// API-key/PAT auth finds no key. It lets one tool run both on a
+	// workstation and inside a provisioner.
+	DeploymentFallback bool
 }
 
 // Get is shorthand for [Load](Overrides{}).
@@ -133,7 +137,7 @@ func initializeConfig(o Overrides) (Config, error) {
 	cfg.URL = cmp.Or(configEnvs.URL, profile.URL, defaultURL)
 	cfg.TemplatesPath = cmp.Or(configEnvs.TemplatesPath, profile.TemplatesPath)
 
-	credentials, credErr := resolveCredentials(configEnvs, &profile, apiKeyOrigin, o.AuthMethod)
+	credentials, credErr := resolveCredentials(configEnvs, &profile, apiKeyOrigin, o.AuthMethod, o.DeploymentFallback)
 	if credErr != nil {
 		return Config{}, fmt.Errorf("error resolving credentials: %w", credErr)
 	}
