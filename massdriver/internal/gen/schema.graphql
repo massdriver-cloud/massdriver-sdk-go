@@ -931,7 +931,8 @@ type RootQueryType {
 
   An instance scope also returns the deployment results of the instance's latest deployment that has any
   well-known key, such as `md/v1/step/src` and `md/v1/cost_estimate`. The `scope` of each of those widgets
-  is that deployment. A deployment scope returns the results of that deployment.
+  is that deployment. A newer deployment that has not set a well-known key yet, for example one that is still
+  running, does not hide these results. A deployment scope returns the results of that deployment.
 
   ```graphql
   query {
