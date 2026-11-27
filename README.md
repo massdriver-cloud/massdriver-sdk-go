@@ -102,7 +102,7 @@ field. Common entry points:
 | `c.AccessTokens`, `c.ServiceAccounts` | Programmatic identities. |
 | `c.AuditLogs` | The organization's audit trail (use `Iter` for large queries). |
 | `c.EventDestinations` | Places that receive the organization's audit log events, their deliveries, and the event catalog. |
-| `c.Stash` | Small keyed values stored in a project, environment, component, instance, or deployment. Stash is an alpha API that can change or be removed at any time. |
+| `c.Stash` | Small keyed values stored in a project, environment, component, instance, or deployment, the widgets drawn from well-known keys, and a stream of stash changes. Stash is an alpha API that can change or be removed at any time. |
 | `c.Organizations` | Organization metadata + custom-attribute schema. |
 | `c.Server`, `c.Viewer`, `c.URLs` | Server metadata, current identity, deep links. |
 

@@ -38,6 +38,18 @@ func Events(
 	vars map[string]any,
 	unpack func(json.RawMessage) (types.Event, bool),
 ) (<-chan types.Event, error) {
+	return Frames(ctx, c, opName, query, vars, unpack)
+}
+
+// Frames is [Events] for a subscription whose frames decode to one type T
+// rather than to a [types.Event] union variant.
+func Frames[T any](
+	ctx context.Context,
+	c *client.Client,
+	opName, query string,
+	vars map[string]any,
+	unpack func(json.RawMessage) (T, bool),
+) (<-chan T, error) {
 	socket, err := c.OpenStreamSocket(ctx)
 	if err != nil {
 		return nil, err
@@ -54,7 +66,7 @@ func Events(
 		_ = socket.Close()
 	}()
 
-	out := make(chan types.Event, cap(sub.Data))
+	out := make(chan T, cap(sub.Data))
 	go func() {
 		defer close(out)
 		for raw := range sub.Data {

@@ -1194,6 +1194,17 @@ func (v *AlphaSetStashEntryInput) GetValue() string { return v.Value }
 
 // Alpha: this API can change or be removed at any time, without notice.
 //
+// Narrows the entries a stash query returns.
+type AlphaStashEntriesFilter struct {
+	// Return only entries with one of these keys.
+	Keys []string `json:"keys,omitempty"`
+}
+
+// GetKeys returns AlphaStashEntriesFilter.Keys, and is useful for accessing the field via an interface.
+func (v *AlphaStashEntriesFilter) GetKeys() []string { return v.Keys }
+
+// Alpha: this API can change or be removed at any time, without notice.
+//
 // How a stash value is stored and returned.
 type AlphaStashFormat string
 
@@ -1242,6 +1253,84 @@ func (v *AlphaStashScope) GetInstance() string { return v.Instance }
 
 // GetDeployment returns AlphaStashScope.Deployment, and is useful for accessing the field via an interface.
 func (v *AlphaStashScope) GetDeployment() string { return v.Deployment }
+
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// The kind of entity that owns a stash.
+type AlphaStashScopeKind string
+
+const (
+	// A project.
+	AlphaStashScopeKindProject AlphaStashScopeKind = "PROJECT"
+	// An environment.
+	AlphaStashScopeKindEnvironment AlphaStashScopeKind = "ENVIRONMENT"
+	// A component.
+	AlphaStashScopeKindComponent AlphaStashScopeKind = "COMPONENT"
+	// An instance.
+	AlphaStashScopeKindInstance AlphaStashScopeKind = "INSTANCE"
+	// A deployment.
+	AlphaStashScopeKindDeployment AlphaStashScopeKind = "DEPLOYMENT"
+)
+
+var AllAlphaStashScopeKind = []AlphaStashScopeKind{
+	AlphaStashScopeKindProject,
+	AlphaStashScopeKindEnvironment,
+	AlphaStashScopeKindComponent,
+	AlphaStashScopeKindInstance,
+	AlphaStashScopeKindDeployment,
+}
+
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// The kind of entity a widget shows on.
+type AlphaWidgetEntityKind string
+
+const (
+	// A project.
+	AlphaWidgetEntityKindProject AlphaWidgetEntityKind = "PROJECT"
+	// An environment.
+	AlphaWidgetEntityKindEnvironment AlphaWidgetEntityKind = "ENVIRONMENT"
+	// A component.
+	AlphaWidgetEntityKindComponent AlphaWidgetEntityKind = "COMPONENT"
+	// An instance.
+	AlphaWidgetEntityKindInstance AlphaWidgetEntityKind = "INSTANCE"
+	// A deployment.
+	AlphaWidgetEntityKindDeployment AlphaWidgetEntityKind = "DEPLOYMENT"
+	// A link between two components, drawn as a line on the canvas.
+	AlphaWidgetEntityKindLink AlphaWidgetEntityKind = "LINK"
+)
+
+var AllAlphaWidgetEntityKind = []AlphaWidgetEntityKind{
+	AlphaWidgetEntityKindProject,
+	AlphaWidgetEntityKindEnvironment,
+	AlphaWidgetEntityKindComponent,
+	AlphaWidgetEntityKindInstance,
+	AlphaWidgetEntityKindDeployment,
+	AlphaWidgetEntityKindLink,
+}
+
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// The JSON type of a widget input's value.
+type AlphaWidgetInputType string
+
+const (
+	// A string.
+	AlphaWidgetInputTypeString AlphaWidgetInputType = "STRING"
+	// A number.
+	AlphaWidgetInputTypeNumber AlphaWidgetInputType = "NUMBER"
+	// A whole number.
+	AlphaWidgetInputTypeInteger AlphaWidgetInputType = "INTEGER"
+	// A list.
+	AlphaWidgetInputTypeArray AlphaWidgetInputType = "ARRAY"
+)
+
+var AllAlphaWidgetInputType = []AlphaWidgetInputType{
+	AlphaWidgetInputTypeString,
+	AlphaWidgetInputTypeNumber,
+	AlphaWidgetInputTypeInteger,
+	AlphaWidgetInputTypeArray,
+}
 
 // ApproveDeploymentApproveDeploymentDeploymentPayload includes the requested fields of the GraphQL type DeploymentPayload.
 type ApproveDeploymentApproveDeploymentDeploymentPayload struct {
@@ -19290,6 +19379,8 @@ func (v *GetServiceAccountServiceAccount) GetUpdatedAt() time.Time { return v.Up
 // A key and value stored on a project, environment, component, instance, or deployment. Massdriver stores the
 // value and returns it as written. It does not read the value or act on it.
 type GetStashEntryAlphaStashEntry struct {
+	// The project, environment, component, instance, or deployment that owns the entry.
+	Scope GetStashEntryAlphaStashEntryScopeAlphaStashScopeRef `json:"scope"`
 	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
 	Key string `json:"key"`
 	// A human-readable name for the entry, shown in the Massdriver UI. Null when the entry has no label. The label is not encrypted and is returned even when the entry is sensitive, so do not put secrets in it.
@@ -19308,6 +19399,11 @@ type GetStashEntryAlphaStashEntry struct {
 	ExpiresAt time.Time `json:"expiresAt"`
 	// When the value was last set (UTC).
 	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetScope returns GetStashEntryAlphaStashEntry.Scope, and is useful for accessing the field via an interface.
+func (v *GetStashEntryAlphaStashEntry) GetScope() GetStashEntryAlphaStashEntryScopeAlphaStashScopeRef {
+	return v.Scope
 }
 
 // GetKey returns GetStashEntryAlphaStashEntry.Key, and is useful for accessing the field via an interface.
@@ -19371,6 +19467,8 @@ func (v *GetStashEntryAlphaStashEntry) UnmarshalJSON(b []byte) error {
 }
 
 type __premarshalGetStashEntryAlphaStashEntry struct {
+	Scope GetStashEntryAlphaStashEntryScopeAlphaStashScopeRef `json:"scope"`
+
 	Key string `json:"key"`
 
 	Label string `json:"label"`
@@ -19401,6 +19499,7 @@ func (v *GetStashEntryAlphaStashEntry) MarshalJSON() ([]byte, error) {
 func (v *GetStashEntryAlphaStashEntry) __premarshalJSON() (*__premarshalGetStashEntryAlphaStashEntry, error) {
 	var retval __premarshalGetStashEntryAlphaStashEntry
 
+	retval.Scope = v.Scope
 	retval.Key = v.Key
 	retval.Label = v.Label
 	retval.Value = v.Value
@@ -19424,13 +19523,34 @@ func (v *GetStashEntryAlphaStashEntry) __premarshalJSON() (*__premarshalGetStash
 	return &retval, nil
 }
 
+// GetStashEntryAlphaStashEntryScopeAlphaStashScopeRef includes the requested fields of the GraphQL type AlphaStashScopeRef.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// The project, environment, component, instance, or deployment that owns a stash.
+type GetStashEntryAlphaStashEntryScopeAlphaStashScopeRef struct {
+	// The kind of entity.
+	Kind AlphaStashScopeKind `json:"kind"`
+	// The entity's ID, for example `ecomm-prod-database` for an instance. A deployment's ID is a UUID.
+	Id string `json:"id"`
+}
+
+// GetKind returns GetStashEntryAlphaStashEntryScopeAlphaStashScopeRef.Kind, and is useful for accessing the field via an interface.
+func (v *GetStashEntryAlphaStashEntryScopeAlphaStashScopeRef) GetKind() AlphaStashScopeKind {
+	return v.Kind
+}
+
+// GetId returns GetStashEntryAlphaStashEntryScopeAlphaStashScopeRef.Id, and is useful for accessing the field via an interface.
+func (v *GetStashEntryAlphaStashEntryScopeAlphaStashScopeRef) GetId() string { return v.Id }
+
 // GetStashEntryResponse is returned by GetStashEntry on success.
 type GetStashEntryResponse struct {
 	// Alpha: this API can change or be removed at any time, without notice.
 	//
 	// Get one entry from a stash. Expired entries are not returned.
 	//
-	// You need `project:view` on the stash's project. A sensitive value is null unless you can change the stash.
+	// You need `stash:view` on the stash's entity. A sensitive value is null unless you have `stash:export` on it.
 	//
 	// ```graphql
 	// query {
@@ -19751,6 +19871,238 @@ func (v *GetViewerViewerServiceAccountViewerOrganization) GetCreatedAt() time.Ti
 // GetUpdatedAt returns GetViewerViewerServiceAccountViewerOrganization.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *GetViewerViewerServiceAccountViewerOrganization) GetUpdatedAt() time.Time {
 	return v.UpdatedAt
+}
+
+// GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition includes the requested fields of the GraphQL type AlphaWidgetDefinition.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// One version of a widget that the Massdriver UI can draw, and the well-known stash key that drives it. When a
+// stash has the key with a value that matches `schema`, everyone who can view the project sees the widget.
+// Keys that start with `md/` are reserved for widgets: setting one checks its value against the schema.
+//
+// A well-known key carries its version, for example `md/v1/usage`. A breaking change to a key's shape adds a
+// new version of the widget with a new key, next to the old one. When a stash has more than one version of a
+// widget's key, the UI draws the widget from the highest version.
+type GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition struct {
+	// The widget's name, for example `instance.usage_bar`. A `WIDGET` annotation uses it as its surface.
+	Name string `json:"name"`
+	// What the widget shows.
+	Description string `json:"description"`
+	// The kind of entity the widget shows on.
+	Entity AlphaWidgetEntityKind `json:"entity"`
+	// The version of the well-known key's shape, for example `1`.
+	Version int `json:"version"`
+	// The well-known stash key, for example `md/v1/usage`.
+	Key string `json:"key"`
+	// The kind of entity whose stash holds the key. A `link.traffic` widget reads the key on the instance that sends the traffic, and shows on the lines that leave that instance.
+	Scope AlphaStashScopeKind `json:"scope"`
+	// The format the key's value must be set with.
+	Format AlphaStashFormat `json:"format"`
+	// The JSON Schema (draft 2020-12) that the key's value must match. Its `$id` names the key, for example `https://schemas.massdriver.cloud/stash/md/v1/usage.json`.
+	Schema map[string]any `json:"-"`
+	// The widget's inputs.
+	Inputs []GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput `json:"inputs"`
+}
+
+// GetName returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Name, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetName() string { return v.Name }
+
+// GetDescription returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Description, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetDescription() string {
+	return v.Description
+}
+
+// GetEntity returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Entity, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetEntity() AlphaWidgetEntityKind {
+	return v.Entity
+}
+
+// GetVersion returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Version, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetVersion() int { return v.Version }
+
+// GetKey returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Key, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetKey() string { return v.Key }
+
+// GetScope returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Scope, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetScope() AlphaStashScopeKind {
+	return v.Scope
+}
+
+// GetFormat returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Format, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetFormat() AlphaStashFormat {
+	return v.Format
+}
+
+// GetSchema returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Schema, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetSchema() map[string]any {
+	return v.Schema
+}
+
+// GetInputs returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Inputs, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetInputs() []GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput {
+	return v.Inputs
+}
+
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition
+		Schema json.RawMessage `json:"schema"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Schema
+		src := firstPass.Schema
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Schema: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalGetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition struct {
+	Name string `json:"name"`
+
+	Description string `json:"description"`
+
+	Entity AlphaWidgetEntityKind `json:"entity"`
+
+	Version int `json:"version"`
+
+	Key string `json:"key"`
+
+	Scope AlphaStashScopeKind `json:"scope"`
+
+	Format AlphaStashFormat `json:"format"`
+
+	Schema json.RawMessage `json:"schema"`
+
+	Inputs []GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput `json:"inputs"`
+}
+
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) __premarshalJSON() (*__premarshalGetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition, error) {
+	var retval __premarshalGetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition
+
+	retval.Name = v.Name
+	retval.Description = v.Description
+	retval.Entity = v.Entity
+	retval.Version = v.Version
+	retval.Key = v.Key
+	retval.Scope = v.Scope
+	retval.Format = v.Format
+	{
+
+		dst := &retval.Schema
+		src := v.Schema
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Schema: %w", err)
+		}
+	}
+	retval.Inputs = v.Inputs
+	return &retval, nil
+}
+
+// GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput includes the requested fields of the GraphQL type AlphaWidgetInput.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// One input of a widget.
+type GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput struct {
+	// The input's name, for example `value`.
+	Name string `json:"name"`
+	// The JSON type of the input's value.
+	Type AlphaWidgetInputType `json:"type"`
+	// When true, the widget is not drawn without this input.
+	Required bool `json:"required"`
+	// What the input shows.
+	Description string `json:"description"`
+	// The field of the well-known key's JSON value that the input reads, for example `rps`. Null when the key is `TEXT` and the input reads the whole value.
+	Field string `json:"field"`
+}
+
+// GetName returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput.Name, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput) GetName() string {
+	return v.Name
+}
+
+// GetType returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput.Type, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput) GetType() AlphaWidgetInputType {
+	return v.Type
+}
+
+// GetRequired returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput.Required, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput) GetRequired() bool {
+	return v.Required
+}
+
+// GetDescription returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput.Description, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput) GetDescription() string {
+	return v.Description
+}
+
+// GetField returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput.Field, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinitionInputsAlphaWidgetInput) GetField() string {
+	return v.Field
+}
+
+// GetWidgetCatalogResponse is returned by GetWidgetCatalog on success.
+type GetWidgetCatalogResponse struct {
+	// Alpha: this API can change or be removed at any time, without notice.
+	//
+	// Every version of every widget that the Massdriver UI can draw from a well-known stash key, ordered by name
+	// and then version.
+	//
+	// ```graphql
+	// query {
+	// alphaWidgetCatalog {
+	// name
+	// entity
+	// version
+	// key
+	// scope
+	// format
+	// schema
+	// inputs { name type required field }
+	// }
+	// }
+	// ```
+	AlphaWidgetCatalog []GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition `json:"alphaWidgetCatalog"`
+}
+
+// GetAlphaWidgetCatalog returns GetWidgetCatalogResponse.AlphaWidgetCatalog, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogResponse) GetAlphaWidgetCatalog() []GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition {
+	return v.AlphaWidgetCatalog
 }
 
 // The access level assigned to a group within an organization.
@@ -27013,6 +27365,8 @@ func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageCursorPaginationC
 // A key and value stored on a project, environment, component, instance, or deployment. Massdriver stores the
 // value and returns it as written. It does not read the value or act on it.
 type ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry struct {
+	// The project, environment, component, instance, or deployment that owns the entry.
+	Scope ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef `json:"scope"`
 	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
 	Key string `json:"key"`
 	// A human-readable name for the entry, shown in the Massdriver UI. Null when the entry has no label. The label is not encrypted and is returned even when the entry is sensitive, so do not put secrets in it.
@@ -27031,6 +27385,11 @@ type ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry 
 	ExpiresAt time.Time `json:"expiresAt"`
 	// When the value was last set (UTC).
 	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetScope returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.Scope, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) GetScope() ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef {
+	return v.Scope
 }
 
 // GetKey returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.Key, and is useful for accessing the field via an interface.
@@ -27112,6 +27471,8 @@ func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEn
 }
 
 type __premarshalListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry struct {
+	Scope ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef `json:"scope"`
+
 	Key string `json:"key"`
 
 	Label string `json:"label"`
@@ -27142,6 +27503,7 @@ func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEn
 func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) __premarshalJSON() (*__premarshalListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry, error) {
 	var retval __premarshalListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry
 
+	retval.Scope = v.Scope
 	retval.Key = v.Key
 	retval.Label = v.Label
 	retval.Value = v.Value
@@ -27165,13 +27527,312 @@ func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEn
 	return &retval, nil
 }
 
+// ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef includes the requested fields of the GraphQL type AlphaStashScopeRef.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// The project, environment, component, instance, or deployment that owns a stash.
+type ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef struct {
+	// The kind of entity.
+	Kind AlphaStashScopeKind `json:"kind"`
+	// The entity's ID, for example `ecomm-prod-database` for an instance. A deployment's ID is a UUID.
+	Id string `json:"id"`
+}
+
+// GetKind returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef.Kind, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef) GetKind() AlphaStashScopeKind {
+	return v.Kind
+}
+
+// GetId returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef.Id, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef) GetId() string {
+	return v.Id
+}
+
+// ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPage includes the requested fields of the GraphQL type AlphaStashEntriesPage.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// A page of AlphaStashEntry items.
+type ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageCursorPaginationCursor `json:"cursor"`
+	// A list of type stash_entry.
+	Items []ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry `json:"items"`
+}
+
+// GetCursor returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPage) GetCursor() ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPage.Items, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPage) GetItems() []ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry {
+	return v.Items
+}
+
+// ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry includes the requested fields of the GraphQL type AlphaStashEntry.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// A key and value stored on a project, environment, component, instance, or deployment. Massdriver stores the
+// value and returns it as written. It does not read the value or act on it.
+type ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry struct {
+	// The project, environment, component, instance, or deployment that owns the entry.
+	Scope ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef `json:"scope"`
+	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
+	Key string `json:"key"`
+	// A human-readable name for the entry, shown in the Massdriver UI. Null when the entry has no label. The label is not encrypted and is returned even when the entry is sensitive, so do not put secrets in it.
+	Label string `json:"label"`
+	// The value exactly as it was written. Null when the entry is sensitive and you cannot change this stash.
+	Value *string `json:"value"`
+	// The value parsed as a JSON object when the format is `JSON`. Null for `TEXT` entries.
+	Data map[string]any `json:"-"`
+	// How the value is stored and returned.
+	Format AlphaStashFormat `json:"format"`
+	// When true, the key cannot be set again until the entry expires or is deleted.
+	Immutable bool `json:"immutable"`
+	// When true, the value is encrypted and is returned only to callers who can change this stash.
+	Sensitive bool `json:"sensitive"`
+	// When the entry expires (UTC). Null when the entry does not expire.
+	ExpiresAt time.Time `json:"expiresAt"`
+	// When the value was last set (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetScope returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry.Scope, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) GetScope() ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef {
+	return v.Scope
+}
+
+// GetKey returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry.Key, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) GetKey() string {
+	return v.Key
+}
+
+// GetLabel returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry.Label, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) GetLabel() string {
+	return v.Label
+}
+
+// GetValue returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry.Value, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) GetValue() *string {
+	return v.Value
+}
+
+// GetData returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry.Data, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) GetData() map[string]any {
+	return v.Data
+}
+
+// GetFormat returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry.Format, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) GetFormat() AlphaStashFormat {
+	return v.Format
+}
+
+// GetImmutable returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry.Immutable, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) GetImmutable() bool {
+	return v.Immutable
+}
+
+// GetSensitive returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry.Sensitive, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) GetSensitive() bool {
+	return v.Sensitive
+}
+
+// GetExpiresAt returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) GetExpiresAt() time.Time {
+	return v.ExpiresAt
+}
+
+// GetUpdatedAt returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry
+		Data json.RawMessage `json:"data"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Data
+		src := firstPass.Data
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry.Data: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry struct {
+	Scope ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef `json:"scope"`
+
+	Key string `json:"key"`
+
+	Label string `json:"label"`
+
+	Value *string `json:"value"`
+
+	Data json.RawMessage `json:"data"`
+
+	Format AlphaStashFormat `json:"format"`
+
+	Immutable bool `json:"immutable"`
+
+	Sensitive bool `json:"sensitive"`
+
+	ExpiresAt time.Time `json:"expiresAt"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry) __premarshalJSON() (*__premarshalListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry, error) {
+	var retval __premarshalListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry
+
+	retval.Scope = v.Scope
+	retval.Key = v.Key
+	retval.Label = v.Label
+	retval.Value = v.Value
+	{
+
+		dst := &retval.Data
+		src := v.Data
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntry.Data: %w", err)
+		}
+	}
+	retval.Format = v.Format
+	retval.Immutable = v.Immutable
+	retval.Sensitive = v.Sensitive
+	retval.ExpiresAt = v.ExpiresAt
+	retval.UpdatedAt = v.UpdatedAt
+	return &retval, nil
+}
+
+// ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef includes the requested fields of the GraphQL type AlphaStashScopeRef.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// The project, environment, component, instance, or deployment that owns a stash.
+type ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef struct {
+	// The kind of entity.
+	Kind AlphaStashScopeKind `json:"kind"`
+	// The entity's ID, for example `ecomm-prod-database` for an instance. A deployment's ID is a UUID.
+	Id string `json:"id"`
+}
+
+// GetKind returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef.Kind, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef) GetKind() AlphaStashScopeKind {
+	return v.Kind
+}
+
+// GetId returns ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef.Id, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPageItemsAlphaStashEntryScopeAlphaStashScopeRef) GetId() string {
+	return v.Id
+}
+
+// ListStashEntriesForScopesResponse is returned by ListStashEntriesForScopes on success.
+type ListStashEntriesForScopesResponse struct {
+	// Alpha: this API can change or be removed at any time, without notice.
+	//
+	// List the entries in several stashes at once, ordered by key. Pass the project, environments, components,
+	// instances, and deployments that you show, up to 200. Every scope must be in the same project. Expired
+	// entries are not returned.
+	//
+	// Sensitive entries are never returned, even when you have `stash:export`. Read a sensitive value with
+	// `alphaStashEntry`. You need `stash:view` on every scope.
+	//
+	// ```graphql
+	// query {
+	// alphaStashEntriesForScopes(
+	// organizationId: "my-org"
+	// scopes: [{ project: "ecomm" }, { environment: "ecomm-prod" }, { instance: "ecomm-prod-database" }]
+	// filter: { keys: ["owner"] }
+	// ) {
+	// items {
+	// scope { kind id }
+	// key
+	// value
+	// }
+	// cursor { next }
+	// }
+	// }
+	// ```
+	AlphaStashEntriesForScopes ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPage `json:"alphaStashEntriesForScopes"`
+}
+
+// GetAlphaStashEntriesForScopes returns ListStashEntriesForScopesResponse.AlphaStashEntriesForScopes, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesForScopesResponse) GetAlphaStashEntriesForScopes() ListStashEntriesForScopesAlphaStashEntriesForScopesAlphaStashEntriesPage {
+	return v.AlphaStashEntriesForScopes
+}
+
 // ListStashEntriesResponse is returned by ListStashEntries on success.
 type ListStashEntriesResponse struct {
 	// Alpha: this API can change or be removed at any time, without notice.
 	//
 	// List the entries in a stash, ordered by key. Expired entries are not returned.
 	//
-	// You need `project:view` on the stash's project. Sensitive values are null unless you can change the stash.
+	// You need `stash:view` on the stash's entity. Sensitive values are null unless you have `stash:export` on it.
 	//
 	// ```graphql
 	// query {
@@ -27187,6 +27848,234 @@ type ListStashEntriesResponse struct {
 // GetAlphaStashEntries returns ListStashEntriesResponse.AlphaStashEntries, and is useful for accessing the field via an interface.
 func (v *ListStashEntriesResponse) GetAlphaStashEntries() ListStashEntriesAlphaStashEntriesAlphaStashEntriesPage {
 	return v.AlphaStashEntries
+}
+
+// ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPage includes the requested fields of the GraphQL type AlphaWidgetsPage.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// A page of AlphaWidget items.
+type ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPage struct {
+	// Pagination cursors for navigating between pages.
+	Cursor ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageCursorPaginationCursor `json:"cursor"`
+	// A list of type widget.
+	Items []ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget `json:"items"`
+}
+
+// GetCursor returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPage) GetCursor() ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageCursorPaginationCursor {
+	return v.Cursor
+}
+
+// GetItems returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPage.Items, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPage) GetItems() []ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget {
+	return v.Items
+}
+
+// ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// The GraphQL type's documentation follows.
+//
+// Pagination cursors returned with every paginated response.
+//
+// Contains opaque cursor strings for navigating forward and backward through results.
+// A `null` value for `next` indicates you have reached the last page; a `null` value
+// for `previous` indicates you are on the first page.
+type ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageCursorPaginationCursor struct {
+	// Cursor for the next page. `null` if there are no more results.
+	Next string `json:"next"`
+	// Cursor for the previous page. `null` if this is the first page.
+	Previous string `json:"previous"`
+}
+
+// GetNext returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageCursorPaginationCursor) GetNext() string {
+	return v.Next
+}
+
+// GetPrevious returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageCursorPaginationCursor) GetPrevious() string {
+	return v.Previous
+}
+
+// ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget includes the requested fields of the GraphQL type AlphaWidget.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// A widget drawn from a well-known stash key.
+type ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget struct {
+	// The widget's name, for example `instance.usage_bar`.
+	Name string `json:"name"`
+	// The entity whose stash has the key. For a `link.traffic` widget, this is the instance that sends the traffic, and the widget shows on the lines that leave it.
+	Scope ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef `json:"scope"`
+	// The widget's input values, by input name, for example `{"value": 42, "max": 100}`. An optional input that the key's value does not set is left out.
+	Values map[string]any `json:"-"`
+	// When the key was last set (UTC).
+	UpdatedAt time.Time `json:"updatedAt"`
+	// When the key expires (UTC). Null when the key does not expire.
+	ExpiresAt time.Time `json:"expiresAt"`
+}
+
+// GetName returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.Name, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget) GetName() string {
+	return v.Name
+}
+
+// GetScope returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.Scope, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget) GetScope() ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef {
+	return v.Scope
+}
+
+// GetValues returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.Values, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget) GetValues() map[string]any {
+	return v.Values
+}
+
+// GetUpdatedAt returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget) GetUpdatedAt() time.Time {
+	return v.UpdatedAt
+}
+
+// GetExpiresAt returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget) GetExpiresAt() time.Time {
+	return v.ExpiresAt
+}
+
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget
+		Values json.RawMessage `json:"values"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.Values
+		src := firstPass.Values
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.Values: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget struct {
+	Name string `json:"name"`
+
+	Scope ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef `json:"scope"`
+
+	Values json.RawMessage `json:"values"`
+
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	ExpiresAt time.Time `json:"expiresAt"`
+}
+
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget) __premarshalJSON() (*__premarshalListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget, error) {
+	var retval __premarshalListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget
+
+	retval.Name = v.Name
+	retval.Scope = v.Scope
+	{
+
+		dst := &retval.Values
+		src := v.Values
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.Values: %w", err)
+		}
+	}
+	retval.UpdatedAt = v.UpdatedAt
+	retval.ExpiresAt = v.ExpiresAt
+	return &retval, nil
+}
+
+// ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef includes the requested fields of the GraphQL type AlphaStashScopeRef.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// The project, environment, component, instance, or deployment that owns a stash.
+type ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef struct {
+	// The kind of entity.
+	Kind AlphaStashScopeKind `json:"kind"`
+	// The entity's ID, for example `ecomm-prod-database` for an instance. A deployment's ID is a UUID.
+	Id string `json:"id"`
+}
+
+// GetKind returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef.Kind, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef) GetKind() AlphaStashScopeKind {
+	return v.Kind
+}
+
+// GetId returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef.Id, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef) GetId() string {
+	return v.Id
+}
+
+// ListWidgetsForScopesResponse is returned by ListWidgetsForScopes on success.
+type ListWidgetsForScopesResponse struct {
+	// Alpha: this API can change or be removed at any time, without notice.
+	//
+	// List the widgets of several stashes at once. Pass the project, environments, components, instances, and
+	// deployments that you show, up to 200. Every scope must be in the same project. You need `stash:view` on
+	// every scope.
+	//
+	// A widget is returned for each well-known key that is set with a value that matches its schema. When a scope
+	// has more than one version of a widget's key, the widget is returned from the highest version. Expired keys
+	// are not returned. A page reads up to `limit` keys, so it can have fewer widgets than `limit`, or none. Keep
+	// reading pages until `cursor.next` is null. Subscribe to
+	// `alphaStashEvents` and read the widgets again when an `md/` key changes.
+	//
+	// ```graphql
+	// query {
+	// alphaWidgetsForScopes(
+	// organizationId: "my-org"
+	// scopes: [{ environment: "ecomm-prod" }, { instance: "ecomm-prod-database" }]
+	// ) {
+	// items {
+	// name
+	// scope { kind id }
+	// values
+	// expiresAt
+	// }
+	// cursor { next }
+	// }
+	// }
+	// ```
+	AlphaWidgetsForScopes ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPage `json:"alphaWidgetsForScopes"`
+}
+
+// GetAlphaWidgetsForScopes returns ListWidgetsForScopesResponse.AlphaWidgetsForScopes, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesResponse) GetAlphaWidgetsForScopes() ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPage {
+	return v.AlphaWidgetsForScopes
 }
 
 // The kind of artifact stored in an OCI repository.
@@ -31566,6 +32455,8 @@ func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadMessagesValidation
 // A key and value stored on a project, environment, component, instance, or deployment. Massdriver stores the
 // value and returns it as written. It does not read the value or act on it.
 type SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry struct {
+	// The project, environment, component, instance, or deployment that owns the entry.
+	Scope SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntryScopeAlphaStashScopeRef `json:"scope"`
 	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
 	Key string `json:"key"`
 	// A human-readable name for the entry, shown in the Massdriver UI. Null when the entry has no label. The label is not encrypted and is returned even when the entry is sensitive, so do not put secrets in it.
@@ -31584,6 +32475,11 @@ type SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry 
 	ExpiresAt time.Time `json:"expiresAt"`
 	// When the value was last set (UTC).
 	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetScope returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.Scope, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) GetScope() SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntryScopeAlphaStashScopeRef {
+	return v.Scope
 }
 
 // GetKey returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.Key, and is useful for accessing the field via an interface.
@@ -31665,6 +32561,8 @@ func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEn
 }
 
 type __premarshalSetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry struct {
+	Scope SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntryScopeAlphaStashScopeRef `json:"scope"`
+
 	Key string `json:"key"`
 
 	Label string `json:"label"`
@@ -31695,6 +32593,7 @@ func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEn
 func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) __premarshalJSON() (*__premarshalSetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry, error) {
 	var retval __premarshalSetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry
 
+	retval.Scope = v.Scope
 	retval.Key = v.Key
 	retval.Label = v.Label
 	retval.Value = v.Value
@@ -31718,6 +32617,29 @@ func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEn
 	return &retval, nil
 }
 
+// SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntryScopeAlphaStashScopeRef includes the requested fields of the GraphQL type AlphaStashScopeRef.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// The project, environment, component, instance, or deployment that owns a stash.
+type SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntryScopeAlphaStashScopeRef struct {
+	// The kind of entity.
+	Kind AlphaStashScopeKind `json:"kind"`
+	// The entity's ID, for example `ecomm-prod-database` for an instance. A deployment's ID is a UUID.
+	Id string `json:"id"`
+}
+
+// GetKind returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntryScopeAlphaStashScopeRef.Kind, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntryScopeAlphaStashScopeRef) GetKind() AlphaStashScopeKind {
+	return v.Kind
+}
+
+// GetId returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntryScopeAlphaStashScopeRef.Id, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntryScopeAlphaStashScopeRef) GetId() string {
+	return v.Id
+}
+
 // SetStashEntryResponse is returned by SetStashEntry on success.
 type SetStashEntryResponse struct {
 	// Alpha: this API can change or be removed at any time, without notice.
@@ -31725,21 +32647,18 @@ type SetStashEntryResponse struct {
 	// Set the value of a key in a stash. Setting a key that has a value replaces the value and every other setting
 	// of the entry.
 	//
-	// The permission you need depends on the stash:
-	//
-	// | Stash       | Permission                                         |
-	// |-------------|----------------------------------------------------|
-	// | Project     | `project:update`                                   |
-	// | Environment | `environment:update`                               |
-	// | Component   | `project:design`                                   |
-	// | Instance    | `instance:configure`                               |
-	// | Deployment  | `instance:configure` on the deployment's instance  |
+	// You need `stash:write` on the stash's entity: the project, environment, component, or instance, or the
+	// deployment's instance for a deployment's stash.
 	//
 	// A deployment's own credentials can set keys on that deployment and on its instance, environment, component,
 	// and project.
 	//
 	// The mutation fails when the key has an immutable entry that has not expired, or when the stash already has
 	// its maximum number of keys (1000 unless your installation sets another).
+	//
+	// Keys that start with `md/` are well-known keys that drive the widgets in `alphaWidgetCatalog`, for example
+	// `md/v1/health`. Each one can be set only on its kind of entity, with its format, and with a value that
+	// matches its schema. An `md/` key that is not in the catalog is rejected. An `md/` entry cannot be sensitive.
 	//
 	// ```graphql
 	// mutation {
@@ -37397,6 +38316,26 @@ func (v *__ListServiceAccountsInput) GetSort() *ServiceAccountsSort { return v.S
 // GetCursor returns __ListServiceAccountsInput.Cursor, and is useful for accessing the field via an interface.
 func (v *__ListServiceAccountsInput) GetCursor() *scalars.Cursor { return v.Cursor }
 
+// __ListStashEntriesForScopesInput is used internally by genqlient
+type __ListStashEntriesForScopesInput struct {
+	OrganizationId string                   `json:"organizationId"`
+	Scopes         []AlphaStashScope        `json:"scopes"`
+	Filter         *AlphaStashEntriesFilter `json:"filter,omitempty"`
+	Cursor         *scalars.Cursor          `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListStashEntriesForScopesInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListStashEntriesForScopesInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetScopes returns __ListStashEntriesForScopesInput.Scopes, and is useful for accessing the field via an interface.
+func (v *__ListStashEntriesForScopesInput) GetScopes() []AlphaStashScope { return v.Scopes }
+
+// GetFilter returns __ListStashEntriesForScopesInput.Filter, and is useful for accessing the field via an interface.
+func (v *__ListStashEntriesForScopesInput) GetFilter() *AlphaStashEntriesFilter { return v.Filter }
+
+// GetCursor returns __ListStashEntriesForScopesInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListStashEntriesForScopesInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
 // __ListStashEntriesInput is used internally by genqlient
 type __ListStashEntriesInput struct {
 	OrganizationId string          `json:"organizationId"`
@@ -37412,6 +38351,22 @@ func (v *__ListStashEntriesInput) GetScope() AlphaStashScope { return v.Scope }
 
 // GetCursor returns __ListStashEntriesInput.Cursor, and is useful for accessing the field via an interface.
 func (v *__ListStashEntriesInput) GetCursor() *scalars.Cursor { return v.Cursor }
+
+// __ListWidgetsForScopesInput is used internally by genqlient
+type __ListWidgetsForScopesInput struct {
+	OrganizationId string            `json:"organizationId"`
+	Scopes         []AlphaStashScope `json:"scopes"`
+	Cursor         *scalars.Cursor   `json:"cursor,omitempty"`
+}
+
+// GetOrganizationId returns __ListWidgetsForScopesInput.OrganizationId, and is useful for accessing the field via an interface.
+func (v *__ListWidgetsForScopesInput) GetOrganizationId() string { return v.OrganizationId }
+
+// GetScopes returns __ListWidgetsForScopesInput.Scopes, and is useful for accessing the field via an interface.
+func (v *__ListWidgetsForScopesInput) GetScopes() []AlphaStashScope { return v.Scopes }
+
+// GetCursor returns __ListWidgetsForScopesInput.Cursor, and is useful for accessing the field via an interface.
+func (v *__ListWidgetsForScopesInput) GetCursor() *scalars.Cursor { return v.Cursor }
 
 // __OrphanInstanceInput is used internally by genqlient
 type __OrphanInstanceInput struct {
@@ -41759,6 +42714,10 @@ func GetServiceAccount(
 const GetStashEntry_Operation = `
 query GetStashEntry ($organizationId: ID!, $scope: AlphaStashScope!, $key: String!) {
 	alphaStashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
+		scope {
+			kind
+			id
+		}
 		key
 		label
 		value
@@ -41837,6 +42796,50 @@ func GetViewer(
 	}
 
 	data_ = &GetViewerResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by GetWidgetCatalog.
+const GetWidgetCatalog_Operation = `
+query GetWidgetCatalog {
+	alphaWidgetCatalog {
+		name
+		description
+		entity
+		version
+		key
+		scope
+		format
+		schema
+		inputs {
+			name
+			type
+			required
+			description
+			field
+		}
+	}
+}
+`
+
+func GetWidgetCatalog(
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *GetWidgetCatalogResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetWidgetCatalog",
+		Query:  GetWidgetCatalog_Operation,
+	}
+
+	data_ = &GetWidgetCatalogResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -43470,6 +44473,10 @@ query ListStashEntries ($organizationId: ID!, $scope: AlphaStashScope!, $cursor:
 			previous
 		}
 		items {
+			scope {
+				kind
+				id
+			}
 			key
 			label
 			value
@@ -43502,6 +44509,115 @@ func ListStashEntries(
 	}
 
 	data_ = &ListStashEntriesResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListStashEntriesForScopes.
+const ListStashEntriesForScopes_Operation = `
+query ListStashEntriesForScopes ($organizationId: ID!, $scopes: [AlphaStashScope!]!, $filter: AlphaStashEntriesFilter, $cursor: Cursor) {
+	alphaStashEntriesForScopes(organizationId: $organizationId, scopes: $scopes, filter: $filter, cursor: $cursor) {
+		cursor {
+			next
+			previous
+		}
+		items {
+			scope {
+				kind
+				id
+			}
+			key
+			label
+			value
+			data
+			format
+			immutable
+			sensitive
+			expiresAt
+			updatedAt
+		}
+	}
+}
+`
+
+func ListStashEntriesForScopes(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	scopes []AlphaStashScope,
+	filter *AlphaStashEntriesFilter,
+	cursor *scalars.Cursor,
+) (data_ *ListStashEntriesForScopesResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListStashEntriesForScopes",
+		Query:  ListStashEntriesForScopes_Operation,
+		Variables: &__ListStashEntriesForScopesInput{
+			OrganizationId: organizationId,
+			Scopes:         scopes,
+			Filter:         filter,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListStashEntriesForScopesResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by ListWidgetsForScopes.
+const ListWidgetsForScopes_Operation = `
+query ListWidgetsForScopes ($organizationId: ID!, $scopes: [AlphaStashScope!]!, $cursor: Cursor) {
+	alphaWidgetsForScopes(organizationId: $organizationId, scopes: $scopes, cursor: $cursor) {
+		cursor {
+			next
+			previous
+		}
+		items {
+			name
+			scope {
+				kind
+				id
+			}
+			values
+			updatedAt
+			expiresAt
+		}
+	}
+}
+`
+
+func ListWidgetsForScopes(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	organizationId string,
+	scopes []AlphaStashScope,
+	cursor *scalars.Cursor,
+) (data_ *ListWidgetsForScopesResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "ListWidgetsForScopes",
+		Query:  ListWidgetsForScopes_Operation,
+		Variables: &__ListWidgetsForScopesInput{
+			OrganizationId: organizationId,
+			Scopes:         scopes,
+			Cursor:         cursor,
+		},
+	}
+
+	data_ = &ListWidgetsForScopesResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
@@ -44503,6 +45619,10 @@ const SetStashEntry_Operation = `
 mutation SetStashEntry ($organizationId: ID!, $scope: AlphaStashScope!, $key: String!, $input: AlphaSetStashEntryInput!) {
 	alphaSetStashEntry(organizationId: $organizationId, scope: $scope, key: $key, input: $input) {
 		result {
+			scope {
+				kind
+				id
+			}
 			key
 			label
 			value

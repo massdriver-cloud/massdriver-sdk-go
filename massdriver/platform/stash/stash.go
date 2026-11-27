@@ -5,7 +5,14 @@
 // Stash is an alpha API that can change or be removed at any time.
 //
 // Each scope is its own namespace. An entry in an environment is not visible
-// from its instances or deployments.
+// from its instances or deployments. [Service.IterForScopes] reads several
+// scopes of one project at once.
+//
+// Keys that start with `md/` are well-known keys, such as [KeyUsageV1]. The
+// Massdriver UI draws a widget from each one that is set with a valid value.
+// [Service.WidgetCatalog] lists the widgets and their keys, and
+// [Service.IterWidgetsForScopes] reads the widgets of several scopes.
+// [Service.Subscribe] streams the keys that are set or deleted in a project.
 //
 // Construct a [*Service] with [New] passing the low-level client, or use the
 // pre-wired [massdriver.Client.Stash] field on the top-level SDK client.
@@ -13,8 +20,10 @@ package stash
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"iter"
+	"strings"
 	"time"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql"
@@ -42,27 +51,22 @@ type Service struct {
 // need a single service in isolation or for tests with a custom client.
 func New(c *client.Client) *Service { return &Service{client: c} }
 
-// ScopeKind is the kind of resource that holds stash entries.
-type ScopeKind string
+// ScopeKind is the kind of resource that holds stash entries — alias of
+// [types.StashScopeKind].
+type ScopeKind = types.StashScopeKind
 
 const (
-	ScopeProject     ScopeKind = "project"
-	ScopeEnvironment ScopeKind = "environment"
-	ScopeComponent   ScopeKind = "component"
-	ScopeInstance    ScopeKind = "instance"
-	ScopeDeployment  ScopeKind = "deployment"
+	ScopeProject     = types.StashScopeProject
+	ScopeEnvironment = types.StashScopeEnvironment
+	ScopeComponent   = types.StashScopeComponent
+	ScopeInstance    = types.StashScopeInstance
+	ScopeDeployment  = types.StashScopeDeployment
 )
 
-// Scope is the one resource that holds an entry. ID is the resource's
-// identifier, such as "api-prod" for an environment, or the deployment's
-// UUID.
-type Scope struct {
-	Kind ScopeKind
-	ID   string
-}
-
-// String renders the scope as `<kind>:<id>`.
-func (s Scope) String() string { return string(s.Kind) + ":" + s.ID }
+// Scope is the one resource that holds an entry — alias of
+// [types.StashScope]. ID is the resource's identifier, such as "api-prod"
+// for an environment, or the deployment's UUID.
+type Scope = types.StashScope
 
 // Format is how an entry's value is read.
 type Format string
@@ -78,6 +82,18 @@ const (
 // ListInput controls a [Service.Iter] call. The zero value lists every
 // entry in the scope.
 type ListInput struct {
+	PageSize int
+	// After is the opaque cursor from a prior [types.Page].Next. Empty
+	// starts at the first page.
+	After string
+}
+
+// ForScopesInput controls a [Service.IterForScopes] or
+// [Service.ListForScopes] call. The zero value lists every entry in the
+// scopes.
+type ForScopesInput struct {
+	// Keys limits results to entries with one of these keys.
+	Keys     []string
 	PageSize int
 	// After is the opaque cursor from a prior [types.Page].Next. Empty
 	// starts at the first page.
@@ -140,7 +156,7 @@ func (s *Service) ListPage(ctx context.Context, scope Scope, input ListInput) (t
 }
 
 func (s *Service) page(scope Scope, input ListInput) paging.FetchFunc[Entry] {
-	return paging.DecodeFetch[Entry](input.PageSize, "stash entry", func(ctx context.Context, cursor *scalars.Cursor) (paging.RawPage, error) {
+	return withScopeKinds(paging.DecodeFetch[Entry](input.PageSize, "stash entry", func(ctx context.Context, cursor *scalars.Cursor) (paging.RawPage, error) {
 		gs, err := toGenScope(scope)
 		if err != nil {
 			return paging.RawPage{}, err
@@ -154,7 +170,42 @@ func (s *Service) page(scope Scope, input ListInput) paging.FetchFunc[Entry] {
 			Next:     resp.AlphaStashEntries.Cursor.Next,
 			Previous: resp.AlphaStashEntries.Cursor.Previous,
 		}, nil
-	})
+	}), entryScope)
+}
+
+// IterForScopes returns a lazy [iter.Seq2] over the entries in several
+// scopes at once, ordered by key. Pass from 1 to 200 scopes, all in one
+// project. Sensitive entries are never returned; read one with
+// [Service.Get].
+func (s *Service) IterForScopes(ctx context.Context, scopes []Scope, input ForScopesInput) iter.Seq2[Entry, error] {
+	return paging.Iter(ctx, input.After, s.forScopesPage(scopes, input))
+}
+
+// ListForScopes returns a single page of [Service.IterForScopes].
+func (s *Service) ListForScopes(ctx context.Context, scopes []Scope, input ForScopesInput) (types.Page[Entry], error) {
+	return s.forScopesPage(scopes, input)(ctx, input.After)
+}
+
+func (s *Service) forScopesPage(scopes []Scope, input ForScopesInput) paging.FetchFunc[Entry] {
+	var filter *gen.AlphaStashEntriesFilter
+	if len(input.Keys) > 0 {
+		filter = &gen.AlphaStashEntriesFilter{Keys: input.Keys}
+	}
+	return withScopeKinds(paging.DecodeFetch[Entry](input.PageSize, "stash entry", func(ctx context.Context, cursor *scalars.Cursor) (paging.RawPage, error) {
+		gs, err := toGenScopes(scopes)
+		if err != nil {
+			return paging.RawPage{}, err
+		}
+		resp, err := gen.ListStashEntriesForScopes(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gs, filter, cursor)
+		if err != nil {
+			return paging.RawPage{}, gql.ClassifyError(fmt.Errorf("list stash entries in %d scopes: %w", len(scopes), err))
+		}
+		return paging.RawPage{
+			Items:    resp.AlphaStashEntriesForScopes.Items,
+			Next:     resp.AlphaStashEntriesForScopes.Cursor.Next,
+			Previous: resp.AlphaStashEntriesForScopes.Cursor.Previous,
+		}, nil
+	}), entryScope)
 }
 
 // Set stores input.Value under key in scope, and replaces the entry's
@@ -229,10 +280,44 @@ func toGenScope(scope Scope) (gen.AlphaStashScope, error) {
 	return gen.AlphaStashScope{}, fmt.Errorf("unknown stash scope kind %q", scope.Kind)
 }
 
+func toGenScopes(scopes []Scope) ([]gen.AlphaStashScope, error) {
+	if len(scopes) == 0 {
+		return nil, errors.New("at least one stash scope is required")
+	}
+	out := make([]gen.AlphaStashScope, 0, len(scopes))
+	for _, scope := range scopes {
+		gs, err := toGenScope(scope)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, gs)
+	}
+	return out, nil
+}
+
 func toEntry(v any) (*Entry, error) {
 	e := Entry{}
 	if err := decode.Decode(v, &e); err != nil {
 		return nil, fmt.Errorf("decode stash entry: %w", err)
 	}
+	lowerScopeKind(&e.Scope.Kind)
 	return &e, nil
+}
+
+func entryScope(e *Entry) *ScopeKind { return &e.Scope.Kind }
+
+// lowerScopeKind maps the API's upper-case kind (PROJECT) to [ScopeKind]
+// (project).
+func lowerScopeKind(kind *ScopeKind) {
+	*kind = ScopeKind(strings.ToLower(string(*kind)))
+}
+
+func withScopeKinds[T any](fetch paging.FetchFunc[T], kind func(*T) *ScopeKind) paging.FetchFunc[T] {
+	return func(ctx context.Context, after string) (types.Page[T], error) {
+		page, err := fetch(ctx, after)
+		for i := range page.Items {
+			lowerScopeKind(kind(&page.Items[i]))
+		}
+		return page, err
+	}
 }

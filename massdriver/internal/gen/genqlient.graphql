@@ -3537,6 +3537,10 @@ query GetStashEntry(
   $key: String!
 ) {
   alphaStashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
+    scope {
+      kind
+      id
+    }
     key
     label
     # @genqlient(pointer: true)
@@ -3562,6 +3566,10 @@ query ListStashEntries(
       previous
     }
     items {
+      scope {
+        kind
+        id
+      }
       key
       label
       # @genqlient(pointer: true)
@@ -3586,6 +3594,10 @@ mutation SetStashEntry(
 ) {
   alphaSetStashEntry(organizationId: $organizationId, scope: $scope, key: $key, input: $input) {
     result {
+      scope {
+        kind
+        id
+      }
       key
       label
       # @genqlient(pointer: true)
@@ -3616,6 +3628,83 @@ mutation DeleteStashEntry($organizationId: ID!, $scope: AlphaStashScope!, $key: 
       code
       field
       message
+    }
+  }
+}
+
+# @genqlient(for: "AlphaStashEntriesFilter.keys", omitempty: true)
+query ListStashEntriesForScopes(
+  $organizationId: ID!,
+  $scopes: [AlphaStashScope!]!,
+  # @genqlient(omitempty: true, pointer: true)
+  $filter: AlphaStashEntriesFilter,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  alphaStashEntriesForScopes(organizationId: $organizationId, scopes: $scopes, filter: $filter, cursor: $cursor) {
+    cursor {
+      next
+      previous
+    }
+    items {
+      scope {
+        kind
+        id
+      }
+      key
+      label
+      # @genqlient(pointer: true)
+      value
+      data
+      format
+      immutable
+      sensitive
+      expiresAt
+      updatedAt
+    }
+  }
+}
+
+query GetWidgetCatalog {
+  alphaWidgetCatalog {
+    name
+    description
+    entity
+    version
+    key
+    scope
+    format
+    schema
+    inputs {
+      name
+      type
+      required
+      description
+      field
+    }
+  }
+}
+
+query ListWidgetsForScopes(
+  $organizationId: ID!,
+  $scopes: [AlphaStashScope!]!,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  alphaWidgetsForScopes(organizationId: $organizationId, scopes: $scopes, cursor: $cursor) {
+    cursor {
+      next
+      previous
+    }
+    items {
+      name
+      scope {
+        kind
+        id
+      }
+      values
+      updatedAt
+      expiresAt
     }
   }
 }

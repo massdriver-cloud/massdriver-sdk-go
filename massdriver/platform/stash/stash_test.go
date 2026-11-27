@@ -22,6 +22,7 @@ func newService(gqlClient *gqltest.Client) *stash.Service {
 
 func textEntry() map[string]any {
 	return map[string]any{
+		"scope":     map[string]any{"kind": "ENVIRONMENT", "id": "api-prod"},
 		"key":       "db/hostname",
 		"label":     "Database hostname",
 		"value":     "db.internal",
@@ -50,6 +51,9 @@ func TestGet(t *testing.T) {
 	}
 	if !got.ExpiresAt.IsZero() {
 		t.Errorf("ExpiresAt = %v, want zero", got.ExpiresAt)
+	}
+	if got.Scope != (stash.Scope{Kind: stash.ScopeEnvironment, ID: "api-prod"}) {
+		t.Errorf("Scope = %+v, want environment api-prod", got.Scope)
 	}
 
 	vars := gqlClient.Requests()[0].Variables
@@ -338,5 +342,88 @@ func TestListPage_UnknownScope(t *testing.T) {
 	_, err := newService(gqlClient).ListPage(t.Context(), stash.Scope{Kind: stash.ScopeEnvironment, ID: "api-gone"}, stash.ListInput{})
 	if !errors.Is(err, gql.ErrNotFound) {
 		t.Errorf("err = %v, want it to wrap gql.ErrNotFound", err)
+	}
+}
+
+func TestListForScopes(t *testing.T) {
+	instanceEntry := textEntry()
+	instanceEntry["scope"] = map[string]any{"kind": "INSTANCE", "id": "api-prod-db"}
+	instanceEntry["key"] = "owner"
+	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{
+		"alphaStashEntriesForScopes": map[string]any{
+			"cursor": map[string]any{"next": "page-2"},
+			"items":  []map[string]any{textEntry(), instanceEntry},
+		},
+	}))
+
+	page, err := newService(gqlClient).ListForScopes(t.Context(), []stash.Scope{
+		{Kind: stash.ScopeEnvironment, ID: "api-prod"},
+		{Kind: stash.ScopeInstance, ID: "api-prod-db"},
+	}, stash.ForScopesInput{Keys: []string{"owner", "db/hostname"}, PageSize: 50})
+	if err != nil {
+		t.Fatalf("ListForScopes: %v", err)
+	}
+	if len(page.Items) != 2 || page.Next != "page-2" {
+		t.Fatalf("page = %+v", page)
+	}
+	if page.Items[1].Scope != (stash.Scope{Kind: stash.ScopeInstance, ID: "api-prod-db"}) || page.Items[1].Key != "owner" {
+		t.Errorf("items[1] = %+v", page.Items[1])
+	}
+
+	vars := gqlClient.Requests()[0].Variables
+	scopes, _ := vars["scopes"].([]any)
+	if len(scopes) != 2 {
+		t.Fatalf("scopes = %v", vars["scopes"])
+	}
+	first, _ := scopes[0].(map[string]any)
+	second, _ := scopes[1].(map[string]any)
+	if len(first) != 1 || first["environment"] != "api-prod" || len(second) != 1 || second["instance"] != "api-prod-db" {
+		t.Errorf("scopes = %v", scopes)
+	}
+	filter, _ := vars["filter"].(map[string]any)
+	keys, _ := filter["keys"].([]any)
+	if len(keys) != 2 || keys[0] != "owner" || keys[1] != "db/hostname" {
+		t.Errorf("filter = %v", vars["filter"])
+	}
+}
+
+func TestIterForScopes_NoFilter(t *testing.T) {
+	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{
+		"alphaStashEntriesForScopes": map[string]any{
+			"cursor": map[string]any{},
+			"items":  []map[string]any{textEntry()},
+		},
+	}))
+
+	got, err := types.Collect(newService(gqlClient).IterForScopes(t.Context(), []stash.Scope{{Kind: stash.ScopeProject, ID: "api"}}, stash.ForScopesInput{}))
+	if err != nil {
+		t.Fatalf("IterForScopes: %v", err)
+	}
+	if len(got) != 1 {
+		t.Errorf("got %d entries, want 1", len(got))
+	}
+	if _, present := gqlClient.Requests()[0].Variables["filter"]; present {
+		t.Error("filter should be omitted when no keys are given")
+	}
+}
+
+func TestListForScopes_InvalidScopes(t *testing.T) {
+	tests := []struct {
+		name   string
+		scopes []stash.Scope
+	}{
+		{"none", nil},
+		{"unknown kind", []stash.Scope{{Kind: "organization", ID: "my-org"}}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			gqlClient := gqltest.NewClient()
+			if _, err := newService(gqlClient).ListForScopes(t.Context(), tc.scopes, stash.ForScopesInput{}); err == nil {
+				t.Error("err = nil, want an error")
+			}
+			if n := len(gqlClient.Requests()); n != 0 {
+				t.Errorf("sent %d requests, want 0", n)
+			}
+		})
 	}
 }
