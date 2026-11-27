@@ -3,10 +3,13 @@ package deployments_test
 import (
 	"bytes"
 	"errors"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/gql/gqltest"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/absinthe/absinthetest"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/deployments"
 )
@@ -175,4 +178,125 @@ func TestStreamLogs_RejectsNonPATAuth(t *testing.T) {
 			}
 		})
 	}
+}
+
+func deploymentResponse(status string) gqltest.Response {
+	return gqltest.RespondWithData(map[string]any{
+		"deployment": map[string]any{"id": "dep-1", "status": status, "action": "PROVISION", "version": "1.2.3"},
+	})
+}
+
+// startTailLogs runs TailLogs against a fake socket for a RUNNING
+// deployment and returns the server, the live subscription IDs (logs, then
+// events), TailLogs' output, and its result.
+func startTailLogs(t *testing.T, extra ...gqltest.Response) (*absinthetest.Server, []string, *syncBuffer, <-chan error) {
+	t.Helper()
+	srv := absinthetest.NewServer(t)
+	responses := append([]gqltest.Response{
+		gqltest.RespondWithData(map[string]any{
+			"deployment": map[string]any{
+				"id":   "dep-1",
+				"logs": []map[string]any{{"timestamp": "2026-05-08T10:00:00Z", "message": "starting\n"}},
+			},
+		}),
+		deploymentResponse("RUNNING"),
+	}, extra...)
+	c := &client.Client{
+		Config: config.Config{
+			OrganizationID: "my-org",
+			URL:            srv.URL,
+			Credentials:    config.Credentials{Method: config.AuthPAT, Secret: "mds_test"},
+		},
+		GQLv2: gqltest.NewClient(responses...),
+	}
+
+	buf := &syncBuffer{}
+	done := make(chan error, 1)
+	go func() { done <- deployments.New(c).TailLogs(t.Context(), "dep-1", buf) }()
+	return srv, srv.WaitForSubscriptions(2), buf, done
+}
+
+func waitResult(t *testing.T, done <-chan error) error {
+	t.Helper()
+	select {
+	case err := <-done:
+		return err
+	case <-time.After(5 * time.Second):
+		t.Fatal("TailLogs did not return")
+	}
+	return nil
+}
+
+func TestTailLogs_LiveUntilTerminal(t *testing.T) {
+	srv, ids, buf, done := startTailLogs(t)
+
+	srv.Push(ids[0], map[string]any{"deploymentLogs": map[string]any{"timestamp": "2026-05-08T10:01:00Z", "message": "Apply complete"}})
+	srv.Push(ids[1], map[string]any{"deploymentEvents": map[string]any{"deployment": map[string]any{"id": "dep-1", "status": "COMPLETED"}}})
+
+	if err := waitResult(t, done); err != nil {
+		t.Fatalf("TailLogs: %v", err)
+	}
+	if got := buf.String(); got != "starting\nApply complete\n" {
+		t.Errorf("output = %q", got)
+	}
+}
+
+func TestTailLogs_EventsFail(t *testing.T) {
+	srv, ids, _, done := startTailLogs(t)
+
+	srv.Fail(ids[1])
+
+	if err := waitResult(t, done); err == nil {
+		t.Error("TailLogs err = nil, want the events subscription's error")
+	}
+}
+
+func TestTailLogs_EventsCompleteAfterDeploymentFinished(t *testing.T) {
+	srv, ids, _, done := startTailLogs(t, deploymentResponse("COMPLETED"))
+
+	srv.Complete(ids[1])
+
+	if err := waitResult(t, done); err != nil {
+		t.Errorf("TailLogs: %v, want nil when the deployment has finished", err)
+	}
+}
+
+func TestTailLogs_EventsCompleteWhileRunning(t *testing.T) {
+	srv, ids, _, done := startTailLogs(t, deploymentResponse("RUNNING"))
+
+	srv.Complete(ids[1])
+
+	err := waitResult(t, done)
+	if err == nil || err.Error() != "events for deployment dep-1 ended while it is RUNNING" {
+		t.Errorf("err = %v, want the events-ended error", err)
+	}
+}
+
+func TestTailLogs_SocketDies(t *testing.T) {
+	srv, _, _, done := startTailLogs(t)
+
+	srv.Kill()
+
+	if err := waitResult(t, done); err == nil {
+		t.Error("TailLogs err = nil, want the socket's error")
+	}
+}
+
+// syncBuffer is a bytes.Buffer that TailLogs can write while the test
+// reads it.
+type syncBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (b *syncBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.Write(p)
+}
+
+func (b *syncBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.String()
 }

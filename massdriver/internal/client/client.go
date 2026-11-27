@@ -55,6 +55,8 @@ type Client struct {
 	Config config.Config
 	HTTP   *resty.Client
 	GQLv2  graphql.Client
+
+	sockets streamSockets
 }
 
 // New constructs a [*Client] from environment variables and the

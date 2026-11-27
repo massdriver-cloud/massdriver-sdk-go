@@ -3,26 +3,82 @@ package client
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/config"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/absinthe"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/streaming"
 )
 
-// OpenStreamSocket gates streaming on PAT auth and opens an Absinthe
-// socket bound to the client's configured base URL and token. Used by
-// every Service.Stream* method so the auth check and dial sequence live
-// in one place.
+// streamSockets holds the one Absinthe socket that a client's
+// subscriptions share. The zero value is ready to use.
+type streamSockets struct {
+	mu      sync.Mutex
+	current *sharedSocket
+}
+
+// sharedSocket is a socket and the number of subscriptions that use it.
+// users is guarded by streamSockets.mu.
+type sharedSocket struct {
+	socket *absinthe.Socket
+	users  int
+}
+
+// Subscribe opens a GraphQL subscription on the client's shared Absinthe
+// socket. The socket opens with the first subscription. A socket that has
+// died is never reused: the next subscription opens a new one.
+//
+// The caller must call release once the subscription has ended or been
+// closed. The socket closes when its last user releases it.
 //
 // Returns [streaming.ErrRequiresPAT] before any network I/O when the
 // client is configured with basic-auth credentials.
-func (c *Client) OpenStreamSocket(ctx context.Context) (*absinthe.Socket, error) {
+func (c *Client) Subscribe(ctx context.Context, query string, vars map[string]any) (sub *absinthe.Subscription, release func(), err error) {
 	if c.Config.Credentials.Method != config.AuthPAT {
-		return nil, streaming.ErrRequiresPAT
+		return nil, nil, streaming.ErrRequiresPAT
 	}
-	socket, err := absinthe.Dial(ctx, c.Config.URL, c.Config.Credentials.Secret)
+	shared, err := c.acquireSocket(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("open absinthe socket: %w", err)
+		return nil, nil, err
 	}
-	return socket, nil
+	var once sync.Once
+	release = func() { once.Do(func() { c.releaseSocket(shared) }) }
+
+	sub, err = shared.socket.Subscribe(ctx, query, vars)
+	if err != nil {
+		release()
+		return nil, nil, err
+	}
+	return sub, release, nil
+}
+
+// acquireSocket holds the lock through the dial, so concurrent first
+// subscribers wait for one socket instead of each opening their own. A
+// caller waiting on the lock cannot give up early; the dial itself is
+// bounded by the dialing caller's ctx and the join's reply timeout.
+func (c *Client) acquireSocket(ctx context.Context) (*sharedSocket, error) {
+	c.sockets.mu.Lock()
+	defer c.sockets.mu.Unlock()
+	if c.sockets.current == nil || c.sockets.current.socket.Closed() {
+		socket, err := absinthe.Dial(ctx, c.Config.URL, c.Config.Credentials.Secret)
+		if err != nil {
+			return nil, fmt.Errorf("open absinthe socket: %w", err)
+		}
+		c.sockets.current = &sharedSocket{socket: socket}
+	}
+	c.sockets.current.users++
+	return c.sockets.current, nil
+}
+
+func (c *Client) releaseSocket(shared *sharedSocket) {
+	c.sockets.mu.Lock()
+	defer c.sockets.mu.Unlock()
+	shared.users--
+	if shared.users > 0 {
+		return
+	}
+	_ = shared.socket.Close()
+	if c.sockets.current == shared {
+		c.sockets.current = nil
+	}
 }

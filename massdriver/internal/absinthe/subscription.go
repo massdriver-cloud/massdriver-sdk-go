@@ -21,6 +21,8 @@ type Subscription struct {
 	Data <-chan json.RawMessage
 
 	socket   *Socket
+	route    *subscriber
+	closed   chan struct{}
 	closeOne sync.Once
 }
 
@@ -37,30 +39,42 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 	}
 
 	ref := s.refID()
+	s.mu.Lock()
+	if s.closed {
+		s.mu.Unlock()
+		return nil, s.closedErr()
+	}
+	s.docRefs[ref] = ""
+	s.mu.Unlock()
 	resp, err := s.push(ctx, &s.joinRef, ref, controlTopic, "doc", body)
+	s.mu.Lock()
+	registered := s.docRefs[ref]
+	delete(s.docRefs, ref)
+	s.mu.Unlock()
 	if err != nil {
+		if registered != "" {
+			// The reply registered a route as push gave up. Nobody will
+			// read it, so end it here and on the server.
+			s.endSubscription(registered, nil)
+			go s.unsubscribe(context.WithoutCancel(ctx), registered)
+		}
 		return nil, err
 	}
 	if resp.status != "ok" {
 		return nil, fmt.Errorf("absinthe subscribe: status=%s response=%s", resp.status, string(resp.response))
 	}
-
-	var subResp struct {
-		SubscriptionID string `json:"subscriptionId"`
-	}
-	if err := json.Unmarshal(resp.response, &subResp); err != nil {
-		return nil, fmt.Errorf("absinthe subscribe: decode subscriptionId: %w", err)
-	}
-	if subResp.SubscriptionID == "" {
+	if resp.route == nil {
 		return nil, fmt.Errorf("absinthe subscribe: server returned no subscriptionId (response=%s)", string(resp.response))
 	}
+	route := resp.route
+	id := subscriptionID(resp.status, resp.response)
 
-	raw := s.registerSubscription(subResp.SubscriptionID)
-	out := make(chan json.RawMessage, cap(raw))
+	out := make(chan json.RawMessage, cap(route.ch))
+	closed := make(chan struct{})
 
 	go func() {
 		defer close(out)
-		for payload := range raw {
+		for payload := range route.ch {
 			data, ok := extractData(payload)
 			if !ok {
 				continue
@@ -69,14 +83,18 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 			case out <- data:
 			case <-s.done:
 				return
+			case <-closed:
+				return
 			}
 		}
 	}()
 
 	return &Subscription{
-		ID:     subResp.SubscriptionID,
+		ID:     id,
 		Data:   out,
 		socket: s,
+		route:  route,
+		closed: closed,
 	}, nil
 }
 
@@ -85,24 +103,33 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 // goroutines.
 func (sub *Subscription) Close() error {
 	sub.closeOne.Do(func() {
-		// Best-effort unsubscribe; ignore errors (the server may already
-		// have dropped the sub or the socket may be closing).
-		body, _ := json.Marshal(struct {
-			SubscriptionID string `json:"subscriptionId"`
-		}{SubscriptionID: sub.ID})
-		ctx, cancel := context.WithTimeout(context.Background(), replyTimeout)
-		defer cancel()
-		ref := sub.socket.refID()
-		_, _ = sub.socket.push(ctx, &sub.socket.joinRef, ref, controlTopic, "unsubscribe", body)
-
-		sub.socket.unregisterSubscription(sub.ID)
+		close(sub.closed)
+		sub.socket.unsubscribe(context.Background(), sub.ID)
+		sub.socket.endSubscription(sub.ID, nil)
 	})
 	return nil
 }
 
-// Err returns the error that caused the underlying socket to close, if any.
+// unsubscribe asks the server to stop subscription id. It is best-effort:
+// errors are ignored, since the server may already have dropped the
+// subscription or the socket may be closing. parent must not be cancelled
+// already; the push is bounded by the reply timeout.
+func (s *Socket) unsubscribe(parent context.Context, id string) {
+	body, _ := json.Marshal(struct {
+		SubscriptionID string `json:"subscriptionId"`
+	}{SubscriptionID: id})
+	ctx, cancel := context.WithTimeout(parent, replyTimeout)
+	defer cancel()
+	ref := s.refID()
+	_, _ = s.push(ctx, &s.joinRef, ref, controlTopic, "unsubscribe", body)
+}
+
+// Err returns why the subscription ended, valid once Data has closed: nil
+// when it was closed with [Subscription.Close] or the server completed it,
+// the server's error when the server ended it with an error, and the
+// socket's error (or [ErrSocketClosed]) when the socket died.
 func (sub *Subscription) Err() error {
-	return sub.socket.Err()
+	return sub.socket.subscriptionErr(sub.route)
 }
 
 // extractData unwraps an Absinthe subscription:data payload to its inner

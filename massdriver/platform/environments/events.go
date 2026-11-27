@@ -6,6 +6,7 @@ import (
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/stream"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/streaming"
 )
 
 const environmentEventsSubscription = `subscription environmentEvents($organizationId: ID!, $environmentId: ID!) {
@@ -53,11 +54,12 @@ const environmentEventsSubscription = `subscription environmentEvents($organizat
 // it), so callers wanting full lifecycle coverage should listen to both.
 //
 // Lifetime is owned by ctx. Cancelling ctx tears down the subscription
-// and the underlying WebSocket and closes the returned channel.
+// and closes the stream's channel. [streaming.Stream.Err] says why the
+// channel closed.
 //
 // Streaming requires PAT (bearer) authentication; basic-auth callers
 // get [streaming.ErrRequiresPAT] before any network I/O.
-func (s *Service) StreamEvents(ctx context.Context, environmentID string) (<-chan types.Event, error) {
+func (s *Service) StreamEvents(ctx context.Context, environmentID string) (*streaming.Stream[types.Event], error) {
 	return stream.Events(
 		ctx,
 		s.client,

@@ -34,7 +34,7 @@ lint: ## Run golangci-lint
 
 .PHONY: test
 test: ## Run unit tests
-	$(GO) test ./... -cover
+	$(GO) test -race ./... -cover
 
 .PHONY: test-integration
 test-integration: ## Run integration tests (requires MASSDRIVER_API_KEY + MASSDRIVER_ORGANIZATION_ID)

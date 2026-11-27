@@ -60,11 +60,14 @@ func ExampleService_StreamEvents() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for ev := range events {
+	for ev := range events.C {
 		e := ev.(*types.DeploymentEvent)
 		fmt.Printf("%s: deployment %s is %s\n", e.Action, e.Deployment.ID, e.Deployment.Status)
 		if deployments.IsTerminal(e.Deployment.Status) {
 			return
 		}
+	}
+	if err := events.Err(); err != nil {
+		log.Fatal(err)
 	}
 }

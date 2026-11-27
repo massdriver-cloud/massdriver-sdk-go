@@ -102,7 +102,7 @@ field. Common entry points:
 | `c.AccessTokens`, `c.ServiceAccounts` | Programmatic identities. |
 | `c.AuditLogs` | The organization's audit trail (use `Iter` for large queries). |
 | `c.EventDestinations` | Places that receive the organization's audit log events, their deliveries, and the event catalog. |
-| `c.Stash` | Small keyed values stored in a project, environment, component, instance, or deployment. Stash is an alpha API that can change or be removed at any time. |
+| `c.Stash` | Small keyed values stored in a project, environment, component, instance, or deployment, the widgets drawn from well-known keys, and a stream of stash changes. Stash is an alpha API that can change or be removed at any time. |
 | `c.Organizations` | Organization metadata + custom-attribute schema. |
 | `c.Server`, `c.Viewer`, `c.URLs` | Server metadata, current identity, deep links. |
 
@@ -178,6 +178,11 @@ The SDK exposes two flavors of live data over Absinthe WebSocket
 subscriptions. Every `Stream*` method requires a personal-access-token
 credential and returns `streaming.ErrRequiresPAT` otherwise.
 
+Each `Stream*` method returns a `*streaming.Stream[T]`. Receive from its
+`C` channel, then call `Err()` to learn why it closed: `nil` when `ctx` was
+cancelled or the server completed the subscription, the connection's error
+otherwise.
+
 ### Deployment logs
 
 ```go
@@ -192,19 +197,21 @@ if err := c.Deployments.TailLogs(ctx, "deploy-abc123", os.Stdout); err != nil {
 
 ### Lifecycle events
 
-Each Service exposes `StreamEvents`, returning a typed `<-chan types.Event`.
-Type-assert each frame to read the affected resource:
+Each Service exposes `StreamEvents`, returning a
+`*streaming.Stream[types.Event]`. Type-assert each frame to read the
+affected resource:
 
 ```go
 events, err := c.Instances.StreamEvents(ctx, "ecomm-prod-database")
 if err != nil { log.Fatal(err) }
-for ev := range events {
+for ev := range events.C {
     switch e := ev.(type) {
     case *types.InstanceEvent:   fmt.Println(e.Action, e.Instance.Name)
     case *types.AlarmEvent:      fmt.Println(e.Action, e.Alarm.DisplayName)
     case *types.DeploymentEvent: fmt.Println(e.Action, e.Deployment.Status)
     }
 }
+if err := events.Err(); err != nil { log.Fatal(err) }
 ```
 
 | Method                          | Variants on the channel                                                                  |
@@ -215,7 +222,10 @@ for ev := range events {
 | `c.Instances.StreamEvents`      | `InstanceEvent`, `ConnectionEvent`, `AlarmEvent`, `DeploymentEvent`                      |
 | `c.Deployments.StreamEvents`    | `DeploymentEvent` (lifecycle transitions only — no log content)                          |
 
-The Service owns the socket lifetime; cancel `ctx` to stop.
+Cancel `ctx` to stop a stream. The streams of one client share a single
+WebSocket: it opens with the first stream and closes when the last one
+ends. If it fails, every stream on it closes with the error, and the next
+stream opens a new WebSocket.
 
 ## Testing
 

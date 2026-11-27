@@ -7,7 +7,7 @@
 // package.
 //
 // This package is internal to the SDK. Domain wrappers under
-// massdriver/platform/* expose typed channels on top of it (for example,
+// massdriver/platform/* expose typed streams on top of it (for example,
 // deployments.StreamLogs); external consumers go through those rather than
 // constructing subscriptions directly.
 package absinthe
@@ -49,8 +49,9 @@ type Socket struct {
 	writeMu sync.Mutex // serializes writes; gorilla requires single-writer
 
 	mu          sync.Mutex
-	pending     map[string]chan reply           // ref → reply slot
-	subscribers map[string]chan json.RawMessage // subscriptionId (== Phoenix topic) → data
+	pending     map[string]chan reply  // ref → reply slot
+	docRefs     map[string]string      // ref of a `doc` push → subscription ID its reply registered ("" until then)
+	subscribers map[string]*subscriber // subscriptionId (== Phoenix topic) → route
 	closed      bool
 	closeErr    error
 
@@ -59,10 +60,25 @@ type Socket struct {
 	done         chan struct{} // closed when the read loop exits
 }
 
+// ErrSocketClosed is the end error of a subscription whose socket closed
+// without a transport error, for example when the server went away.
+var ErrSocketClosed = errors.New("absinthe socket closed")
+
+// subscriber routes one subscription's data frames. err is why the route
+// ended: nil when the client unsubscribed or the server completed the
+// subscription. It is set under Socket.mu before ch is closed.
+type subscriber struct {
+	ch  chan json.RawMessage
+	err error
+}
+
 // reply carries a phx_reply payload back to the caller awaiting it.
 type reply struct {
 	status   string
 	response json.RawMessage
+	// route is the subscription route registered for an ok reply to a
+	// `doc` push.
+	route *subscriber
 }
 
 // Dial opens a WebSocket to baseURL's Phoenix endpoint, joins
@@ -89,7 +105,8 @@ func Dial(ctx context.Context, baseURL, token string) (*Socket, error) {
 	s := &Socket{
 		conn:        conn,
 		pending:     make(map[string]chan reply),
-		subscribers: make(map[string]chan json.RawMessage),
+		docRefs:     make(map[string]string),
+		subscribers: make(map[string]*subscriber),
 		done:        make(chan struct{}),
 	}
 	go s.readLoop()
@@ -110,6 +127,14 @@ func (s *Socket) Close() error {
 		s.connCloseErr = s.conn.Close()
 	})
 	return s.connCloseErr
+}
+
+// Closed reports whether the socket has shut down. A closed socket takes
+// no new subscriptions.
+func (s *Socket) Closed() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.closed
 }
 
 // Err returns the error that caused the socket to close, if any. Returns nil
@@ -140,7 +165,7 @@ func (s *Socket) push(ctx context.Context, joinRef *string, ref, topic, event st
 	s.mu.Lock()
 	if s.closed {
 		s.mu.Unlock()
-		return reply{}, fmt.Errorf("absinthe socket closed: %w", s.closeErr)
+		return reply{}, s.closedErr()
 	}
 	s.pending[ref] = ch
 	s.mu.Unlock()
@@ -159,21 +184,28 @@ func (s *Socket) push(ctx context.Context, joinRef *string, ref, topic, event st
 	defer timer.Stop()
 
 	select {
-	case r := <-ch:
+	case r, ok := <-ch:
+		if !ok {
+			return reply{}, s.closedErr()
+		}
 		return r, nil
 	case <-ctx.Done():
 		return reply{}, ctx.Err()
 	case <-s.done:
-		// s.Err() is nil on a clean server-initiated close (isNormalClose
-		// suppresses it). Return a plain sentinel in that case so we
-		// don't render "absinthe socket closed: %!w(<nil>)".
-		if err := s.Err(); err != nil {
-			return reply{}, fmt.Errorf("absinthe socket closed: %w", err)
-		}
-		return reply{}, errors.New("absinthe socket closed")
+		return reply{}, s.closedErr()
 	case <-timer.C:
 		return reply{}, fmt.Errorf("absinthe push %s: timeout waiting for reply", event)
 	}
+}
+
+// closedErr is the error a push returns once the socket has shut down.
+// s.Err() is nil on a clean server-initiated close (isNormalClose
+// suppresses it), so that case returns [ErrSocketClosed] alone.
+func (s *Socket) closedErr() error {
+	if err := s.Err(); err != nil {
+		return fmt.Errorf("%w: %w", ErrSocketClosed, err)
+	}
+	return ErrSocketClosed
 }
 
 // writeFrame sends one Phoenix v2 frame. payload may be nil to indicate {}.
@@ -239,28 +271,54 @@ func (s *Socket) dispatch(body []byte) {
 			Response json.RawMessage `json:"response"`
 		}
 		_ = json.Unmarshal(payload, &p)
+		r := reply{status: p.Status, response: p.Response}
 		s.mu.Lock()
+		defer s.mu.Unlock()
 		ch, ok := s.pending[*ref]
-		s.mu.Unlock()
-		if ok {
-			ch <- reply{status: p.Status, response: p.Response}
-		}
-	case "subscription:data":
-		s.mu.Lock()
-		ch, ok := s.subscribers[topic]
-		s.mu.Unlock()
 		if !ok {
 			return
 		}
+		if _, isDoc := s.docRefs[*ref]; isDoc {
+			// Register the route here, in the read loop, so a frame for the
+			// new subscription that follows this reply is not dropped.
+			if id := subscriptionID(p.Status, p.Response); id != "" && !s.closed {
+				r.route = &subscriber{ch: make(chan json.RawMessage, 64)}
+				s.subscribers[id] = r.route
+				s.docRefs[*ref] = id
+			}
+		}
+		// The send happens under mu so shutdown cannot close ch first. ch
+		// holds one reply, so a duplicate reply is dropped.
+		select {
+		case ch <- r:
+		default:
+		}
+	case "subscription:data":
 		// Payload is {"result": {"data": ..., "errors": ...}, "subscriptionId": "..."}.
 		// We pass the whole payload through; the domain caller will pick what it wants.
-		select {
-		case ch <- payload:
-		default:
-			// drop on slow consumer; subscriptions:data is fire-and-forget
+		// The send happens under mu so a concurrent end cannot close ch first.
+		s.mu.Lock()
+		if sub, ok := s.subscribers[topic]; ok {
+			select {
+			case sub.ch <- payload:
+			default:
+				// drop on slow consumer; subscriptions:data is fire-and-forget
+			}
 		}
-	case "phx_error", "phx_close":
-		s.shutdown(fmt.Errorf("absinthe socket received %s on topic %s: %s", event, topic, string(payload)))
+		s.mu.Unlock()
+	case "phx_close":
+		if topic == controlTopic {
+			s.shutdown(fmt.Errorf("absinthe socket received %s on topic %s: %s", event, topic, string(payload)))
+			return
+		}
+		s.endSubscription(topic, nil)
+	case "phx_error":
+		err := fmt.Errorf("absinthe socket received %s on topic %s: %s", event, topic, string(payload))
+		if topic == controlTopic {
+			s.shutdown(err)
+			return
+		}
+		s.endSubscription(topic, err)
 	}
 }
 
@@ -291,43 +349,57 @@ func (s *Socket) shutdown(cause error) {
 	}
 	pending := s.pending
 	s.pending = nil
-	subs := s.subscribers
+	s.docRefs = nil
+	subErr := s.closeErr
+	if subErr == nil {
+		subErr = ErrSocketClosed
+	}
+	for _, sub := range s.subscribers {
+		sub.err = subErr
+		close(sub.ch)
+	}
 	s.subscribers = nil
 	s.mu.Unlock()
 
 	for _, ch := range pending {
 		close(ch)
 	}
-	for _, ch := range subs {
-		close(ch)
-	}
 }
 
-// registerSubscription wires up a topic→channel route for incoming
-// subscription:data frames. Returns the channel.
-func (s *Socket) registerSubscription(topic string) chan json.RawMessage {
-	ch := make(chan json.RawMessage, 64)
-	s.mu.Lock()
-	if s.closed {
-		s.mu.Unlock()
-		close(ch)
-		return ch
+// subscriptionID reads the subscriptionId of an ok reply to a `doc` push.
+// Returns "" for any other reply.
+func subscriptionID(status string, response json.RawMessage) string {
+	if status != "ok" {
+		return ""
 	}
-	s.subscribers[topic] = ch
-	s.mu.Unlock()
-	return ch
+	var r struct {
+		SubscriptionID string `json:"subscriptionId"`
+	}
+	if err := json.Unmarshal(response, &r); err != nil {
+		return ""
+	}
+	return r.SubscriptionID
 }
 
-func (s *Socket) unregisterSubscription(topic string) {
+// endSubscription removes topic's route and closes its channel with err as
+// the end error. It does nothing when the route is already gone.
+func (s *Socket) endSubscription(topic string, err error) {
 	s.mu.Lock()
-	ch, ok := s.subscribers[topic]
-	if ok {
-		delete(s.subscribers, topic)
+	defer s.mu.Unlock()
+	sub, ok := s.subscribers[topic]
+	if !ok {
+		return
 	}
-	s.mu.Unlock()
-	if ok {
-		close(ch)
-	}
+	delete(s.subscribers, topic)
+	sub.err = err
+	close(sub.ch)
+}
+
+// subscriptionErr reads sub's end error.
+func (s *Socket) subscriptionErr(sub *subscriber) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return sub.err
 }
 
 func buildWSURL(baseURL, token string) (string, error) {

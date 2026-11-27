@@ -1,6 +1,6 @@
-// Package stream holds the shared plumbing every domain-level
-// StreamEvents wrapper sits on top of: opening an Absinthe socket,
-// pushing the subscription, dispatching each typed frame, and tying
+// Package stream holds the shared plumbing every domain-level Stream*
+// method sits on top of: subscribing on the client's shared Absinthe
+// socket, decoding each frame, recording why the stream ended, and tying
 // teardown to the caller's context.
 //
 // The package is internal — external callers consume it indirectly
@@ -10,54 +10,96 @@ package stream
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/client"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/streaming"
 )
 
-// Events opens an Absinthe subscription, decodes each frame via unpack,
-// and forwards successful unpacks on the returned channel. The channel
-// closes when ctx is cancelled, the server completes the subscription,
-// or the socket dies.
+// Events is [Frames] for the lifecycle-event subscriptions, whose frames
+// decode to a [types.Event] variant.
 //
-// rootField is the GraphQL field name nested under `data` (e.g.
-// "instanceEvents"); unpack reads the `__typename` inside that body and
-// returns the matching concrete [types.Event]. Frames with an unknown
-// __typename (or malformed JSON) are skipped without tearing down the
-// stream.
-//
-// opName labels the operation for error wrapping (e.g.
-// "instance events for inst-abc"). The socket and subscription are
-// closed automatically on ctx cancel — callers only own the returned
-// channel.
+// unpack reads the `__typename` inside the frame body and returns the
+// matching concrete [types.Event]. Frames with an unknown __typename (or
+// malformed JSON) are skipped without tearing down the stream.
 func Events(
 	ctx context.Context,
 	c *client.Client,
 	opName, query string,
 	vars map[string]any,
 	unpack func(json.RawMessage) (types.Event, bool),
-) (<-chan types.Event, error) {
-	socket, err := c.OpenStreamSocket(ctx)
+) (*streaming.Stream[types.Event], error) {
+	return Frames(ctx, c, opName, query, vars, unpack)
+}
+
+// Frames subscribes on c's shared socket, decodes each frame via unpack,
+// and forwards successful unpacks on the returned stream. Frames that
+// unpack rejects are skipped. The stream closes when ctx is cancelled, the
+// server completes the subscription, or the socket dies; its Err is nil in
+// the first two cases and the socket's error in the last.
+//
+// opName labels the operation for error wrapping (e.g. "instance events
+// for inst-abc"). The subscription is closed and the socket released
+// automatically — callers only own the returned stream.
+func Frames[T any](
+	ctx context.Context,
+	c *client.Client,
+	opName, query string,
+	vars map[string]any,
+	unpack func(json.RawMessage) (T, bool),
+) (*streaming.Stream[T], error) {
+	sub, release, err := c.Subscribe(ctx, query, vars)
 	if err != nil {
-		return nil, err
-	}
-	sub, err := socket.Subscribe(ctx, query, vars)
-	if err != nil {
-		_ = socket.Close()
+		if errors.Is(err, streaming.ErrRequiresPAT) {
+			return nil, err
+		}
 		return nil, fmt.Errorf("subscribe to %s: %w", opName, err)
 	}
 
+	var stopOnce sync.Once
+	stop := func() {
+		stopOnce.Do(func() {
+			_ = sub.Close()
+			release()
+		})
+	}
+	finished := make(chan struct{})
 	go func() {
-		<-ctx.Done()
-		_ = sub.Close()
-		_ = socket.Close()
+		select {
+		case <-ctx.Done():
+			stop()
+		case <-finished:
+		}
 	}()
 
-	out := make(chan types.Event, cap(sub.Data))
+	var (
+		mu     sync.Mutex
+		endErr error
+	)
+	out := make(chan T, cap(sub.Data))
 	go func() {
+		defer stop()
+		defer close(finished)
 		defer close(out)
-		for raw := range sub.Data {
+		for {
+			var raw json.RawMessage
+			select {
+			case r, ok := <-sub.Data:
+				if !ok {
+					if ctx.Err() == nil {
+						mu.Lock()
+						endErr = sub.Err()
+						mu.Unlock()
+					}
+					return
+				}
+				raw = r
+			case <-ctx.Done():
+				return
+			}
 			ev, ok := unpack(raw)
 			if !ok {
 				continue
@@ -69,7 +111,12 @@ func Events(
 			}
 		}
 	}()
-	return out, nil
+
+	return streaming.New(out, func() error {
+		mu.Lock()
+		defer mu.Unlock()
+		return endErr
+	}), nil
 }
 
 // Typename extracts the __typename field from a subscription frame's

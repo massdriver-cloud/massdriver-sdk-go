@@ -47,7 +47,7 @@ func ExampleService_StreamEvents() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for ev := range events {
+	for ev := range events.C {
 		switch e := ev.(type) {
 		case *types.ProjectEvent:
 			fmt.Printf("%s: project %s\n", e.Action, e.Project.Name)
@@ -58,6 +58,9 @@ func ExampleService_StreamEvents() {
 		case *types.LinkEvent:
 			fmt.Printf("%s: link %s → %s\n", e.Action, e.Link.FromField, e.Link.ToField)
 		}
+	}
+	if err := events.Err(); err != nil {
+		log.Fatal(err)
 	}
 }
 
