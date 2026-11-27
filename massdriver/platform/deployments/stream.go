@@ -3,6 +3,7 @@ package deployments
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 	"time"
@@ -155,11 +156,12 @@ func (s *Service) TailLogs(ctx context.Context, deploymentID string, w io.Writer
 		return err
 	}
 
-	// terminal closes when an event reports a terminal status. If the events
-	// stream closes without a terminal event (the connection failed),
-	// terminal stays open — the log stream closes too, and the main loop
-	// returns its error.
+	// terminal closes when an event reports a terminal status. eventsEnded
+	// receives once if the events stream closes first, with its Err: the
+	// server can end the events subscription while the log subscription
+	// stays open.
 	terminal := make(chan struct{})
+	eventsEnded := make(chan error, 1)
 	go func() {
 		for status := range statuses.C {
 			if IsTerminal(status) {
@@ -167,6 +169,7 @@ func (s *Service) TailLogs(ctx context.Context, deploymentID string, w io.Writer
 				return
 			}
 		}
+		eventsEnded <- statuses.Err()
 	}()
 
 	for {
@@ -183,10 +186,33 @@ func (s *Service) TailLogs(ctx context.Context, deploymentID string, w io.Writer
 			}
 		case <-terminal:
 			return drainLogs(ctx, logs.C, w)
+		case err := <-eventsEnded:
+			return s.afterEventsEnded(ctx, deploymentID, err, logs.C, w)
 		case <-ctx.Done():
 			return ctx.Err()
 		}
 	}
+}
+
+// afterEventsEnded handles the events stream closing before a terminal
+// status. Without the events, TailLogs cannot tell when the deployment
+// finishes, so it returns the stream's error, or drains the logs when the
+// deployment has finished, or reports that it stopped early.
+func (s *Service) afterEventsEnded(ctx context.Context, deploymentID string, eventsErr error, logs <-chan LogBatch, w io.Writer) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if eventsErr != nil {
+		return fmt.Errorf("events for deployment %s: %w", deploymentID, eventsErr)
+	}
+	dep, err := s.Get(ctx, deploymentID)
+	if err != nil {
+		return err
+	}
+	if IsTerminal(dep.Status) {
+		return drainLogs(ctx, logs, w)
+	}
+	return fmt.Errorf("events for deployment %s ended while it is %s", deploymentID, dep.Status)
 }
 
 // drainLogs reads any in-transit log batches for a brief window after a

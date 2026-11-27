@@ -52,6 +52,10 @@ func (c *Client) Subscribe(ctx context.Context, query string, vars map[string]an
 	return sub, release, nil
 }
 
+// acquireSocket holds the lock through the dial, so concurrent first
+// subscribers wait for one socket instead of each opening their own. A
+// caller waiting on the lock cannot give up early; the dial itself is
+// bounded by the dialing caller's ctx and the join's reply timeout.
 func (c *Client) acquireSocket(ctx context.Context) (*sharedSocket, error) {
 	c.sockets.mu.Lock()
 	defer c.sockets.mu.Unlock()

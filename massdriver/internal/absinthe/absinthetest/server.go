@@ -106,6 +106,18 @@ func (s *Server) Complete(id string) {
 	}
 }
 
+// Fail ends subscription id from the server side with phx_error.
+func (s *Server) Fail(id string) {
+	s.t.Helper()
+	c := s.subConn(id)
+	s.mu.Lock()
+	delete(s.subs, id)
+	s.mu.Unlock()
+	if err := c.write(nil, nil, id, "phx_error", map[string]any{"reason": "boom"}); err != nil {
+		s.t.Fatalf("fail %s: %v", id, err)
+	}
+}
+
 // Kill drops every open connection without a close frame, as a network
 // failure would.
 func (s *Server) Kill() {

@@ -179,21 +179,28 @@ func (s *Socket) push(ctx context.Context, joinRef *string, ref, topic, event st
 	defer timer.Stop()
 
 	select {
-	case r := <-ch:
+	case r, ok := <-ch:
+		if !ok {
+			return reply{}, s.closedErr()
+		}
 		return r, nil
 	case <-ctx.Done():
 		return reply{}, ctx.Err()
 	case <-s.done:
-		// s.Err() is nil on a clean server-initiated close (isNormalClose
-		// suppresses it). Return a plain sentinel in that case so we
-		// don't render "absinthe socket closed: %!w(<nil>)".
-		if err := s.Err(); err != nil {
-			return reply{}, fmt.Errorf("absinthe socket closed: %w", err)
-		}
-		return reply{}, errors.New("absinthe socket closed")
+		return reply{}, s.closedErr()
 	case <-timer.C:
 		return reply{}, fmt.Errorf("absinthe push %s: timeout waiting for reply", event)
 	}
+}
+
+// closedErr is the error a push returns once the socket has shut down.
+// s.Err() is nil on a clean server-initiated close (isNormalClose
+// suppresses it), so that case returns [ErrSocketClosed] alone.
+func (s *Socket) closedErr() error {
+	if err := s.Err(); err != nil {
+		return fmt.Errorf("%w: %w", ErrSocketClosed, err)
+	}
+	return ErrSocketClosed
 }
 
 // writeFrame sends one Phoenix v2 frame. payload may be nil to indicate {}.

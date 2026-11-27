@@ -22,6 +22,7 @@ type Subscription struct {
 
 	socket   *Socket
 	route    *subscriber
+	closed   chan struct{}
 	closeOne sync.Once
 }
 
@@ -58,6 +59,7 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 
 	route := s.registerSubscription(subResp.SubscriptionID)
 	out := make(chan json.RawMessage, cap(route.ch))
+	closed := make(chan struct{})
 
 	go func() {
 		defer close(out)
@@ -70,6 +72,8 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 			case out <- data:
 			case <-s.done:
 				return
+			case <-closed:
+				return
 			}
 		}
 	}()
@@ -79,6 +83,7 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 		Data:   out,
 		socket: s,
 		route:  route,
+		closed: closed,
 	}, nil
 }
 
@@ -87,6 +92,7 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 // goroutines.
 func (sub *Subscription) Close() error {
 	sub.closeOne.Do(func() {
+		close(sub.closed)
 		// Best-effort unsubscribe; ignore errors (the server may already
 		// have dropped the sub or the socket may be closing).
 		body, _ := json.Marshal(struct {
