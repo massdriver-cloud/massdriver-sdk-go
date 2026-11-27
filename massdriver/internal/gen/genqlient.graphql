@@ -3703,6 +3703,11 @@ query ListWidgetsForScopes(
         kind
         id
       }
+      # @genqlient(pointer: true)
+      rolledUpTo {
+        kind
+        id
+      }
       segments
       values
       updatedAt

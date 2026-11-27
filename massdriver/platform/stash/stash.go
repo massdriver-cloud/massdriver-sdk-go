@@ -311,7 +311,7 @@ func toEntry(v any) (*Entry, error) {
 	return &e, nil
 }
 
-func entryScope(e *Entry) *ScopeKind { return &e.Scope.Kind }
+func entryScope(e *Entry) []*ScopeKind { return []*ScopeKind{&e.Scope.Kind} }
 
 // lowerScopeKind maps the API's upper-case kind (PROJECT) to [ScopeKind]
 // (project).
@@ -319,11 +319,13 @@ func lowerScopeKind(kind *ScopeKind) {
 	*kind = ScopeKind(strings.ToLower(string(*kind)))
 }
 
-func withScopeKinds[T any](fetch paging.FetchFunc[T], kind func(*T) *ScopeKind) paging.FetchFunc[T] {
+func withScopeKinds[T any](fetch paging.FetchFunc[T], kinds func(*T) []*ScopeKind) paging.FetchFunc[T] {
 	return func(ctx context.Context, after string) (types.Page[T], error) {
 		page, err := fetch(ctx, after)
 		for i := range page.Items {
-			lowerScopeKind(kind(&page.Items[i]))
+			for _, kind := range kinds(&page.Items[i]) {
+				lowerScopeKind(kind)
+			}
 		}
 		return page, err
 	}

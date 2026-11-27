@@ -57,12 +57,13 @@ func TestWidgetsForScopes(t *testing.T) {
 		"alphaWidgetsForScopes": map[string]any{
 			"cursor": map[string]any{"next": "page-2"},
 			"items": []map[string]any{{
-				"name":      "instance.usage_bar",
-				"scope":     map[string]any{"kind": "INSTANCE", "id": "api-prod-db"},
-				"segments":  map[string]any{},
-				"values":    map[string]any{"value": 42, "max": 100},
-				"updatedAt": "2026-11-20T10:00:00Z",
-				"expiresAt": nil,
+				"name":       "instance.usage_bar",
+				"scope":      map[string]any{"kind": "INSTANCE", "id": "api-prod-db"},
+				"rolledUpTo": nil,
+				"segments":   map[string]any{},
+				"values":     map[string]any{"value": 42, "max": 100},
+				"updatedAt":  "2026-11-20T10:00:00Z",
+				"expiresAt":  nil,
 			}},
 		},
 	}))
@@ -86,6 +87,9 @@ func TestWidgetsForScopes(t *testing.T) {
 	}
 	if w.UpdatedAt.IsZero() || !w.ExpiresAt.IsZero() {
 		t.Errorf("UpdatedAt = %v, ExpiresAt = %v", w.UpdatedAt, w.ExpiresAt)
+	}
+	if w.RolledUpTo != nil {
+		t.Errorf("RolledUpTo = %+v, want nil for a widget in its own scope", w.RolledUpTo)
 	}
 
 	scopes, _ := gqlClient.Requests()[0].Variables["scopes"].([]any)
@@ -158,11 +162,12 @@ func TestWidgetsForScopes_DeploymentResultThroughInstance(t *testing.T) {
 		"alphaWidgetsForScopes": map[string]any{
 			"cursor": map[string]any{},
 			"items": []map[string]any{{
-				"name":      "deployment.changes",
-				"scope":     map[string]any{"kind": "DEPLOYMENT", "id": "a1b2c3d4-0000-0000-0000-000000000001"},
-				"segments":  map[string]any{"step": "src"},
-				"values":    map[string]any{"tool": "opentofu", "add": 2},
-				"updatedAt": "2026-11-27T20:03:24Z",
+				"name":       "deployment.changes",
+				"scope":      map[string]any{"kind": "DEPLOYMENT", "id": "a1b2c3d4-0000-0000-0000-000000000001"},
+				"rolledUpTo": map[string]any{"kind": "INSTANCE", "id": "api-prod-db"},
+				"segments":   map[string]any{"step": "src"},
+				"values":     map[string]any{"tool": "opentofu", "add": 2},
+				"updatedAt":  "2026-11-27T20:03:24Z",
 			}},
 		},
 	}))
@@ -177,5 +182,8 @@ func TestWidgetsForScopes_DeploymentResultThroughInstance(t *testing.T) {
 	}
 	if len(w.Segments) != 1 || w.Segments["step"] != "src" {
 		t.Errorf("Segments = %v, want step: src", w.Segments)
+	}
+	if w.RolledUpTo == nil || *w.RolledUpTo != (stash.Scope{Kind: stash.ScopeInstance, ID: "api-prod-db"}) {
+		t.Errorf("RolledUpTo = %+v, want instance api-prod-db", w.RolledUpTo)
 	}
 }

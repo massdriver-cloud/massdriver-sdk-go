@@ -27926,6 +27926,8 @@ type ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget s
 	Name string `json:"name"`
 	// The entity whose stash has the key. For a `link.traffic` widget, this is the instance that sends the traffic, and the widget shows on the lines that leave it. For a deployment result read through an instance, this is the deployment that the result came from.
 	Scope ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef `json:"scope"`
+	// The instance whose latest deployment results include this widget, when the widget is a deployment result returned for an instance scope. Null for every other widget, such as a result read only through its deployment scope.
+	RolledUpTo *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetRolledUpToAlphaStashScopeRef `json:"rolledUpTo"`
 	// The values of the key's named segments, by name, for example `{"step": "src"}` for the key `md/v1/step/src`. Empty for a fixed key.
 	Segments map[string]any `json:"-"`
 	// The widget's input values, by input name, for example `{"value": 42, "max": 100}`. An optional input that the key's value does not set is left out.
@@ -27944,6 +27946,11 @@ func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidg
 // GetScope returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.Scope, and is useful for accessing the field via an interface.
 func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget) GetScope() ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef {
 	return v.Scope
+}
+
+// GetRolledUpTo returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.RolledUpTo, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget) GetRolledUpTo() *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetRolledUpToAlphaStashScopeRef {
+	return v.RolledUpTo
 }
 
 // GetSegments returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.Segments, and is useful for accessing the field via an interface.
@@ -28018,6 +28025,8 @@ type __premarshalListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsA
 
 	Scope ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef `json:"scope"`
 
+	RolledUpTo *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetRolledUpToAlphaStashScopeRef `json:"rolledUpTo"`
+
 	Segments json.RawMessage `json:"segments"`
 
 	Values json.RawMessage `json:"values"`
@@ -28040,6 +28049,7 @@ func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidg
 
 	retval.Name = v.Name
 	retval.Scope = v.Scope
+	retval.RolledUpTo = v.RolledUpTo
 	{
 
 		dst := &retval.Segments
@@ -28067,6 +28077,29 @@ func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidg
 	retval.UpdatedAt = v.UpdatedAt
 	retval.ExpiresAt = v.ExpiresAt
 	return &retval, nil
+}
+
+// ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetRolledUpToAlphaStashScopeRef includes the requested fields of the GraphQL type AlphaStashScopeRef.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// The project, environment, component, instance, or deployment that owns a stash.
+type ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetRolledUpToAlphaStashScopeRef struct {
+	// The kind of entity.
+	Kind AlphaStashScopeKind `json:"kind"`
+	// The entity's ID, for example `ecomm-prod-database` for an instance. A deployment's ID is a UUID.
+	Id string `json:"id"`
+}
+
+// GetKind returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetRolledUpToAlphaStashScopeRef.Kind, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetRolledUpToAlphaStashScopeRef) GetKind() AlphaStashScopeKind {
+	return v.Kind
+}
+
+// GetId returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetRolledUpToAlphaStashScopeRef.Id, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetRolledUpToAlphaStashScopeRef) GetId() string {
+	return v.Id
 }
 
 // ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef includes the requested fields of the GraphQL type AlphaStashScopeRef.
@@ -28108,8 +28141,10 @@ type ListWidgetsForScopesResponse struct {
 	//
 	// An instance scope also returns the deployment results of the instance's latest deployment that has any
 	// well-known key, such as `md/v1/step/src` and `md/v1/cost_estimate`. The `scope` of each of those widgets
-	// is that deployment. A newer deployment that has not set a well-known key yet, for example one that is still
-	// running, does not hide these results. A deployment scope returns the results of that deployment.
+	// is that deployment, and `rolledUpTo` is the instance. Any well-known key makes a deployment the latest one
+	// with results, including `md/v1/source` and `md/v1/state_lock`, which a run often sets when it starts. A
+	// newer deployment that has not set a well-known key yet does not hide the earlier results. A deployment
+	// scope returns the results of that deployment.
 	//
 	// ```graphql
 	// query {
@@ -28120,6 +28155,7 @@ type ListWidgetsForScopesResponse struct {
 	// items {
 	// name
 	// scope { kind id }
+	// rolledUpTo { kind id }
 	// segments
 	// values
 	// expiresAt
@@ -44649,6 +44685,10 @@ query ListWidgetsForScopes ($organizationId: ID!, $scopes: [AlphaStashScope!]!, 
 		items {
 			name
 			scope {
+				kind
+				id
+			}
+			rolledUpTo {
 				kind
 				id
 			}

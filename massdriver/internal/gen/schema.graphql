@@ -931,8 +931,10 @@ type RootQueryType {
 
   An instance scope also returns the deployment results of the instance's latest deployment that has any
   well-known key, such as `md/v1/step/src` and `md/v1/cost_estimate`. The `scope` of each of those widgets
-  is that deployment. A newer deployment that has not set a well-known key yet, for example one that is still
-  running, does not hide these results. A deployment scope returns the results of that deployment.
+  is that deployment, and `rolledUpTo` is the instance. Any well-known key makes a deployment the latest one
+  with results, including `md/v1/source` and `md/v1/state_lock`, which a run often sets when it starts. A
+  newer deployment that has not set a well-known key yet does not hide the earlier results. A deployment
+  scope returns the results of that deployment.
 
   ```graphql
   query {
@@ -943,6 +945,7 @@ type RootQueryType {
       items {
         name
         scope { kind id }
+        rolledUpTo { kind id }
         segments
         values
         expiresAt
@@ -11561,6 +11564,9 @@ type AlphaWidget {
 
   "The entity whose stash has the key. For a `link.traffic` widget, this is the instance that sends the traffic, and the widget shows on the lines that leave it. For a deployment result read through an instance, this is the deployment that the result came from."
   scope: AlphaStashScopeRef!
+
+  "The instance whose latest deployment results include this widget, when the widget is a deployment result returned for an instance scope. Null for every other widget, such as a result read only through its deployment scope."
+  rolledUpTo: AlphaStashScopeRef
 
   "The values of the key's named segments, by name, for example `{\"step\": \"src\"}` for the key `md\/v1\/step\/src`. Empty for a fixed key."
   segments: Map!

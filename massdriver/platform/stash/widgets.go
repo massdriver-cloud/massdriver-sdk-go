@@ -80,5 +80,13 @@ func (s *Service) widgetsPage(scopes []Scope, input WidgetsInput) paging.FetchFu
 			Next:     resp.AlphaWidgetsForScopes.Cursor.Next,
 			Previous: resp.AlphaWidgetsForScopes.Cursor.Previous,
 		}, nil
-	}), func(w *Widget) *ScopeKind { return &w.Scope.Kind })
+	}), widgetScopes)
+}
+
+func widgetScopes(w *Widget) []*ScopeKind {
+	kinds := []*ScopeKind{&w.Scope.Kind}
+	if w.RolledUpTo != nil {
+		kinds = append(kinds, &w.RolledUpTo.Kind)
+	}
+	return kinds
 }

@@ -103,14 +103,16 @@ type WidgetInput struct {
 // expire.
 //
 // Scope is the resource whose stash has the key. For a deployment result
-// read through an instance, it is the deployment the result came from.
+// read through an instance, it is the deployment the result came from, and
+// RolledUpTo is that instance. RolledUpTo is nil for every other widget.
 // Segments holds the values of the key's named segments, such as
 // {"step": "src"} for `md/v1/step/src`, and is empty for a fixed key.
 type Widget struct {
-	Name      string            `json:"name" mapstructure:"name"`
-	Scope     StashScope        `json:"scope" mapstructure:"scope"`
-	Segments  map[string]string `json:"segments" mapstructure:"segments"`
-	Values    map[string]any    `json:"values" mapstructure:"values"`
-	UpdatedAt time.Time         `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
-	ExpiresAt time.Time         `json:"expiresAt,omitzero" mapstructure:"expiresAt"`
+	Name       string            `json:"name" mapstructure:"name"`
+	Scope      StashScope        `json:"scope" mapstructure:"scope"`
+	RolledUpTo *StashScope       `json:"rolledUpTo,omitempty" mapstructure:"rolledUpTo"`
+	Segments   map[string]string `json:"segments" mapstructure:"segments"`
+	Values     map[string]any    `json:"values" mapstructure:"values"`
+	UpdatedAt  time.Time         `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
+	ExpiresAt  time.Time         `json:"expiresAt,omitzero" mapstructure:"expiresAt"`
 }
