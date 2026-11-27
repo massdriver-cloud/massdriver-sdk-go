@@ -3525,3 +3525,97 @@ query GetViewer {
 }
 
 
+
+# @genqlient(for: "AlphaStashScope.project", omitempty: true)
+# @genqlient(for: "AlphaStashScope.environment", omitempty: true)
+# @genqlient(for: "AlphaStashScope.component", omitempty: true)
+# @genqlient(for: "AlphaStashScope.instance", omitempty: true)
+# @genqlient(for: "AlphaStashScope.deployment", omitempty: true)
+query GetStashEntry(
+  $organizationId: ID!,
+  $scope: AlphaStashScope!,
+  $key: String!
+) {
+  alphaStashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
+    key
+    label
+    # @genqlient(pointer: true)
+    value
+    data
+    format
+    immutable
+    sensitive
+    expiresAt
+    updatedAt
+  }
+}
+
+query ListStashEntries(
+  $organizationId: ID!,
+  $scope: AlphaStashScope!,
+  # @genqlient(omitempty: true, pointer: true)
+  $cursor: Cursor
+) {
+  alphaStashEntries(organizationId: $organizationId, scope: $scope, cursor: $cursor) {
+    cursor {
+      next
+      previous
+    }
+    items {
+      key
+      label
+      # @genqlient(pointer: true)
+      value
+      data
+      format
+      immutable
+      sensitive
+      expiresAt
+      updatedAt
+    }
+  }
+}
+
+# @genqlient(for: "AlphaSetStashEntryInput.ttl", omitempty: true)
+# @genqlient(for: "AlphaSetStashEntryInput.label", omitempty: true)
+mutation SetStashEntry(
+  $organizationId: ID!,
+  $scope: AlphaStashScope!,
+  $key: String!,
+  $input: AlphaSetStashEntryInput!
+) {
+  alphaSetStashEntry(organizationId: $organizationId, scope: $scope, key: $key, input: $input) {
+    result {
+      key
+      label
+      # @genqlient(pointer: true)
+      value
+      data
+      format
+      immutable
+      sensitive
+      expiresAt
+      updatedAt
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}
+
+mutation DeleteStashEntry($organizationId: ID!, $scope: AlphaStashScope!, $key: String!) {
+  alphaDeleteStashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
+    result {
+      key
+    }
+    successful
+    messages {
+      code
+      field
+      message
+    }
+  }
+}

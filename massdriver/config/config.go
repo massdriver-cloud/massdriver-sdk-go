@@ -49,6 +49,10 @@ type Overrides struct {
 	// API-key/PAT auth; [AuthDeployment] opts into the deployment
 	// token env vars.
 	AuthMethod AuthMethod
+	// DeploymentFallback resolves the deployment token env vars when
+	// API-key/PAT auth finds no key. It lets one tool run both on a
+	// workstation and inside a provisioner.
+	DeploymentFallback bool
 }
 
 // Get is shorthand for [Load](Overrides{}).
@@ -123,7 +127,7 @@ func initializeConfig(o Overrides) (Config, error) {
 	if profileConfig, exists := configFile.lookup(selection.name); exists {
 		profile = profileConfig
 		cfg.Profile = selection.name
-	} else if selection.explicit && o.AuthMethod != AuthDeployment {
+	} else if selection.explicit && o.AuthMethod != AuthDeployment && !fallsBackToDeployment(o, configEnvs) {
 		// Deployment tokens come from the environment and never from a
 		// profile, so a stale profile name must not block a provisioner.
 		return Config{}, selection.notFoundError(configFile)
@@ -133,7 +137,7 @@ func initializeConfig(o Overrides) (Config, error) {
 	cfg.URL = cmp.Or(configEnvs.URL, profile.URL, defaultURL)
 	cfg.TemplatesPath = cmp.Or(configEnvs.TemplatesPath, profile.TemplatesPath)
 
-	credentials, credErr := resolveCredentials(configEnvs, &profile, apiKeyOrigin, o.AuthMethod)
+	credentials, credErr := resolveCredentials(configEnvs, &profile, apiKeyOrigin, o.AuthMethod, o.DeploymentFallback)
 	if credErr != nil {
 		return Config{}, fmt.Errorf("error resolving credentials: %w", credErr)
 	}
@@ -219,4 +223,12 @@ func validateConfig(cfg Config) error {
 	}
 
 	return nil
+}
+
+// fallsBackToDeployment reports whether [Overrides.DeploymentFallback]
+// resolves the deployment token without reading a profile: no API key
+// comes from an option or the environment, and both token env vars are
+// set.
+func fallsBackToDeployment(o Overrides, envs *configEnvs) bool {
+	return o.DeploymentFallback && envs.APIKey == "" && envs.hasDeploymentToken()
 }

@@ -2,6 +2,8 @@ package massdriver_test
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -30,6 +32,19 @@ func isolateEnv(t *testing.T) {
 	}
 	t.Setenv("HOME", t.TempDir())
 	t.Setenv("XDG_CONFIG_HOME", "")
+}
+
+// writeConfigFile writes content to the config file under the HOME that
+// isolateEnv set.
+func writeConfigFile(t *testing.T, content string) {
+	t.Helper()
+	path := filepath.Join(os.Getenv("HOME"), ".config", "massdriver", "config.yaml")
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // TestNewClient_WithAPIKeyOverridesEnv confirms an explicit
@@ -131,6 +146,93 @@ func TestNewClient_DeploymentTokenIsOptIn(t *testing.T) {
 		}
 		if !strings.Contains(err.Error(), "WithDeploymentTokenAuth") {
 			t.Errorf("err = %v, want a hint pointing at WithDeploymentTokenAuth", err)
+		}
+	})
+
+	t.Run("fallback uses the deployment token when no API key resolves", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		c, err := massdriver.NewClient(massdriver.WithDeploymentTokenFallback())
+		if err != nil {
+			t.Fatalf("NewClient: %v", err)
+		}
+		if got := string(c.Config().Credentials.Method); got != "deployment" {
+			t.Errorf("Config.Credentials.Method = %q, want deployment", got)
+		}
+	})
+
+	t.Run("fallback keeps the API key when one resolves", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_API_KEY", "env-key")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		c, err := massdriver.NewClient(massdriver.WithDeploymentTokenFallback())
+		if err != nil {
+			t.Fatalf("NewClient: %v", err)
+		}
+		if got := string(c.Config().Credentials.Method); got != "api_key" {
+			t.Errorf("Config.Credentials.Method = %q, want api_key", got)
+		}
+	})
+
+	t.Run("fallback keeps an API key from an option", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		c, err := massdriver.NewClient(massdriver.WithAPIKey("mds_option"), massdriver.WithDeploymentTokenFallback())
+		if err != nil {
+			t.Fatalf("NewClient: %v", err)
+		}
+		if got := string(c.Config().Credentials.Method); got != "personal_access_token" {
+			t.Errorf("Config.Credentials.Method = %q, want personal_access_token", got)
+		}
+	})
+
+	t.Run("fallback keeps an API key from the profile", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+		writeConfigFile(t, "version: 1\nprofiles:\n  default:\n    organization_id: ecomm\n    api_key: mds_profile\n")
+
+		c, err := massdriver.NewClient(massdriver.WithDeploymentTokenFallback())
+		if err != nil {
+			t.Fatalf("NewClient: %v", err)
+		}
+		if got := c.Config().Credentials.Secret; got != "mds_profile" {
+			t.Errorf("Config.Credentials.Secret = %q, want mds_profile", got)
+		}
+	})
+
+	t.Run("fallback is not blocked by a missing profile", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+		t.Setenv("MASSDRIVER_PROFILE", "gone")
+		t.Setenv("MASSDRIVER_DEPLOYMENT_ID", "deploy-123")
+		t.Setenv("MASSDRIVER_TOKEN", "token-abc")
+
+		c, err := massdriver.NewClient(massdriver.WithDeploymentTokenFallback())
+		if err != nil {
+			t.Fatalf("NewClient: %v", err)
+		}
+		if got := string(c.Config().Credentials.Method); got != "deployment" {
+			t.Errorf("Config.Credentials.Method = %q, want deployment", got)
+		}
+	})
+
+	t.Run("fallback without any credentials errors", func(t *testing.T) {
+		isolateEnv(t)
+		t.Setenv("MASSDRIVER_ORGANIZATION_ID", "ecomm")
+
+		_, err := massdriver.NewClient(massdriver.WithDeploymentTokenFallback())
+		if !errors.Is(err, config.ErrNoCredentials) {
+			t.Errorf("err = %v, want errors.Is(err, config.ErrNoCredentials)", err)
 		}
 	})
 
