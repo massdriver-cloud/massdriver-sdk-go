@@ -87,9 +87,9 @@ type WidgetDefinition struct {
 }
 
 // WidgetInput is one input of a [WidgetDefinition]. Type is STRING,
-// NUMBER, INTEGER, BOOLEAN, ARRAY, or OBJECT. Field is the field of the key's JSON value the
-// input reads, empty when the key is TEXT and the input reads the whole
-// value.
+// NUMBER, INTEGER, BOOLEAN, ARRAY, or OBJECT. Field is the field of the
+// key's JSON value the input reads, empty when the key is TEXT and the
+// input reads the whole value.
 type WidgetInput struct {
 	Name        string `json:"name" mapstructure:"name"`
 	Type        string `json:"type" mapstructure:"type"`
