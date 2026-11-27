@@ -3526,17 +3526,17 @@ query GetViewer {
 
 
 
-# @genqlient(for: "StashScope.project", omitempty: true)
-# @genqlient(for: "StashScope.environment", omitempty: true)
-# @genqlient(for: "StashScope.component", omitempty: true)
-# @genqlient(for: "StashScope.instance", omitempty: true)
-# @genqlient(for: "StashScope.deployment", omitempty: true)
+# @genqlient(for: "AlphaStashScope.project", omitempty: true)
+# @genqlient(for: "AlphaStashScope.environment", omitempty: true)
+# @genqlient(for: "AlphaStashScope.component", omitempty: true)
+# @genqlient(for: "AlphaStashScope.instance", omitempty: true)
+# @genqlient(for: "AlphaStashScope.deployment", omitempty: true)
 query GetStashEntry(
   $organizationId: ID!,
-  $scope: StashScope!,
+  $scope: AlphaStashScope!,
   $key: String!
 ) {
-  stashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
+  alphaStashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
     key
     label
     # @genqlient(pointer: true)
@@ -3552,11 +3552,11 @@ query GetStashEntry(
 
 query ListStashEntries(
   $organizationId: ID!,
-  $scope: StashScope!,
+  $scope: AlphaStashScope!,
   # @genqlient(omitempty: true, pointer: true)
   $cursor: Cursor
 ) {
-  stashEntries(organizationId: $organizationId, scope: $scope, cursor: $cursor) {
+  alphaStashEntries(organizationId: $organizationId, scope: $scope, cursor: $cursor) {
     cursor {
       next
       previous
@@ -3576,15 +3576,15 @@ query ListStashEntries(
   }
 }
 
-# @genqlient(for: "SetStashEntryInput.ttl", omitempty: true)
-# @genqlient(for: "SetStashEntryInput.label", omitempty: true)
+# @genqlient(for: "AlphaSetStashEntryInput.ttl", omitempty: true)
+# @genqlient(for: "AlphaSetStashEntryInput.label", omitempty: true)
 mutation SetStashEntry(
   $organizationId: ID!,
-  $scope: StashScope!,
+  $scope: AlphaStashScope!,
   $key: String!,
-  $input: SetStashEntryInput!
+  $input: AlphaSetStashEntryInput!
 ) {
-  setStashEntry(organizationId: $organizationId, scope: $scope, key: $key, input: $input) {
+  alphaSetStashEntry(organizationId: $organizationId, scope: $scope, key: $key, input: $input) {
     result {
       key
       label
@@ -3606,8 +3606,8 @@ mutation SetStashEntry(
   }
 }
 
-mutation DeleteStashEntry($organizationId: ID!, $scope: StashScope!, $key: String!) {
-  deleteStashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
+mutation DeleteStashEntry($organizationId: ID!, $scope: AlphaStashScope!, $key: String!) {
+  alphaDeleteStashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
     result {
       key
     }

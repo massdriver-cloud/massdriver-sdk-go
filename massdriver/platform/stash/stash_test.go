@@ -39,7 +39,7 @@ func payload(result map[string]any) map[string]any {
 }
 
 func TestGet(t *testing.T) {
-	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"stashEntry": textEntry()}))
+	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"alphaStashEntry": textEntry()}))
 
 	got, err := newService(gqlClient).Get(t.Context(), stash.Scope{Kind: stash.ScopeEnvironment, ID: "api-prod"}, "db/hostname")
 	if err != nil {
@@ -68,7 +68,7 @@ func TestGet_JSONData(t *testing.T) {
 	entry["value"] = `{"changed":3}`
 	entry["data"] = map[string]any{"changed": 3}
 	entry["format"] = "JSON"
-	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"stashEntry": entry}))
+	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"alphaStashEntry": entry}))
 
 	got, err := newService(gqlClient).Get(t.Context(), stash.Scope{Kind: stash.ScopeDeployment, ID: "a1b2c3d4-0000-0000-0000-000000000001"}, "stats")
 	if err != nil {
@@ -84,7 +84,7 @@ func TestGet_SensitiveRedacted(t *testing.T) {
 	entry["value"] = nil
 	entry["label"] = nil
 	entry["sensitive"] = true
-	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"stashEntry": entry}))
+	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"alphaStashEntry": entry}))
 
 	got, err := newService(gqlClient).Get(t.Context(), stash.Scope{Kind: stash.ScopeProject, ID: "api"}, "db/hostname")
 	if err != nil {
@@ -96,7 +96,7 @@ func TestGet_SensitiveRedacted(t *testing.T) {
 }
 
 func TestGet_NotFound(t *testing.T) {
-	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"stashEntry": nil}))
+	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"alphaStashEntry": nil}))
 
 	_, err := newService(gqlClient).Get(t.Context(), stash.Scope{Kind: stash.ScopeProject, ID: "api"}, "missing")
 	if !errors.Is(err, gql.ErrNotFound) {
@@ -138,7 +138,7 @@ func TestScopeVariables(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(string(tc.kind), func(t *testing.T) {
-			gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"stashEntry": textEntry()}))
+			gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"alphaStashEntry": textEntry()}))
 			if _, err := newService(gqlClient).Get(t.Context(), stash.Scope{Kind: tc.kind, ID: "api-prod-db"}, "db/hostname"); err != nil {
 				t.Fatalf("Get: %v", err)
 			}
@@ -152,7 +152,7 @@ func TestScopeVariables(t *testing.T) {
 
 func TestListPage(t *testing.T) {
 	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{
-		"stashEntries": map[string]any{
+		"alphaStashEntries": map[string]any{
 			"cursor": map[string]any{"next": "page-2"},
 			"items":  []map[string]any{textEntry()},
 		},
@@ -174,13 +174,13 @@ func TestListPage(t *testing.T) {
 func TestIter_FollowsCursor(t *testing.T) {
 	gqlClient := gqltest.NewClient(
 		gqltest.RespondWithData(map[string]any{
-			"stashEntries": map[string]any{
+			"alphaStashEntries": map[string]any{
 				"cursor": map[string]any{"next": "page-2"},
 				"items":  []map[string]any{textEntry()},
 			},
 		}),
 		gqltest.RespondWithData(map[string]any{
-			"stashEntries": map[string]any{
+			"alphaStashEntries": map[string]any{
 				"cursor": map[string]any{},
 				"items":  []map[string]any{textEntry()},
 			},
@@ -197,7 +197,7 @@ func TestIter_FollowsCursor(t *testing.T) {
 }
 
 func TestSet(t *testing.T) {
-	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"setStashEntry": payload(textEntry())}))
+	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"alphaSetStashEntry": payload(textEntry())}))
 
 	got, err := newService(gqlClient).Set(t.Context(), stash.Scope{Kind: stash.ScopeEnvironment, ID: "api-staging"}, "ami-id", stash.SetInput{
 		Value:     "ami-0abc",
@@ -235,7 +235,7 @@ func TestSet(t *testing.T) {
 }
 
 func TestSet_SendsDefaults(t *testing.T) {
-	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"setStashEntry": payload(textEntry())}))
+	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{"alphaSetStashEntry": payload(textEntry())}))
 
 	if _, err := newService(gqlClient).Set(t.Context(), stash.Scope{Kind: stash.ScopeProject, ID: "api"}, "db/hostname", stash.SetInput{Value: "db.internal"}); err != nil {
 		t.Fatalf("Set: %v", err)
@@ -277,7 +277,7 @@ func TestSet_InvalidTTL(t *testing.T) {
 
 func TestSet_MutationFailed(t *testing.T) {
 	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{
-		"setStashEntry": map[string]any{
+		"alphaSetStashEntry": map[string]any{
 			"result":     nil,
 			"successful": false,
 			"messages":   []map[string]any{{"field": "key", "message": "is immutable"}},
@@ -293,7 +293,7 @@ func TestSet_MutationFailed(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{
-		"deleteStashEntry": payload(map[string]any{"key": "db/hostname"}),
+		"alphaDeleteStashEntry": payload(map[string]any{"key": "db/hostname"}),
 	}))
 
 	if err := newService(gqlClient).Delete(t.Context(), stash.Scope{Kind: stash.ScopeComponent, ID: "api-db"}, "db/hostname"); err != nil {
@@ -308,7 +308,7 @@ func TestDelete(t *testing.T) {
 
 func TestDelete_Missing(t *testing.T) {
 	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{
-		"deleteStashEntry": map[string]any{
+		"alphaDeleteStashEntry": map[string]any{
 			"result":     nil,
 			"successful": false,
 			"messages":   []map[string]any{{"code": "unknown", "message": "Stash entry not found"}},
@@ -327,10 +327,10 @@ func TestDelete_Missing(t *testing.T) {
 
 func TestListPage_UnknownScope(t *testing.T) {
 	gqlClient := gqltest.NewClient(gqltest.RespondWithJSON(map[string]any{
-		"data": map[string]any{"stashEntries": nil},
+		"data": map[string]any{"alphaStashEntries": nil},
 		"errors": []map[string]any{{
 			"message":    "Environment not found",
-			"path":       []string{"stashEntries"},
+			"path":       []string{"alphaStashEntries"},
 			"extensions": map[string]any{"code": "NOT_FOUND"},
 		}},
 	}))

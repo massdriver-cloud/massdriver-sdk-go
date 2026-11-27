@@ -2,6 +2,8 @@
 // values that scripts and deployments store in a project, environment,
 // component, instance, or deployment and read back later.
 //
+// Stash is an alpha API that can change or be removed at any time.
+//
 // Each scope is its own namespace. An entry in an environment is not visible
 // from its instances or deployments.
 //
@@ -116,10 +118,10 @@ func (s *Service) Get(ctx context.Context, scope Scope, key string) (*Entry, err
 	if err != nil {
 		return nil, gql.ClassifyError(fmt.Errorf("get stash entry %s in %s: %w", key, scope, err))
 	}
-	if resp.StashEntry.Key == "" {
+	if resp.AlphaStashEntry.Key == "" {
 		return nil, fmt.Errorf("get stash entry %s in %s: %w", key, scope, gql.ErrNotFound)
 	}
-	return toEntry(resp.StashEntry)
+	return toEntry(resp.AlphaStashEntry)
 }
 
 // Iter returns a lazy [iter.Seq2] over the entries in scope, fetching pages
@@ -148,9 +150,9 @@ func (s *Service) page(scope Scope, input ListInput) paging.FetchFunc[Entry] {
 			return paging.RawPage{}, gql.ClassifyError(fmt.Errorf("list stash entries in %s: %w", scope, err))
 		}
 		return paging.RawPage{
-			Items:    resp.StashEntries.Items,
-			Next:     resp.StashEntries.Cursor.Next,
-			Previous: resp.StashEntries.Cursor.Previous,
+			Items:    resp.AlphaStashEntries.Items,
+			Next:     resp.AlphaStashEntries.Cursor.Next,
+			Previous: resp.AlphaStashEntries.Cursor.Previous,
 		}, nil
 	})
 }
@@ -173,10 +175,10 @@ func (s *Service) Set(ctx context.Context, scope Scope, key string, input SetInp
 	if format == "" {
 		format = FormatText
 	}
-	resp, err := gen.SetStashEntry(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gs, key, gen.SetStashEntryInput{
+	resp, err := gen.SetStashEntry(ctx, s.client.GQLv2, s.client.Config.OrganizationID, gs, key, gen.AlphaSetStashEntryInput{
 		Value:     input.Value,
 		Label:     input.Label,
-		Format:    gen.StashFormat(format),
+		Format:    gen.AlphaStashFormat(format),
 		Ttl:       int(input.TTL / time.Second),
 		Immutable: input.Immutable,
 		Sensitive: input.Sensitive,
@@ -184,10 +186,10 @@ func (s *Service) Set(ctx context.Context, scope Scope, key string, input SetInp
 	if err != nil {
 		return nil, gql.ClassifyError(fmt.Errorf("set stash entry %s in %s: %w", key, scope, err))
 	}
-	if err := gql.CheckMutation("set stash entry", resp.SetStashEntry.Successful, resp.SetStashEntry.Messages); err != nil {
+	if err := gql.CheckMutation("set stash entry", resp.AlphaSetStashEntry.Successful, resp.AlphaSetStashEntry.Messages); err != nil {
 		return nil, err
 	}
-	return toEntry(resp.SetStashEntry.Result)
+	return toEntry(resp.AlphaSetStashEntry.Result)
 }
 
 // Delete removes the entry stored under key in scope. Immutable entries can
@@ -205,26 +207,26 @@ func (s *Service) Delete(ctx context.Context, scope Scope, key string) error {
 	if err != nil {
 		return gql.ClassifyError(fmt.Errorf("delete stash entry %s in %s: %w", key, scope, err))
 	}
-	return gql.CheckMutation("delete stash entry", resp.DeleteStashEntry.Successful, resp.DeleteStashEntry.Messages)
+	return gql.CheckMutation("delete stash entry", resp.AlphaDeleteStashEntry.Successful, resp.AlphaDeleteStashEntry.Messages)
 }
 
-func toGenScope(scope Scope) (gen.StashScope, error) {
+func toGenScope(scope Scope) (gen.AlphaStashScope, error) {
 	if scope.ID == "" {
-		return gen.StashScope{}, fmt.Errorf("stash scope %q has no ID", scope.Kind)
+		return gen.AlphaStashScope{}, fmt.Errorf("stash scope %q has no ID", scope.Kind)
 	}
 	switch scope.Kind {
 	case ScopeProject:
-		return gen.StashScope{Project: scope.ID}, nil
+		return gen.AlphaStashScope{Project: scope.ID}, nil
 	case ScopeEnvironment:
-		return gen.StashScope{Environment: scope.ID}, nil
+		return gen.AlphaStashScope{Environment: scope.ID}, nil
 	case ScopeComponent:
-		return gen.StashScope{Component: scope.ID}, nil
+		return gen.AlphaStashScope{Component: scope.ID}, nil
 	case ScopeInstance:
-		return gen.StashScope{Instance: scope.ID}, nil
+		return gen.AlphaStashScope{Instance: scope.ID}, nil
 	case ScopeDeployment:
-		return gen.StashScope{Deployment: scope.ID}, nil
+		return gen.AlphaStashScope{Deployment: scope.ID}, nil
 	}
-	return gen.StashScope{}, fmt.Errorf("unknown stash scope kind %q", scope.Kind)
+	return gen.AlphaStashScope{}, fmt.Errorf("unknown stash scope kind %q", scope.Kind)
 }
 
 func toEntry(v any) (*Entry, error) {

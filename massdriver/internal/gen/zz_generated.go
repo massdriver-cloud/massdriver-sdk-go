@@ -1156,6 +1156,93 @@ var AllAlarmStatus = []AlarmStatus{
 	AlarmStatusAlarm,
 }
 
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// Set the value of a key in a stash. Setting a key that has a value replaces the value and every other setting of the entry.
+type AlphaSetStashEntryInput struct {
+	// TEXT stores any string. JSON requires a JSON object, and the entry's `data` field returns it parsed. Defaults to TEXT.
+	Format AlphaStashFormat `json:"format"`
+	// When true, the key cannot be set again until the entry expires or is deleted. Setting an immutable entry fails if the key already has a value.
+	Immutable bool `json:"immutable"`
+	// A human-readable name for the entry, shown in the Massdriver UI. Up to 255 characters. An empty label is the same as no label. The label is not encrypted and is shown even when the entry is sensitive, so do not put secrets in it.
+	Label string `json:"label,omitempty"`
+	// When true, the value is encrypted and is returned only to callers who can change the stash.
+	Sensitive bool `json:"sensitive"`
+	// Seconds until the entry expires. An expired entry is not returned and is deleted soon after. At most 315360000 (10 years). Leave empty to keep the entry until you delete it.
+	Ttl int `json:"ttl,omitempty"`
+	// The value to store. Massdriver returns it exactly as written. The size limit is 65536 bytes unless your installation sets another.
+	Value string `json:"value"`
+}
+
+// GetFormat returns AlphaSetStashEntryInput.Format, and is useful for accessing the field via an interface.
+func (v *AlphaSetStashEntryInput) GetFormat() AlphaStashFormat { return v.Format }
+
+// GetImmutable returns AlphaSetStashEntryInput.Immutable, and is useful for accessing the field via an interface.
+func (v *AlphaSetStashEntryInput) GetImmutable() bool { return v.Immutable }
+
+// GetLabel returns AlphaSetStashEntryInput.Label, and is useful for accessing the field via an interface.
+func (v *AlphaSetStashEntryInput) GetLabel() string { return v.Label }
+
+// GetSensitive returns AlphaSetStashEntryInput.Sensitive, and is useful for accessing the field via an interface.
+func (v *AlphaSetStashEntryInput) GetSensitive() bool { return v.Sensitive }
+
+// GetTtl returns AlphaSetStashEntryInput.Ttl, and is useful for accessing the field via an interface.
+func (v *AlphaSetStashEntryInput) GetTtl() int { return v.Ttl }
+
+// GetValue returns AlphaSetStashEntryInput.Value, and is useful for accessing the field via an interface.
+func (v *AlphaSetStashEntryInput) GetValue() string { return v.Value }
+
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// How a stash value is stored and returned.
+type AlphaStashFormat string
+
+const (
+	// Any string.
+	AlphaStashFormatText AlphaStashFormat = "TEXT"
+	// A JSON object. The entry's `data` field returns it parsed.
+	AlphaStashFormatJson AlphaStashFormat = "JSON"
+)
+
+var AllAlphaStashFormat = []AlphaStashFormat{
+	AlphaStashFormatText,
+	AlphaStashFormatJson,
+}
+
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// The project, environment, component, instance, or deployment that owns a stash. Set exactly one field.
+//
+// Each one has its own stash. A key set on an environment is not returned when you read the stash of an
+// instance in that environment.
+type AlphaStashScope struct {
+	// A project ID, for example `ecomm`.
+	Project string `json:"project,omitempty"`
+	// An environment ID, for example `ecomm-prod`.
+	Environment string `json:"environment,omitempty"`
+	// A component ID, for example `ecomm-database`.
+	Component string `json:"component,omitempty"`
+	// An instance ID, for example `ecomm-prod-database`.
+	Instance string `json:"instance,omitempty"`
+	// A deployment ID (a UUID).
+	Deployment string `json:"deployment,omitempty"`
+}
+
+// GetProject returns AlphaStashScope.Project, and is useful for accessing the field via an interface.
+func (v *AlphaStashScope) GetProject() string { return v.Project }
+
+// GetEnvironment returns AlphaStashScope.Environment, and is useful for accessing the field via an interface.
+func (v *AlphaStashScope) GetEnvironment() string { return v.Environment }
+
+// GetComponent returns AlphaStashScope.Component, and is useful for accessing the field via an interface.
+func (v *AlphaStashScope) GetComponent() string { return v.Component }
+
+// GetInstance returns AlphaStashScope.Instance, and is useful for accessing the field via an interface.
+func (v *AlphaStashScope) GetInstance() string { return v.Instance }
+
+// GetDeployment returns AlphaStashScope.Deployment, and is useful for accessing the field via an interface.
+func (v *AlphaStashScope) GetDeployment() string { return v.Deployment }
+
 // ApproveDeploymentApproveDeploymentDeploymentPayload includes the requested fields of the GraphQL type DeploymentPayload.
 type ApproveDeploymentApproveDeploymentDeploymentPayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
@@ -10715,30 +10802,37 @@ func (v *DeleteServiceAccountResponse) GetDeleteServiceAccount() DeleteServiceAc
 	return v.DeleteServiceAccount
 }
 
-// DeleteStashEntryDeleteStashEntryStashEntryPayload includes the requested fields of the GraphQL type StashEntryPayload.
-type DeleteStashEntryDeleteStashEntryStashEntryPayload struct {
+// DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayload includes the requested fields of the GraphQL type AlphaStashEntryPayload.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// The result of a mutation on AlphaStashEntry.
+type DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
-	Result DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry `json:"result"`
+	Result DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadResultAlphaStashEntry `json:"result"`
 	// Indicates if the mutation completed successfully or not.
 	Successful bool `json:"successful"`
 	// A list of failed validations. May be blank or null if mutation succeeded.
-	Messages []DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage `json:"messages"`
+	Messages []DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadMessagesValidationMessage `json:"messages"`
 }
 
-// GetResult returns DeleteStashEntryDeleteStashEntryStashEntryPayload.Result, and is useful for accessing the field via an interface.
-func (v *DeleteStashEntryDeleteStashEntryStashEntryPayload) GetResult() DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry {
+// GetResult returns DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayload.Result, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayload) GetResult() DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadResultAlphaStashEntry {
 	return v.Result
 }
 
-// GetSuccessful returns DeleteStashEntryDeleteStashEntryStashEntryPayload.Successful, and is useful for accessing the field via an interface.
-func (v *DeleteStashEntryDeleteStashEntryStashEntryPayload) GetSuccessful() bool { return v.Successful }
+// GetSuccessful returns DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayload.Successful, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayload) GetSuccessful() bool {
+	return v.Successful
+}
 
-// GetMessages returns DeleteStashEntryDeleteStashEntryStashEntryPayload.Messages, and is useful for accessing the field via an interface.
-func (v *DeleteStashEntryDeleteStashEntryStashEntryPayload) GetMessages() []DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage {
+// GetMessages returns DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayload.Messages, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayload) GetMessages() []DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadMessagesValidationMessage {
 	return v.Messages
 }
 
-// DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
 // The GraphQL type's documentation follows.
 //
 // Validation messages are returned when mutation input does not meet the requirements.
@@ -10755,7 +10849,7 @@ func (v *DeleteStashEntryDeleteStashEntryStashEntryPayload) GetMessages() []Dele
 // set to optional in our API. This allows 'required field' messages
 // to be returned in the same manner as other validations. The only exceptions
 // are id fields, which may be required to perform updates or deletes.
-type DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage struct {
+type DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadMessagesValidationMessage struct {
 	// A unique error code for the type of validation used.
 	Code string `json:"code"`
 	// The input field that the error applies to. The field can be used to
@@ -10778,55 +10872,59 @@ type DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage 
 	Message string `json:"message"`
 }
 
-// GetCode returns DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
-func (v *DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage) GetCode() string {
+// GetCode returns DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadMessagesValidationMessage) GetCode() string {
 	return v.Code
 }
 
-// GetField returns DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
-func (v *DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage) GetField() string {
+// GetField returns DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadMessagesValidationMessage) GetField() string {
 	return v.Field
 }
 
-// GetMessage returns DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
-func (v *DeleteStashEntryDeleteStashEntryStashEntryPayloadMessagesValidationMessage) GetMessage() string {
+// GetMessage returns DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadMessagesValidationMessage) GetMessage() string {
 	return v.Message
 }
 
-// DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry includes the requested fields of the GraphQL type StashEntry.
+// DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadResultAlphaStashEntry includes the requested fields of the GraphQL type AlphaStashEntry.
 // The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
 //
 // A key and value stored on a project, environment, component, instance, or deployment. Massdriver stores the
 // value and returns it as written. It does not read the value or act on it.
-type DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry struct {
+type DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadResultAlphaStashEntry struct {
 	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
 	Key string `json:"key"`
 }
 
-// GetKey returns DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry.Key, and is useful for accessing the field via an interface.
-func (v *DeleteStashEntryDeleteStashEntryStashEntryPayloadResultStashEntry) GetKey() string {
+// GetKey returns DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.Key, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) GetKey() string {
 	return v.Key
 }
 
 // DeleteStashEntryResponse is returned by DeleteStashEntry on success.
 type DeleteStashEntryResponse struct {
-	// Delete a key from a stash. Needs the same permission as `setStashEntry`. Immutable entries can be deleted.
+	// Alpha: this API can change or be removed at any time, without notice.
+	//
+	// Delete a key from a stash. Needs the same permission as `alphaSetStashEntry`. Immutable entries can be deleted.
 	// The result has the deleted entry. Its value is null when the entry is sensitive.
 	//
 	// ```graphql
 	// mutation {
-	// deleteStashEntry(organizationId: "my-org", scope: { project: "ecomm" }, key: "release") {
+	// alphaDeleteStashEntry(organizationId: "my-org", scope: { project: "ecomm" }, key: "release") {
 	// successful
 	// result { key }
 	// }
 	// }
 	// ```
-	DeleteStashEntry DeleteStashEntryDeleteStashEntryStashEntryPayload `json:"deleteStashEntry"`
+	AlphaDeleteStashEntry DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayload `json:"alphaDeleteStashEntry"`
 }
 
-// GetDeleteStashEntry returns DeleteStashEntryResponse.DeleteStashEntry, and is useful for accessing the field via an interface.
-func (v *DeleteStashEntryResponse) GetDeleteStashEntry() DeleteStashEntryDeleteStashEntryStashEntryPayload {
-	return v.DeleteStashEntry
+// GetAlphaDeleteStashEntry returns DeleteStashEntryResponse.AlphaDeleteStashEntry, and is useful for accessing the field via an interface.
+func (v *DeleteStashEntryResponse) GetAlphaDeleteStashEntry() DeleteStashEntryAlphaDeleteStashEntryAlphaStashEntryPayload {
+	return v.AlphaDeleteStashEntry
 }
 
 // DeployEnvironmentDeployEnvironmentEnvironmentPayload includes the requested fields of the GraphQL type EnvironmentPayload.
@@ -19184,33 +19282,14 @@ func (v *GetServiceAccountServiceAccount) GetCreatedAt() time.Time { return v.Cr
 // GetUpdatedAt returns GetServiceAccountServiceAccount.UpdatedAt, and is useful for accessing the field via an interface.
 func (v *GetServiceAccountServiceAccount) GetUpdatedAt() time.Time { return v.UpdatedAt }
 
-// GetStashEntryResponse is returned by GetStashEntry on success.
-type GetStashEntryResponse struct {
-	// Get one entry from a stash. Expired entries are not returned.
-	//
-	// You need `project:view` on the stash's project. A sensitive value is null unless you can change the stash.
-	//
-	// ```graphql
-	// query {
-	// stashEntry(organizationId: "my-org", scope: { instance: "ecomm-prod-database" }, key: "schema.version") {
-	// key
-	// value
-	// expiresAt
-	// }
-	// }
-	// ```
-	StashEntry GetStashEntryStashEntry `json:"stashEntry"`
-}
-
-// GetStashEntry returns GetStashEntryResponse.StashEntry, and is useful for accessing the field via an interface.
-func (v *GetStashEntryResponse) GetStashEntry() GetStashEntryStashEntry { return v.StashEntry }
-
-// GetStashEntryStashEntry includes the requested fields of the GraphQL type StashEntry.
+// GetStashEntryAlphaStashEntry includes the requested fields of the GraphQL type AlphaStashEntry.
 // The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
 //
 // A key and value stored on a project, environment, component, instance, or deployment. Massdriver stores the
 // value and returns it as written. It does not read the value or act on it.
-type GetStashEntryStashEntry struct {
+type GetStashEntryAlphaStashEntry struct {
 	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
 	Key string `json:"key"`
 	// A human-readable name for the entry, shown in the Massdriver UI. Null when the entry has no label. The label is not encrypted and is returned even when the entry is sensitive, so do not put secrets in it.
@@ -19220,7 +19299,7 @@ type GetStashEntryStashEntry struct {
 	// The value parsed as a JSON object when the format is `JSON`. Null for `TEXT` entries.
 	Data map[string]any `json:"-"`
 	// How the value is stored and returned.
-	Format StashFormat `json:"format"`
+	Format AlphaStashFormat `json:"format"`
 	// When true, the key cannot be set again until the entry expires or is deleted.
 	Immutable bool `json:"immutable"`
 	// When true, the value is encrypted and is returned only to callers who can change this stash.
@@ -19231,45 +19310,45 @@ type GetStashEntryStashEntry struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// GetKey returns GetStashEntryStashEntry.Key, and is useful for accessing the field via an interface.
-func (v *GetStashEntryStashEntry) GetKey() string { return v.Key }
+// GetKey returns GetStashEntryAlphaStashEntry.Key, and is useful for accessing the field via an interface.
+func (v *GetStashEntryAlphaStashEntry) GetKey() string { return v.Key }
 
-// GetLabel returns GetStashEntryStashEntry.Label, and is useful for accessing the field via an interface.
-func (v *GetStashEntryStashEntry) GetLabel() string { return v.Label }
+// GetLabel returns GetStashEntryAlphaStashEntry.Label, and is useful for accessing the field via an interface.
+func (v *GetStashEntryAlphaStashEntry) GetLabel() string { return v.Label }
 
-// GetValue returns GetStashEntryStashEntry.Value, and is useful for accessing the field via an interface.
-func (v *GetStashEntryStashEntry) GetValue() *string { return v.Value }
+// GetValue returns GetStashEntryAlphaStashEntry.Value, and is useful for accessing the field via an interface.
+func (v *GetStashEntryAlphaStashEntry) GetValue() *string { return v.Value }
 
-// GetData returns GetStashEntryStashEntry.Data, and is useful for accessing the field via an interface.
-func (v *GetStashEntryStashEntry) GetData() map[string]any { return v.Data }
+// GetData returns GetStashEntryAlphaStashEntry.Data, and is useful for accessing the field via an interface.
+func (v *GetStashEntryAlphaStashEntry) GetData() map[string]any { return v.Data }
 
-// GetFormat returns GetStashEntryStashEntry.Format, and is useful for accessing the field via an interface.
-func (v *GetStashEntryStashEntry) GetFormat() StashFormat { return v.Format }
+// GetFormat returns GetStashEntryAlphaStashEntry.Format, and is useful for accessing the field via an interface.
+func (v *GetStashEntryAlphaStashEntry) GetFormat() AlphaStashFormat { return v.Format }
 
-// GetImmutable returns GetStashEntryStashEntry.Immutable, and is useful for accessing the field via an interface.
-func (v *GetStashEntryStashEntry) GetImmutable() bool { return v.Immutable }
+// GetImmutable returns GetStashEntryAlphaStashEntry.Immutable, and is useful for accessing the field via an interface.
+func (v *GetStashEntryAlphaStashEntry) GetImmutable() bool { return v.Immutable }
 
-// GetSensitive returns GetStashEntryStashEntry.Sensitive, and is useful for accessing the field via an interface.
-func (v *GetStashEntryStashEntry) GetSensitive() bool { return v.Sensitive }
+// GetSensitive returns GetStashEntryAlphaStashEntry.Sensitive, and is useful for accessing the field via an interface.
+func (v *GetStashEntryAlphaStashEntry) GetSensitive() bool { return v.Sensitive }
 
-// GetExpiresAt returns GetStashEntryStashEntry.ExpiresAt, and is useful for accessing the field via an interface.
-func (v *GetStashEntryStashEntry) GetExpiresAt() time.Time { return v.ExpiresAt }
+// GetExpiresAt returns GetStashEntryAlphaStashEntry.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *GetStashEntryAlphaStashEntry) GetExpiresAt() time.Time { return v.ExpiresAt }
 
-// GetUpdatedAt returns GetStashEntryStashEntry.UpdatedAt, and is useful for accessing the field via an interface.
-func (v *GetStashEntryStashEntry) GetUpdatedAt() time.Time { return v.UpdatedAt }
+// GetUpdatedAt returns GetStashEntryAlphaStashEntry.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *GetStashEntryAlphaStashEntry) GetUpdatedAt() time.Time { return v.UpdatedAt }
 
-func (v *GetStashEntryStashEntry) UnmarshalJSON(b []byte) error {
+func (v *GetStashEntryAlphaStashEntry) UnmarshalJSON(b []byte) error {
 
 	if string(b) == "null" {
 		return nil
 	}
 
 	var firstPass struct {
-		*GetStashEntryStashEntry
+		*GetStashEntryAlphaStashEntry
 		Data json.RawMessage `json:"data"`
 		graphql.NoUnmarshalJSON
 	}
-	firstPass.GetStashEntryStashEntry = v
+	firstPass.GetStashEntryAlphaStashEntry = v
 
 	err := json.Unmarshal(b, &firstPass)
 	if err != nil {
@@ -19284,14 +19363,14 @@ func (v *GetStashEntryStashEntry) UnmarshalJSON(b []byte) error {
 				src, dst)
 			if err != nil {
 				return fmt.Errorf(
-					"unable to unmarshal GetStashEntryStashEntry.Data: %w", err)
+					"unable to unmarshal GetStashEntryAlphaStashEntry.Data: %w", err)
 			}
 		}
 	}
 	return nil
 }
 
-type __premarshalGetStashEntryStashEntry struct {
+type __premarshalGetStashEntryAlphaStashEntry struct {
 	Key string `json:"key"`
 
 	Label string `json:"label"`
@@ -19300,7 +19379,7 @@ type __premarshalGetStashEntryStashEntry struct {
 
 	Data json.RawMessage `json:"data"`
 
-	Format StashFormat `json:"format"`
+	Format AlphaStashFormat `json:"format"`
 
 	Immutable bool `json:"immutable"`
 
@@ -19311,7 +19390,7 @@ type __premarshalGetStashEntryStashEntry struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-func (v *GetStashEntryStashEntry) MarshalJSON() ([]byte, error) {
+func (v *GetStashEntryAlphaStashEntry) MarshalJSON() ([]byte, error) {
 	premarshaled, err := v.__premarshalJSON()
 	if err != nil {
 		return nil, err
@@ -19319,8 +19398,8 @@ func (v *GetStashEntryStashEntry) MarshalJSON() ([]byte, error) {
 	return json.Marshal(premarshaled)
 }
 
-func (v *GetStashEntryStashEntry) __premarshalJSON() (*__premarshalGetStashEntryStashEntry, error) {
-	var retval __premarshalGetStashEntryStashEntry
+func (v *GetStashEntryAlphaStashEntry) __premarshalJSON() (*__premarshalGetStashEntryAlphaStashEntry, error) {
+	var retval __premarshalGetStashEntryAlphaStashEntry
 
 	retval.Key = v.Key
 	retval.Label = v.Label
@@ -19334,7 +19413,7 @@ func (v *GetStashEntryStashEntry) __premarshalJSON() (*__premarshalGetStashEntry
 			&src)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"unable to marshal GetStashEntryStashEntry.Data: %w", err)
+				"unable to marshal GetStashEntryAlphaStashEntry.Data: %w", err)
 		}
 	}
 	retval.Format = v.Format
@@ -19343,6 +19422,31 @@ func (v *GetStashEntryStashEntry) __premarshalJSON() (*__premarshalGetStashEntry
 	retval.ExpiresAt = v.ExpiresAt
 	retval.UpdatedAt = v.UpdatedAt
 	return &retval, nil
+}
+
+// GetStashEntryResponse is returned by GetStashEntry on success.
+type GetStashEntryResponse struct {
+	// Alpha: this API can change or be removed at any time, without notice.
+	//
+	// Get one entry from a stash. Expired entries are not returned.
+	//
+	// You need `project:view` on the stash's project. A sensitive value is null unless you can change the stash.
+	//
+	// ```graphql
+	// query {
+	// alphaStashEntry(organizationId: "my-org", scope: { instance: "ecomm-prod-database" }, key: "schema.version") {
+	// key
+	// value
+	// expiresAt
+	// }
+	// }
+	// ```
+	AlphaStashEntry GetStashEntryAlphaStashEntry `json:"alphaStashEntry"`
+}
+
+// GetAlphaStashEntry returns GetStashEntryResponse.AlphaStashEntry, and is useful for accessing the field via an interface.
+func (v *GetStashEntryResponse) GetAlphaStashEntry() GetStashEntryAlphaStashEntry {
+	return v.AlphaStashEntry
 }
 
 // GetViewerResponse is returned by GetViewer on success.
@@ -26853,47 +26957,30 @@ func (v *ListServiceAccountsServiceAccountsServiceAccountsPageItemsServiceAccoun
 	return v.UpdatedAt
 }
 
-// ListStashEntriesResponse is returned by ListStashEntries on success.
-type ListStashEntriesResponse struct {
-	// List the entries in a stash, ordered by key. Expired entries are not returned.
-	//
-	// You need `project:view` on the stash's project. Sensitive values are null unless you can change the stash.
-	//
-	// ```graphql
-	// query {
-	// stashEntries(organizationId: "my-org", scope: { environment: "ecomm-prod" }) {
-	// items { key value format }
-	// cursor { next }
-	// }
-	// }
-	// ```
-	StashEntries ListStashEntriesStashEntriesStashEntriesPage `json:"stashEntries"`
-}
-
-// GetStashEntries returns ListStashEntriesResponse.StashEntries, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesResponse) GetStashEntries() ListStashEntriesStashEntriesStashEntriesPage {
-	return v.StashEntries
-}
-
-// ListStashEntriesStashEntriesStashEntriesPage includes the requested fields of the GraphQL type StashEntriesPage.
-type ListStashEntriesStashEntriesStashEntriesPage struct {
+// ListStashEntriesAlphaStashEntriesAlphaStashEntriesPage includes the requested fields of the GraphQL type AlphaStashEntriesPage.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// A page of AlphaStashEntry items.
+type ListStashEntriesAlphaStashEntriesAlphaStashEntriesPage struct {
 	// Pagination cursors for navigating between pages.
-	Cursor ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor `json:"cursor"`
+	Cursor ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageCursorPaginationCursor `json:"cursor"`
 	// A list of type stash_entry.
-	Items []ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry `json:"items"`
+	Items []ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry `json:"items"`
 }
 
-// GetCursor returns ListStashEntriesStashEntriesStashEntriesPage.Cursor, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPage) GetCursor() ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor {
+// GetCursor returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPage.Cursor, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPage) GetCursor() ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageCursorPaginationCursor {
 	return v.Cursor
 }
 
-// GetItems returns ListStashEntriesStashEntriesStashEntriesPage.Items, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPage) GetItems() []ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry {
+// GetItems returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPage.Items, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPage) GetItems() []ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry {
 	return v.Items
 }
 
-// ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
+// ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageCursorPaginationCursor includes the requested fields of the GraphQL type PaginationCursor.
 // The GraphQL type's documentation follows.
 //
 // Pagination cursors returned with every paginated response.
@@ -26901,29 +26988,31 @@ func (v *ListStashEntriesStashEntriesStashEntriesPage) GetItems() []ListStashEnt
 // Contains opaque cursor strings for navigating forward and backward through results.
 // A `null` value for `next` indicates you have reached the last page; a `null` value
 // for `previous` indicates you are on the first page.
-type ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor struct {
+type ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageCursorPaginationCursor struct {
 	// Cursor for the next page. `null` if there are no more results.
 	Next string `json:"next"`
 	// Cursor for the previous page. `null` if this is the first page.
 	Previous string `json:"previous"`
 }
 
-// GetNext returns ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor) GetNext() string {
+// GetNext returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageCursorPaginationCursor.Next, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageCursorPaginationCursor) GetNext() string {
 	return v.Next
 }
 
-// GetPrevious returns ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPageCursorPaginationCursor) GetPrevious() string {
+// GetPrevious returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageCursorPaginationCursor.Previous, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageCursorPaginationCursor) GetPrevious() string {
 	return v.Previous
 }
 
-// ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry includes the requested fields of the GraphQL type StashEntry.
+// ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry includes the requested fields of the GraphQL type AlphaStashEntry.
 // The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
 //
 // A key and value stored on a project, environment, component, instance, or deployment. Massdriver stores the
 // value and returns it as written. It does not read the value or act on it.
-type ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry struct {
+type ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry struct {
 	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
 	Key string `json:"key"`
 	// A human-readable name for the entry, shown in the Massdriver UI. Null when the entry has no label. The label is not encrypted and is returned even when the entry is sensitive, so do not put secrets in it.
@@ -26933,7 +27022,7 @@ type ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry struct {
 	// The value parsed as a JSON object when the format is `JSON`. Null for `TEXT` entries.
 	Data map[string]any `json:"-"`
 	// How the value is stored and returned.
-	Format StashFormat `json:"format"`
+	Format AlphaStashFormat `json:"format"`
 	// When true, the key cannot be set again until the entry expires or is deleted.
 	Immutable bool `json:"immutable"`
 	// When true, the value is encrypted and is returned only to callers who can change this stash.
@@ -26944,61 +27033,63 @@ type ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// GetKey returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Key, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetKey() string { return v.Key }
+// GetKey returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.Key, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) GetKey() string {
+	return v.Key
+}
 
-// GetLabel returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Label, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetLabel() string {
+// GetLabel returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.Label, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) GetLabel() string {
 	return v.Label
 }
 
-// GetValue returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Value, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetValue() *string {
+// GetValue returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.Value, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) GetValue() *string {
 	return v.Value
 }
 
-// GetData returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Data, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetData() map[string]any {
+// GetData returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.Data, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) GetData() map[string]any {
 	return v.Data
 }
 
-// GetFormat returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Format, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetFormat() StashFormat {
+// GetFormat returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.Format, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) GetFormat() AlphaStashFormat {
 	return v.Format
 }
 
-// GetImmutable returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Immutable, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetImmutable() bool {
+// GetImmutable returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.Immutable, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) GetImmutable() bool {
 	return v.Immutable
 }
 
-// GetSensitive returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Sensitive, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetSensitive() bool {
+// GetSensitive returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.Sensitive, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) GetSensitive() bool {
 	return v.Sensitive
 }
 
-// GetExpiresAt returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.ExpiresAt, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetExpiresAt() time.Time {
+// GetExpiresAt returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) GetExpiresAt() time.Time {
 	return v.ExpiresAt
 }
 
-// GetUpdatedAt returns ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.UpdatedAt, and is useful for accessing the field via an interface.
-func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) GetUpdatedAt() time.Time {
+// GetUpdatedAt returns ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) GetUpdatedAt() time.Time {
 	return v.UpdatedAt
 }
 
-func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) UnmarshalJSON(b []byte) error {
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) UnmarshalJSON(b []byte) error {
 
 	if string(b) == "null" {
 		return nil
 	}
 
 	var firstPass struct {
-		*ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry
+		*ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry
 		Data json.RawMessage `json:"data"`
 		graphql.NoUnmarshalJSON
 	}
-	firstPass.ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry = v
+	firstPass.ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry = v
 
 	err := json.Unmarshal(b, &firstPass)
 	if err != nil {
@@ -27013,14 +27104,14 @@ func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) UnmarshalJ
 				src, dst)
 			if err != nil {
 				return fmt.Errorf(
-					"unable to unmarshal ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Data: %w", err)
+					"unable to unmarshal ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.Data: %w", err)
 			}
 		}
 	}
 	return nil
 }
 
-type __premarshalListStashEntriesStashEntriesStashEntriesPageItemsStashEntry struct {
+type __premarshalListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry struct {
 	Key string `json:"key"`
 
 	Label string `json:"label"`
@@ -27029,7 +27120,7 @@ type __premarshalListStashEntriesStashEntriesStashEntriesPageItemsStashEntry str
 
 	Data json.RawMessage `json:"data"`
 
-	Format StashFormat `json:"format"`
+	Format AlphaStashFormat `json:"format"`
 
 	Immutable bool `json:"immutable"`
 
@@ -27040,7 +27131,7 @@ type __premarshalListStashEntriesStashEntriesStashEntriesPageItemsStashEntry str
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) MarshalJSON() ([]byte, error) {
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) MarshalJSON() ([]byte, error) {
 	premarshaled, err := v.__premarshalJSON()
 	if err != nil {
 		return nil, err
@@ -27048,8 +27139,8 @@ func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) MarshalJSO
 	return json.Marshal(premarshaled)
 }
 
-func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) __premarshalJSON() (*__premarshalListStashEntriesStashEntriesStashEntriesPageItemsStashEntry, error) {
-	var retval __premarshalListStashEntriesStashEntriesStashEntriesPageItemsStashEntry
+func (v *ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry) __premarshalJSON() (*__premarshalListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry, error) {
+	var retval __premarshalListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry
 
 	retval.Key = v.Key
 	retval.Label = v.Label
@@ -27063,7 +27154,7 @@ func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) __premarsh
 			&src)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"unable to marshal ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry.Data: %w", err)
+				"unable to marshal ListStashEntriesAlphaStashEntriesAlphaStashEntriesPageItemsAlphaStashEntry.Data: %w", err)
 		}
 	}
 	retval.Format = v.Format
@@ -27072,6 +27163,30 @@ func (v *ListStashEntriesStashEntriesStashEntriesPageItemsStashEntry) __premarsh
 	retval.ExpiresAt = v.ExpiresAt
 	retval.UpdatedAt = v.UpdatedAt
 	return &retval, nil
+}
+
+// ListStashEntriesResponse is returned by ListStashEntries on success.
+type ListStashEntriesResponse struct {
+	// Alpha: this API can change or be removed at any time, without notice.
+	//
+	// List the entries in a stash, ordered by key. Expired entries are not returned.
+	//
+	// You need `project:view` on the stash's project. Sensitive values are null unless you can change the stash.
+	//
+	// ```graphql
+	// query {
+	// alphaStashEntries(organizationId: "my-org", scope: { environment: "ecomm-prod" }) {
+	// items { key value format }
+	// cursor { next }
+	// }
+	// }
+	// ```
+	AlphaStashEntries ListStashEntriesAlphaStashEntriesAlphaStashEntriesPage `json:"alphaStashEntries"`
+}
+
+// GetAlphaStashEntries returns ListStashEntriesResponse.AlphaStashEntries, and is useful for accessing the field via an interface.
+func (v *ListStashEntriesResponse) GetAlphaStashEntries() ListStashEntriesAlphaStashEntriesAlphaStashEntriesPage {
+	return v.AlphaStashEntries
 }
 
 // The kind of artifact stored in an OCI repository.
@@ -31358,107 +31473,37 @@ func (v *SetRemoteReferenceSetRemoteReferenceRemoteReferencePayloadResultRemoteR
 	return v.Icon
 }
 
-// Set the value of a key in a stash. Setting a key that has a value replaces the value and every other setting of the entry.
-type SetStashEntryInput struct {
-	// TEXT stores any string. JSON requires a JSON object, and the entry's `data` field returns it parsed. Defaults to TEXT.
-	Format StashFormat `json:"format"`
-	// When true, the key cannot be set again until the entry expires or is deleted. Setting an immutable entry fails if the key already has a value.
-	Immutable bool `json:"immutable"`
-	// A human-readable name for the entry, shown in the Massdriver UI. Up to 255 characters. An empty label is the same as no label. The label is not encrypted and is shown even when the entry is sensitive, so do not put secrets in it.
-	Label string `json:"label,omitempty"`
-	// When true, the value is encrypted and is returned only to callers who can change the stash.
-	Sensitive bool `json:"sensitive"`
-	// Seconds until the entry expires. An expired entry is not returned and is deleted soon after. At most 315360000 (10 years). Leave empty to keep the entry until you delete it.
-	Ttl int `json:"ttl,omitempty"`
-	// The value to store. Massdriver returns it exactly as written. The size limit is 65536 bytes unless your installation sets another.
-	Value string `json:"value"`
-}
-
-// GetFormat returns SetStashEntryInput.Format, and is useful for accessing the field via an interface.
-func (v *SetStashEntryInput) GetFormat() StashFormat { return v.Format }
-
-// GetImmutable returns SetStashEntryInput.Immutable, and is useful for accessing the field via an interface.
-func (v *SetStashEntryInput) GetImmutable() bool { return v.Immutable }
-
-// GetLabel returns SetStashEntryInput.Label, and is useful for accessing the field via an interface.
-func (v *SetStashEntryInput) GetLabel() string { return v.Label }
-
-// GetSensitive returns SetStashEntryInput.Sensitive, and is useful for accessing the field via an interface.
-func (v *SetStashEntryInput) GetSensitive() bool { return v.Sensitive }
-
-// GetTtl returns SetStashEntryInput.Ttl, and is useful for accessing the field via an interface.
-func (v *SetStashEntryInput) GetTtl() int { return v.Ttl }
-
-// GetValue returns SetStashEntryInput.Value, and is useful for accessing the field via an interface.
-func (v *SetStashEntryInput) GetValue() string { return v.Value }
-
-// SetStashEntryResponse is returned by SetStashEntry on success.
-type SetStashEntryResponse struct {
-	// Set the value of a key in a stash. Setting a key that has a value replaces the value and every other setting
-	// of the entry.
-	//
-	// The permission you need depends on the stash:
-	//
-	// | Stash       | Permission                                         |
-	// |-------------|----------------------------------------------------|
-	// | Project     | `project:update`                                   |
-	// | Environment | `environment:update`                               |
-	// | Component   | `project:design`                                   |
-	// | Instance    | `instance:configure`                               |
-	// | Deployment  | `instance:configure` on the deployment's instance  |
-	//
-	// A deployment's own credentials can set keys on that deployment and on its instance, environment, component,
-	// and project.
-	//
-	// The mutation fails when the key has an immutable entry that has not expired, or when the stash already has
-	// its maximum number of keys (1000 unless your installation sets another).
-	//
-	// ```graphql
-	// mutation {
-	// setStashEntry(
-	// organizationId: "my-org"
-	// scope: { instance: "ecomm-prod-database" }
-	// key: "schema.version"
-	// input: { value: "42", ttl: 86400 }
-	// ) {
-	// successful
-	// result { key value expiresAt }
-	// messages { field message }
-	// }
-	// }
-	// ```
-	SetStashEntry SetStashEntrySetStashEntryStashEntryPayload `json:"setStashEntry"`
-}
-
-// GetSetStashEntry returns SetStashEntryResponse.SetStashEntry, and is useful for accessing the field via an interface.
-func (v *SetStashEntryResponse) GetSetStashEntry() SetStashEntrySetStashEntryStashEntryPayload {
-	return v.SetStashEntry
-}
-
-// SetStashEntrySetStashEntryStashEntryPayload includes the requested fields of the GraphQL type StashEntryPayload.
-type SetStashEntrySetStashEntryStashEntryPayload struct {
+// SetStashEntryAlphaSetStashEntryAlphaStashEntryPayload includes the requested fields of the GraphQL type AlphaStashEntryPayload.
+// The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
+//
+// The result of a mutation on AlphaStashEntry.
+type SetStashEntryAlphaSetStashEntryAlphaStashEntryPayload struct {
 	// The object created/updated/deleted by the mutation. May be null if mutation failed.
-	Result SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry `json:"result"`
+	Result SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry `json:"result"`
 	// Indicates if the mutation completed successfully or not.
 	Successful bool `json:"successful"`
 	// A list of failed validations. May be blank or null if mutation succeeded.
-	Messages []SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage `json:"messages"`
+	Messages []SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadMessagesValidationMessage `json:"messages"`
 }
 
-// GetResult returns SetStashEntrySetStashEntryStashEntryPayload.Result, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayload) GetResult() SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry {
+// GetResult returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayload.Result, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayload) GetResult() SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry {
 	return v.Result
 }
 
-// GetSuccessful returns SetStashEntrySetStashEntryStashEntryPayload.Successful, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayload) GetSuccessful() bool { return v.Successful }
+// GetSuccessful returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayload.Successful, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayload) GetSuccessful() bool {
+	return v.Successful
+}
 
-// GetMessages returns SetStashEntrySetStashEntryStashEntryPayload.Messages, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayload) GetMessages() []SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage {
+// GetMessages returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayload.Messages, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayload) GetMessages() []SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadMessagesValidationMessage {
 	return v.Messages
 }
 
-// SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
+// SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadMessagesValidationMessage includes the requested fields of the GraphQL type ValidationMessage.
 // The GraphQL type's documentation follows.
 //
 // Validation messages are returned when mutation input does not meet the requirements.
@@ -31475,7 +31520,7 @@ func (v *SetStashEntrySetStashEntryStashEntryPayload) GetMessages() []SetStashEn
 // set to optional in our API. This allows 'required field' messages
 // to be returned in the same manner as other validations. The only exceptions
 // are id fields, which may be required to perform updates or deletes.
-type SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage struct {
+type SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadMessagesValidationMessage struct {
 	// A unique error code for the type of validation used.
 	Code string `json:"code"`
 	// The input field that the error applies to. The field can be used to
@@ -31498,27 +31543,29 @@ type SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage struct
 	Message string `json:"message"`
 }
 
-// GetCode returns SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage) GetCode() string {
+// GetCode returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadMessagesValidationMessage.Code, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadMessagesValidationMessage) GetCode() string {
 	return v.Code
 }
 
-// GetField returns SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage) GetField() string {
+// GetField returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadMessagesValidationMessage.Field, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadMessagesValidationMessage) GetField() string {
 	return v.Field
 }
 
-// GetMessage returns SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayloadMessagesValidationMessage) GetMessage() string {
+// GetMessage returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadMessagesValidationMessage.Message, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadMessagesValidationMessage) GetMessage() string {
 	return v.Message
 }
 
-// SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry includes the requested fields of the GraphQL type StashEntry.
+// SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry includes the requested fields of the GraphQL type AlphaStashEntry.
 // The GraphQL type's documentation follows.
+//
+// Alpha: this API can change or be removed at any time, without notice.
 //
 // A key and value stored on a project, environment, component, instance, or deployment. Massdriver stores the
 // value and returns it as written. It does not read the value or act on it.
-type SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry struct {
+type SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry struct {
 	// The entry's key. Letters, digits, and the characters `_`, `.`, `/`, and `-`.
 	Key string `json:"key"`
 	// A human-readable name for the entry, shown in the Massdriver UI. Null when the entry has no label. The label is not encrypted and is returned even when the entry is sensitive, so do not put secrets in it.
@@ -31528,7 +31575,7 @@ type SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry struct {
 	// The value parsed as a JSON object when the format is `JSON`. Null for `TEXT` entries.
 	Data map[string]any `json:"-"`
 	// How the value is stored and returned.
-	Format StashFormat `json:"format"`
+	Format AlphaStashFormat `json:"format"`
 	// When true, the key cannot be set again until the entry expires or is deleted.
 	Immutable bool `json:"immutable"`
 	// When true, the value is encrypted and is returned only to callers who can change this stash.
@@ -31539,61 +31586,63 @@ type SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// GetKey returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Key, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetKey() string { return v.Key }
+// GetKey returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.Key, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) GetKey() string {
+	return v.Key
+}
 
-// GetLabel returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Label, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetLabel() string {
+// GetLabel returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.Label, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) GetLabel() string {
 	return v.Label
 }
 
-// GetValue returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Value, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetValue() *string {
+// GetValue returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.Value, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) GetValue() *string {
 	return v.Value
 }
 
-// GetData returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Data, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetData() map[string]any {
+// GetData returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.Data, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) GetData() map[string]any {
 	return v.Data
 }
 
-// GetFormat returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Format, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetFormat() StashFormat {
+// GetFormat returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.Format, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) GetFormat() AlphaStashFormat {
 	return v.Format
 }
 
-// GetImmutable returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Immutable, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetImmutable() bool {
+// GetImmutable returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.Immutable, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) GetImmutable() bool {
 	return v.Immutable
 }
 
-// GetSensitive returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Sensitive, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetSensitive() bool {
+// GetSensitive returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.Sensitive, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) GetSensitive() bool {
 	return v.Sensitive
 }
 
-// GetExpiresAt returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.ExpiresAt, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetExpiresAt() time.Time {
+// GetExpiresAt returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) GetExpiresAt() time.Time {
 	return v.ExpiresAt
 }
 
-// GetUpdatedAt returns SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.UpdatedAt, and is useful for accessing the field via an interface.
-func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) GetUpdatedAt() time.Time {
+// GetUpdatedAt returns SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) GetUpdatedAt() time.Time {
 	return v.UpdatedAt
 }
 
-func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) UnmarshalJSON(b []byte) error {
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) UnmarshalJSON(b []byte) error {
 
 	if string(b) == "null" {
 		return nil
 	}
 
 	var firstPass struct {
-		*SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry
+		*SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry
 		Data json.RawMessage `json:"data"`
 		graphql.NoUnmarshalJSON
 	}
-	firstPass.SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry = v
+	firstPass.SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry = v
 
 	err := json.Unmarshal(b, &firstPass)
 	if err != nil {
@@ -31608,14 +31657,14 @@ func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) UnmarshalJ
 				src, dst)
 			if err != nil {
 				return fmt.Errorf(
-					"unable to unmarshal SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Data: %w", err)
+					"unable to unmarshal SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.Data: %w", err)
 			}
 		}
 	}
 	return nil
 }
 
-type __premarshalSetStashEntrySetStashEntryStashEntryPayloadResultStashEntry struct {
+type __premarshalSetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry struct {
 	Key string `json:"key"`
 
 	Label string `json:"label"`
@@ -31624,7 +31673,7 @@ type __premarshalSetStashEntrySetStashEntryStashEntryPayloadResultStashEntry str
 
 	Data json.RawMessage `json:"data"`
 
-	Format StashFormat `json:"format"`
+	Format AlphaStashFormat `json:"format"`
 
 	Immutable bool `json:"immutable"`
 
@@ -31635,7 +31684,7 @@ type __premarshalSetStashEntrySetStashEntryStashEntryPayloadResultStashEntry str
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) MarshalJSON() ([]byte, error) {
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) MarshalJSON() ([]byte, error) {
 	premarshaled, err := v.__premarshalJSON()
 	if err != nil {
 		return nil, err
@@ -31643,8 +31692,8 @@ func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) MarshalJSO
 	return json.Marshal(premarshaled)
 }
 
-func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) __premarshalJSON() (*__premarshalSetStashEntrySetStashEntryStashEntryPayloadResultStashEntry, error) {
-	var retval __premarshalSetStashEntrySetStashEntryStashEntryPayloadResultStashEntry
+func (v *SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry) __premarshalJSON() (*__premarshalSetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry, error) {
+	var retval __premarshalSetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry
 
 	retval.Key = v.Key
 	retval.Label = v.Label
@@ -31658,7 +31707,7 @@ func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) __premarsh
 			&src)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"unable to marshal SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry.Data: %w", err)
+				"unable to marshal SetStashEntryAlphaSetStashEntryAlphaStashEntryPayloadResultAlphaStashEntry.Data: %w", err)
 		}
 	}
 	retval.Format = v.Format
@@ -31667,6 +31716,51 @@ func (v *SetStashEntrySetStashEntryStashEntryPayloadResultStashEntry) __premarsh
 	retval.ExpiresAt = v.ExpiresAt
 	retval.UpdatedAt = v.UpdatedAt
 	return &retval, nil
+}
+
+// SetStashEntryResponse is returned by SetStashEntry on success.
+type SetStashEntryResponse struct {
+	// Alpha: this API can change or be removed at any time, without notice.
+	//
+	// Set the value of a key in a stash. Setting a key that has a value replaces the value and every other setting
+	// of the entry.
+	//
+	// The permission you need depends on the stash:
+	//
+	// | Stash       | Permission                                         |
+	// |-------------|----------------------------------------------------|
+	// | Project     | `project:update`                                   |
+	// | Environment | `environment:update`                               |
+	// | Component   | `project:design`                                   |
+	// | Instance    | `instance:configure`                               |
+	// | Deployment  | `instance:configure` on the deployment's instance  |
+	//
+	// A deployment's own credentials can set keys on that deployment and on its instance, environment, component,
+	// and project.
+	//
+	// The mutation fails when the key has an immutable entry that has not expired, or when the stash already has
+	// its maximum number of keys (1000 unless your installation sets another).
+	//
+	// ```graphql
+	// mutation {
+	// alphaSetStashEntry(
+	// organizationId: "my-org"
+	// scope: { instance: "ecomm-prod-database" }
+	// key: "schema.version"
+	// input: { value: "42", ttl: 86400 }
+	// ) {
+	// successful
+	// result { key value expiresAt }
+	// messages { field message }
+	// }
+	// }
+	// ```
+	AlphaSetStashEntry SetStashEntryAlphaSetStashEntryAlphaStashEntryPayload `json:"alphaSetStashEntry"`
+}
+
+// GetAlphaSetStashEntry returns SetStashEntryResponse.AlphaSetStashEntry, and is useful for accessing the field via an interface.
+func (v *SetStashEntryResponse) GetAlphaSetStashEntry() SetStashEntryAlphaSetStashEntryAlphaStashEntryPayload {
+	return v.AlphaSetStashEntry
 }
 
 // Sort direction for ordering paginated results.
@@ -31686,53 +31780,6 @@ var AllSortOrder = []SortOrder{
 	SortOrderAsc,
 	SortOrderDesc,
 }
-
-// How a stash value is stored and returned.
-type StashFormat string
-
-const (
-	// Any string.
-	StashFormatText StashFormat = "TEXT"
-	// A JSON object. The entry's `data` field returns it parsed.
-	StashFormatJson StashFormat = "JSON"
-)
-
-var AllStashFormat = []StashFormat{
-	StashFormatText,
-	StashFormatJson,
-}
-
-// The project, environment, component, instance, or deployment that owns a stash. Set exactly one field.
-//
-// Each one has its own stash. A key set on an environment is not returned when you read the stash of an
-// instance in that environment.
-type StashScope struct {
-	// A project ID, for example `ecomm`.
-	Project string `json:"project,omitempty"`
-	// An environment ID, for example `ecomm-prod`.
-	Environment string `json:"environment,omitempty"`
-	// A component ID, for example `ecomm-database`.
-	Component string `json:"component,omitempty"`
-	// An instance ID, for example `ecomm-prod-database`.
-	Instance string `json:"instance,omitempty"`
-	// A deployment ID (a UUID).
-	Deployment string `json:"deployment,omitempty"`
-}
-
-// GetProject returns StashScope.Project, and is useful for accessing the field via an interface.
-func (v *StashScope) GetProject() string { return v.Project }
-
-// GetEnvironment returns StashScope.Environment, and is useful for accessing the field via an interface.
-func (v *StashScope) GetEnvironment() string { return v.Environment }
-
-// GetComponent returns StashScope.Component, and is useful for accessing the field via an interface.
-func (v *StashScope) GetComponent() string { return v.Component }
-
-// GetInstance returns StashScope.Instance, and is useful for accessing the field via an interface.
-func (v *StashScope) GetInstance() string { return v.Instance }
-
-// GetDeployment returns StashScope.Deployment, and is useful for accessing the field via an interface.
-func (v *StashScope) GetDeployment() string { return v.Deployment }
 
 // Filter by a string field.
 //
@@ -36538,16 +36585,16 @@ func (v *__DeleteServiceAccountInput) GetId() string { return v.Id }
 
 // __DeleteStashEntryInput is used internally by genqlient
 type __DeleteStashEntryInput struct {
-	OrganizationId string     `json:"organizationId"`
-	Scope          StashScope `json:"scope"`
-	Key            string     `json:"key"`
+	OrganizationId string          `json:"organizationId"`
+	Scope          AlphaStashScope `json:"scope"`
+	Key            string          `json:"key"`
 }
 
 // GetOrganizationId returns __DeleteStashEntryInput.OrganizationId, and is useful for accessing the field via an interface.
 func (v *__DeleteStashEntryInput) GetOrganizationId() string { return v.OrganizationId }
 
 // GetScope returns __DeleteStashEntryInput.Scope, and is useful for accessing the field via an interface.
-func (v *__DeleteStashEntryInput) GetScope() StashScope { return v.Scope }
+func (v *__DeleteStashEntryInput) GetScope() AlphaStashScope { return v.Scope }
 
 // GetKey returns __DeleteStashEntryInput.Key, and is useful for accessing the field via an interface.
 func (v *__DeleteStashEntryInput) GetKey() string { return v.Key }
@@ -36872,16 +36919,16 @@ func (v *__GetServiceAccountInput) GetId() string { return v.Id }
 
 // __GetStashEntryInput is used internally by genqlient
 type __GetStashEntryInput struct {
-	OrganizationId string     `json:"organizationId"`
-	Scope          StashScope `json:"scope"`
-	Key            string     `json:"key"`
+	OrganizationId string          `json:"organizationId"`
+	Scope          AlphaStashScope `json:"scope"`
+	Key            string          `json:"key"`
 }
 
 // GetOrganizationId returns __GetStashEntryInput.OrganizationId, and is useful for accessing the field via an interface.
 func (v *__GetStashEntryInput) GetOrganizationId() string { return v.OrganizationId }
 
 // GetScope returns __GetStashEntryInput.Scope, and is useful for accessing the field via an interface.
-func (v *__GetStashEntryInput) GetScope() StashScope { return v.Scope }
+func (v *__GetStashEntryInput) GetScope() AlphaStashScope { return v.Scope }
 
 // GetKey returns __GetStashEntryInput.Key, and is useful for accessing the field via an interface.
 func (v *__GetStashEntryInput) GetKey() string { return v.Key }
@@ -37353,7 +37400,7 @@ func (v *__ListServiceAccountsInput) GetCursor() *scalars.Cursor { return v.Curs
 // __ListStashEntriesInput is used internally by genqlient
 type __ListStashEntriesInput struct {
 	OrganizationId string          `json:"organizationId"`
-	Scope          StashScope      `json:"scope"`
+	Scope          AlphaStashScope `json:"scope"`
 	Cursor         *scalars.Cursor `json:"cursor,omitempty"`
 }
 
@@ -37361,7 +37408,7 @@ type __ListStashEntriesInput struct {
 func (v *__ListStashEntriesInput) GetOrganizationId() string { return v.OrganizationId }
 
 // GetScope returns __ListStashEntriesInput.Scope, and is useful for accessing the field via an interface.
-func (v *__ListStashEntriesInput) GetScope() StashScope { return v.Scope }
+func (v *__ListStashEntriesInput) GetScope() AlphaStashScope { return v.Scope }
 
 // GetCursor returns __ListStashEntriesInput.Cursor, and is useful for accessing the field via an interface.
 func (v *__ListStashEntriesInput) GetCursor() *scalars.Cursor { return v.Cursor }
@@ -37729,23 +37776,23 @@ func (v *__SetRemoteReferenceInput) GetInput() SetRemoteReferenceInput { return 
 
 // __SetStashEntryInput is used internally by genqlient
 type __SetStashEntryInput struct {
-	OrganizationId string             `json:"organizationId"`
-	Scope          StashScope         `json:"scope"`
-	Key            string             `json:"key"`
-	Input          SetStashEntryInput `json:"input"`
+	OrganizationId string                  `json:"organizationId"`
+	Scope          AlphaStashScope         `json:"scope"`
+	Key            string                  `json:"key"`
+	Input          AlphaSetStashEntryInput `json:"input"`
 }
 
 // GetOrganizationId returns __SetStashEntryInput.OrganizationId, and is useful for accessing the field via an interface.
 func (v *__SetStashEntryInput) GetOrganizationId() string { return v.OrganizationId }
 
 // GetScope returns __SetStashEntryInput.Scope, and is useful for accessing the field via an interface.
-func (v *__SetStashEntryInput) GetScope() StashScope { return v.Scope }
+func (v *__SetStashEntryInput) GetScope() AlphaStashScope { return v.Scope }
 
 // GetKey returns __SetStashEntryInput.Key, and is useful for accessing the field via an interface.
 func (v *__SetStashEntryInput) GetKey() string { return v.Key }
 
 // GetInput returns __SetStashEntryInput.Input, and is useful for accessing the field via an interface.
-func (v *__SetStashEntryInput) GetInput() SetStashEntryInput { return v.Input }
+func (v *__SetStashEntryInput) GetInput() AlphaSetStashEntryInput { return v.Input }
 
 // __UnlinkComponentsInput is used internally by genqlient
 type __UnlinkComponentsInput struct {
@@ -40147,8 +40194,8 @@ func DeleteServiceAccount(
 
 // The mutation executed by DeleteStashEntry.
 const DeleteStashEntry_Operation = `
-mutation DeleteStashEntry ($organizationId: ID!, $scope: StashScope!, $key: String!) {
-	deleteStashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
+mutation DeleteStashEntry ($organizationId: ID!, $scope: AlphaStashScope!, $key: String!) {
+	alphaDeleteStashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
 		result {
 			key
 		}
@@ -40166,7 +40213,7 @@ func DeleteStashEntry(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	organizationId string,
-	scope StashScope,
+	scope AlphaStashScope,
 	key string,
 ) (data_ *DeleteStashEntryResponse, err_ error) {
 	req_ := &graphql.Request{
@@ -41710,8 +41757,8 @@ func GetServiceAccount(
 
 // The query executed by GetStashEntry.
 const GetStashEntry_Operation = `
-query GetStashEntry ($organizationId: ID!, $scope: StashScope!, $key: String!) {
-	stashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
+query GetStashEntry ($organizationId: ID!, $scope: AlphaStashScope!, $key: String!) {
+	alphaStashEntry(organizationId: $organizationId, scope: $scope, key: $key) {
 		key
 		label
 		value
@@ -41729,7 +41776,7 @@ func GetStashEntry(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	organizationId string,
-	scope StashScope,
+	scope AlphaStashScope,
 	key string,
 ) (data_ *GetStashEntryResponse, err_ error) {
 	req_ := &graphql.Request{
@@ -43416,8 +43463,8 @@ func ListServiceAccounts(
 
 // The query executed by ListStashEntries.
 const ListStashEntries_Operation = `
-query ListStashEntries ($organizationId: ID!, $scope: StashScope!, $cursor: Cursor) {
-	stashEntries(organizationId: $organizationId, scope: $scope, cursor: $cursor) {
+query ListStashEntries ($organizationId: ID!, $scope: AlphaStashScope!, $cursor: Cursor) {
+	alphaStashEntries(organizationId: $organizationId, scope: $scope, cursor: $cursor) {
 		cursor {
 			next
 			previous
@@ -43441,7 +43488,7 @@ func ListStashEntries(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	organizationId string,
-	scope StashScope,
+	scope AlphaStashScope,
 	cursor *scalars.Cursor,
 ) (data_ *ListStashEntriesResponse, err_ error) {
 	req_ := &graphql.Request{
@@ -44453,8 +44500,8 @@ func SetRemoteReference(
 
 // The mutation executed by SetStashEntry.
 const SetStashEntry_Operation = `
-mutation SetStashEntry ($organizationId: ID!, $scope: StashScope!, $key: String!, $input: SetStashEntryInput!) {
-	setStashEntry(organizationId: $organizationId, scope: $scope, key: $key, input: $input) {
+mutation SetStashEntry ($organizationId: ID!, $scope: AlphaStashScope!, $key: String!, $input: AlphaSetStashEntryInput!) {
+	alphaSetStashEntry(organizationId: $organizationId, scope: $scope, key: $key, input: $input) {
 		result {
 			key
 			label
@@ -44480,9 +44527,9 @@ func SetStashEntry(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	organizationId string,
-	scope StashScope,
+	scope AlphaStashScope,
 	key string,
-	input SetStashEntryInput,
+	input AlphaSetStashEntryInput,
 ) (data_ *SetStashEntryResponse, err_ error) {
 	req_ := &graphql.Request{
 		OpName: "SetStashEntry",
