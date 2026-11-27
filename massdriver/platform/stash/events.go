@@ -3,6 +3,7 @@ package stash
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/stream"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
@@ -12,11 +13,15 @@ import (
 // [types.StashEvent].
 type Event = types.StashEvent
 
+// EventAction is what happened to an entry — alias of
+// [types.StashEventAction].
+type EventAction = types.StashEventAction
+
 const (
 	// EventSet is the action of an [Event] for a key that was set.
-	EventSet = "SET"
+	EventSet = types.StashEventSet
 	// EventDeleted is the action of an [Event] for a key that was deleted.
-	EventDeleted = "DELETED"
+	EventDeleted = types.StashEventDeleted
 )
 
 const stashEventsSubscription = `subscription alphaStashEvents($organizationId: ID!, $projectId: ID!, $environmentId: ID) {
@@ -45,14 +50,18 @@ const stashEventsSubscription = `subscription alphaStashEvents($organizationId: 
 // instances and their deployments.
 //
 // An event's Entry is nil for a delete. A sensitive entry's Value is always
-// nil in an event; read it with [Service.Get]. An entry that expires sends
-// no event.
+// nil in an event; read it with [Service.Get]. A JSON entry's Data holds its
+// parsed Value, and is nil when Value is nil or is not valid JSON. An entry
+// that expires sends no event. A frame that does not decode is skipped.
 //
 // Lifetime is owned by ctx. Cancelling ctx tears down the subscription and
 // closes the returned channel. Streaming requires PAT (bearer)
 // authentication; basic-auth callers get [streaming.ErrRequiresPAT] before
 // any network I/O.
 func (s *Service) Subscribe(ctx context.Context, projectID, environmentID string) (<-chan Event, error) {
+	if projectID == "" {
+		return nil, errors.New("subscribe to stash events: a project ID is required")
+	}
 	vars := map[string]any{
 		"organizationId": s.client.Config.OrganizationID,
 		"projectId":      projectID,

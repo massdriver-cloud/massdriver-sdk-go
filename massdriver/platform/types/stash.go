@@ -44,11 +44,18 @@ type StashEntry struct {
 	UpdatedAt time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
 }
 
-// StashEvent says a stash entry was set or deleted. Action is SET or
-// DELETED. Entry is nil for DELETED, and its Value is nil when the entry is
-// sensitive.
+// StashEventAction is what happened to a stash entry.
+type StashEventAction string
+
+const (
+	StashEventSet     StashEventAction = "SET"
+	StashEventDeleted StashEventAction = "DELETED"
+)
+
+// StashEvent says a stash entry was set or deleted. Entry is nil for
+// [StashEventDeleted], and its Value is nil when the entry is sensitive.
 type StashEvent struct {
-	Action    string      `json:"action"`
+	Action    StashEventAction `json:"action"`
 	Scope     StashScope  `json:"scope"`
 	Key       string      `json:"key"`
 	Entry     *StashEntry `json:"entry,omitempty"`

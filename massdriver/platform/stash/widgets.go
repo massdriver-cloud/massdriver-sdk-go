@@ -27,7 +27,8 @@ type WidgetsInput struct {
 	// PageSize bounds the keys read per page, so a page can hold fewer
 	// widgets than PageSize, or none.
 	PageSize int
-	// After is the opaque cursor from a prior [types.Page].Next.
+	// After is the opaque cursor from a prior [types.Page].Next. Pass the
+	// same scopes as the call that returned the cursor.
 	After string
 }
 

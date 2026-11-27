@@ -76,3 +76,9 @@ func TestUnpackEvent(t *testing.T) {
 		}
 	})
 }
+
+func TestSubscribe_RequiresProject(t *testing.T) {
+	if _, err := newService(nil).Subscribe(t.Context(), "", "api-prod"); err == nil {
+		t.Error("err = nil, want an error")
+	}
+}

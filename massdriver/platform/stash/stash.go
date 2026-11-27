@@ -96,7 +96,8 @@ type ForScopesInput struct {
 	Keys     []string
 	PageSize int
 	// After is the opaque cursor from a prior [types.Page].Next. Empty
-	// starts at the first page.
+	// starts at the first page. Pass the same scopes and keys as the call
+	// that returned the cursor.
 	After string
 }
 
