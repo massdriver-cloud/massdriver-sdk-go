@@ -50,7 +50,8 @@ func (s *Service) WidgetCatalog(ctx context.Context) ([]WidgetDefinition, error)
 }
 
 // IterWidgetsForScopes returns a lazy [iter.Seq2] over the widgets in
-// several scopes at once. Pass from 1 to 200 scopes, all in one project.
+// several scopes at once. Pass from 1 to [MaxScopes] scopes, all in one
+// project.
 // When a scope has more than one version of a widget's key, the widget
 // comes from the highest version.
 func (s *Service) IterWidgetsForScopes(ctx context.Context, scopes []Scope, input WidgetsInput) iter.Seq2[Widget, error] {

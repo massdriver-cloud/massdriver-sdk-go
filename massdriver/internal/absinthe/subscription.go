@@ -21,6 +21,7 @@ type Subscription struct {
 	Data <-chan json.RawMessage
 
 	socket   *Socket
+	route    *subscriber
 	closeOne sync.Once
 }
 
@@ -55,12 +56,12 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 		return nil, fmt.Errorf("absinthe subscribe: server returned no subscriptionId (response=%s)", string(resp.response))
 	}
 
-	raw := s.registerSubscription(subResp.SubscriptionID)
-	out := make(chan json.RawMessage, cap(raw))
+	route := s.registerSubscription(subResp.SubscriptionID)
+	out := make(chan json.RawMessage, cap(route.ch))
 
 	go func() {
 		defer close(out)
-		for payload := range raw {
+		for payload := range route.ch {
 			data, ok := extractData(payload)
 			if !ok {
 				continue
@@ -77,6 +78,7 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 		ID:     subResp.SubscriptionID,
 		Data:   out,
 		socket: s,
+		route:  route,
 	}, nil
 }
 
@@ -95,14 +97,17 @@ func (sub *Subscription) Close() error {
 		ref := sub.socket.refID()
 		_, _ = sub.socket.push(ctx, &sub.socket.joinRef, ref, controlTopic, "unsubscribe", body)
 
-		sub.socket.unregisterSubscription(sub.ID)
+		sub.socket.endSubscription(sub.ID, nil)
 	})
 	return nil
 }
 
-// Err returns the error that caused the underlying socket to close, if any.
+// Err returns why the subscription ended, valid once Data has closed: nil
+// when it was closed with [Subscription.Close] or the server completed it,
+// the server's error when the server ended it with an error, and the
+// socket's error (or [ErrSocketClosed]) when the socket died.
 func (sub *Subscription) Err() error {
-	return sub.socket.Err()
+	return sub.socket.subscriptionErr(sub.route)
 }
 
 // extractData unwraps an Absinthe subscription:data payload to its inner

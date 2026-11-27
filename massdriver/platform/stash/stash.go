@@ -20,7 +20,6 @@ package stash
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"iter"
 	"strings"
@@ -87,6 +86,11 @@ type ListInput struct {
 	// starts at the first page.
 	After string
 }
+
+// MaxScopes is the most scopes one multi-scope read takes:
+// [Service.IterForScopes], [Service.ListForScopes],
+// [Service.IterWidgetsForScopes], and [Service.WidgetsForScopes].
+const MaxScopes = 200
 
 // ForScopesInput controls a [Service.IterForScopes] or
 // [Service.ListForScopes] call. The zero value lists every entry in the
@@ -175,8 +179,8 @@ func (s *Service) page(scope Scope, input ListInput) paging.FetchFunc[Entry] {
 }
 
 // IterForScopes returns a lazy [iter.Seq2] over the entries in several
-// scopes at once, ordered by key. Pass from 1 to 200 scopes, all in one
-// project. Sensitive entries are never returned; read one with
+// scopes at once, ordered by key. Pass from 1 to [MaxScopes] scopes, all in
+// one project. Sensitive entries are never returned; read one with
 // [Service.Get].
 func (s *Service) IterForScopes(ctx context.Context, scopes []Scope, input ForScopesInput) iter.Seq2[Entry, error] {
 	return paging.Iter(ctx, input.After, s.forScopesPage(scopes, input))
@@ -282,8 +286,8 @@ func toGenScope(scope Scope) (gen.AlphaStashScope, error) {
 }
 
 func toGenScopes(scopes []Scope) ([]gen.AlphaStashScope, error) {
-	if len(scopes) == 0 {
-		return nil, errors.New("at least one stash scope is required")
+	if len(scopes) == 0 || len(scopes) > MaxScopes {
+		return nil, fmt.Errorf("pass from 1 to %d stash scopes, got %d", MaxScopes, len(scopes))
 	}
 	out := make([]gen.AlphaStashScope, 0, len(scopes))
 	for _, scope := range scopes {

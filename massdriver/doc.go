@@ -192,9 +192,9 @@ Deployment logs:
   - [deployments.Service.TailLogs] is the high-level form that folds
     in backfill, live tailing, and terminal-state detection.
 
-Lifecycle events — each Service's StreamEvents method opens a typed
-[types.Event] channel; callers type-assert to a concrete variant
-([*types.InstanceEvent], [*types.AlarmEvent], etc.):
+Lifecycle events — each Service's StreamEvents method opens a
+[streaming.Stream] of [types.Event]; callers type-assert to a concrete
+variant ([*types.InstanceEvent], [*types.AlarmEvent], etc.):
 
   - [organizations.Service.StreamEvents] — projects created, OCI
     repositories created, bundle versions published.
@@ -210,9 +210,26 @@ Lifecycle events — each Service's StreamEvents method opens a typed
     a single deployment.
 
 Every Stream* method requires a personal-access-token credential and
-returns [streaming.ErrRequiresPAT] otherwise. The Service owns the
-socket lifetime; callers own the returned channel and must drain or
-cancel ctx to stop.
+returns [streaming.ErrRequiresPAT] otherwise. Each returns a
+[streaming.Stream]: receive from its C channel, then call Err to learn
+why it closed — nil when ctx was cancelled or the server completed the
+subscription, the connection's error otherwise.
+
+	events, err := c.Instances.StreamEvents(ctx, "ecomm-prod-database")
+	if err != nil {
+	    return err
+	}
+	for ev := range events.C {
+	    // handle ev
+	}
+	if err := events.Err(); err != nil {
+	    return err
+	}
+
+The streams of one [Client] share a single WebSocket. It opens with the
+first stream and closes when the last one ends. Cancelling one stream's
+ctx closes only that stream. If the WebSocket fails, every stream on it
+closes with the error, and the next stream opens a new WebSocket.
 
 # Stability
 

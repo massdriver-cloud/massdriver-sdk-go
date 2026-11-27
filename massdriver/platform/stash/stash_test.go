@@ -413,6 +413,7 @@ func TestListForScopes_InvalidScopes(t *testing.T) {
 		scopes []stash.Scope
 	}{
 		{"none", nil},
+		{"more than MaxScopes", projectScopes(stash.MaxScopes + 1)},
 		{"unknown kind", []stash.Scope{{Kind: "organization", ID: "my-org"}}},
 	}
 	for _, tc := range tests {
@@ -425,5 +426,36 @@ func TestListForScopes_InvalidScopes(t *testing.T) {
 				t.Errorf("sent %d requests, want 0", n)
 			}
 		})
+	}
+}
+
+func projectScopes(n int) []stash.Scope {
+	scopes := make([]stash.Scope, n)
+	for i := range scopes {
+		scopes[i] = stash.Scope{Kind: stash.ScopeProject, ID: "api"}
+	}
+	return scopes
+}
+
+func TestListForScopes_MaxScopes(t *testing.T) {
+	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{
+		"alphaStashEntriesForScopes": map[string]any{"cursor": map[string]any{}, "items": []map[string]any{}},
+	}))
+	if _, err := newService(gqlClient).ListForScopes(t.Context(), projectScopes(stash.MaxScopes), stash.ForScopesInput{}); err != nil {
+		t.Fatalf("ListForScopes with MaxScopes scopes: %v", err)
+	}
+	scopes, _ := gqlClient.Requests()[0].Variables["scopes"].([]any)
+	if len(scopes) != 200 {
+		t.Errorf("sent %d scopes, want 200", len(scopes))
+	}
+}
+
+func TestWidgetsForScopes_TooManyScopes(t *testing.T) {
+	gqlClient := gqltest.NewClient()
+	if _, err := newService(gqlClient).WidgetsForScopes(t.Context(), projectScopes(stash.MaxScopes+1), stash.WidgetsInput{}); err == nil {
+		t.Error("err = nil, want an error")
+	}
+	if n := len(gqlClient.Requests()); n != 0 {
+		t.Errorf("sent %d requests, want 0", n)
 	}
 }

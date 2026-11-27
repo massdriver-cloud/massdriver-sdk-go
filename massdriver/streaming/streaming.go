@@ -3,8 +3,11 @@
 //
 // The Service-level streaming methods live in their per-domain packages
 // ([deployments.Service.StreamLogs], [instances.Service.StreamEvents],
-// etc.); this package only exposes the cross-cutting sentinels callers
-// need to classify errors with [errors.Is].
+// etc.) and return a [Stream]. This package holds [Stream] and the
+// sentinels callers classify errors with [errors.Is].
+//
+// The streams of one client share a single WebSocket. It opens with the
+// first stream and closes when the last one ends.
 package streaming
 
 import "errors"

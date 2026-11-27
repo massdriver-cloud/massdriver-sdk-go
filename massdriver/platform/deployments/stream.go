@@ -3,11 +3,11 @@ package deployments
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"strings"
 	"time"
 
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/stream"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/streaming"
 )
@@ -59,23 +59,26 @@ const deploymentEventsSubscription = `subscription deploymentEvents($organizatio
 // already buffered locally.
 const drainGrace = 250 * time.Millisecond
 
-// StreamLogs opens an Absinthe subscription for the named deployment's log
-// stream. Each [LogBatch] yielded on the returned channel is one
-// provisioner flush — the natural unit for live tailing.
+// StreamLogs opens a subscription for the named deployment's log stream.
+// Each [LogBatch] yielded on the returned stream is one provisioner flush —
+// the natural unit for live tailing.
 //
 // Lifetime is owned by ctx. Cancelling ctx tears down the subscription and
-// the underlying WebSocket and closes the returned channel. The channel
-// also closes if the server completes the subscription or the socket
-// dies. Callers should follow the standard pattern:
+// closes the stream's channel. The channel also closes if the server
+// completes the subscription or the connection fails; [streaming.Stream.Err]
+// says which. Callers should follow the standard pattern:
 //
 //	ctx, cancel := context.WithCancel(parent)
 //	defer cancel()
-//	batches, err := svc.StreamLogs(ctx, deploymentID)
+//	logs, err := svc.StreamLogs(ctx, deploymentID)
 //	if err != nil {
 //	    return err
 //	}
-//	for batch := range batches {
+//	for batch := range logs.C {
 //	    fmt.Print(batch.Message)
+//	}
+//	if err := logs.Err(); err != nil {
+//	    return err
 //	}
 //
 // Streaming requires PAT (bearer) authentication; basic-auth callers get
@@ -83,45 +86,11 @@ const drainGrace = 250 * time.Millisecond
 //
 // Most callers want [Service.TailLogs] instead — it folds together backfill,
 // terminal detection, and live tailing.
-func (s *Service) StreamLogs(ctx context.Context, deploymentID string) (<-chan LogBatch, error) {
-	socket, err := s.client.OpenStreamSocket(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	sub, err := socket.Subscribe(ctx, deploymentLogsSubscription, map[string]any{
+func (s *Service) StreamLogs(ctx context.Context, deploymentID string) (*streaming.Stream[LogBatch], error) {
+	return stream.Frames(ctx, s.client, "logs for deployment "+deploymentID, deploymentLogsSubscription, map[string]any{
 		"organizationId": s.client.Config.OrganizationID,
 		"deploymentId":   deploymentID,
-	})
-	if err != nil {
-		_ = socket.Close()
-		return nil, fmt.Errorf("subscribe to logs for deployment %s: %w", deploymentID, err)
-	}
-
-	// Tie socket cleanup to ctx so callers don't have to remember a separate
-	// cancel function — `defer cancel()` on the parent ctx is enough.
-	go func() {
-		<-ctx.Done()
-		_ = sub.Close()
-		_ = socket.Close()
-	}()
-
-	out := make(chan LogBatch, cap(sub.Data))
-	go func() {
-		defer close(out)
-		for raw := range sub.Data {
-			batch, ok := unpackLogBatch(raw)
-			if !ok {
-				continue
-			}
-			select {
-			case out <- batch:
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
-	return out, nil
+	}, unpackLogBatch)
 }
 
 // TailLogs writes the deployment's logs to w as they're produced, returning
@@ -171,34 +140,29 @@ func (s *Service) TailLogs(ctx context.Context, deploymentID string, w io.Writer
 		return nil
 	}
 
-	socket, err := s.client.OpenStreamSocket(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	logs, err := s.StreamLogs(ctx, deploymentID)
 	if err != nil {
 		return err
 	}
-	defer socket.Close()
-
-	vars := map[string]any{
+	statuses, err := stream.Frames(ctx, s.client, "events for deployment "+deploymentID, deploymentEventsSubscription, map[string]any{
 		"organizationId": s.client.Config.OrganizationID,
 		"deploymentId":   deploymentID,
-	}
-	logSub, err := socket.Subscribe(ctx, deploymentLogsSubscription, vars)
+	}, unpackEventStatus)
 	if err != nil {
-		return fmt.Errorf("subscribe to logs for deployment %s: %w", deploymentID, err)
-	}
-	eventSub, err := socket.Subscribe(ctx, deploymentEventsSubscription, vars)
-	if err != nil {
-		return fmt.Errorf("subscribe to events for deployment %s: %w", deploymentID, err)
+		return err
 	}
 
 	// terminal closes when an event reports a terminal status. If the events
-	// subscription closes without a terminal event (socket died), terminal
-	// stays unclosed — but in that case logSub.Data will also have closed and
-	// the main loop exits via the !ok branch.
+	// stream closes without a terminal event (the connection failed),
+	// terminal stays open — the log stream closes too, and the main loop
+	// returns its error.
 	terminal := make(chan struct{})
 	go func() {
-		for raw := range eventSub.Data {
-			status, ok := unpackEventStatus(raw)
-			if ok && IsTerminal(status) {
+		for status := range statuses.C {
+			if IsTerminal(status) {
 				close(terminal)
 				return
 			}
@@ -207,19 +171,18 @@ func (s *Service) TailLogs(ctx context.Context, deploymentID string, w io.Writer
 
 	for {
 		select {
-		case raw, ok := <-logSub.Data:
+		case batch, ok := <-logs.C:
 			if !ok {
-				return nil
-			}
-			batch, ok := unpackLogBatch(raw)
-			if !ok {
-				continue
+				if err := ctx.Err(); err != nil {
+					return err
+				}
+				return logs.Err()
 			}
 			if werr := writeLogBatch(w, batch); werr != nil {
 				return werr
 			}
 		case <-terminal:
-			return drainLogs(ctx, logSub.Data, w)
+			return drainLogs(ctx, logs.C, w)
 		case <-ctx.Done():
 			return ctx.Err()
 		}
@@ -229,20 +192,16 @@ func (s *Service) TailLogs(ctx context.Context, deploymentID string, w io.Writer
 // drainLogs reads any in-transit log batches for a brief window after a
 // terminal event has fired, then returns. Terminal events are emitted
 // after the provisioner's final log flush, so anything still arriving is
-// already buffered between the websocket and the absinthe forwarding
+// already buffered between the websocket and the stream's forwarding
 // goroutine — the grace window catches that hand-off without making
 // callers wait noticeably.
-func drainLogs(ctx context.Context, logsCh <-chan json.RawMessage, w io.Writer) error {
+func drainLogs(ctx context.Context, logsCh <-chan LogBatch, w io.Writer) error {
 	timeout := time.After(drainGrace)
 	for {
 		select {
-		case raw, ok := <-logsCh:
+		case batch, ok := <-logsCh:
 			if !ok {
 				return nil
-			}
-			batch, ok := unpackLogBatch(raw)
-			if !ok {
-				continue
 			}
 			if werr := writeLogBatch(w, batch); werr != nil {
 				return werr

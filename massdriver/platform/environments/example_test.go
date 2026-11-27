@@ -32,7 +32,7 @@ func ExampleService_StreamEvents() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for ev := range events {
+	for ev := range events.C {
 		switch e := ev.(type) {
 		case *types.EnvironmentEvent:
 			fmt.Printf("%s: environment %s\n", e.Action, e.Environment.Name)
@@ -47,5 +47,8 @@ func ExampleService_StreamEvents() {
 		case *types.DeploymentEvent:
 			fmt.Printf("%s: deployment %s is %s\n", e.Action, e.Deployment.ID, e.Deployment.Status)
 		}
+	}
+	if err := events.Err(); err != nil {
+		log.Fatal(err)
 	}
 }

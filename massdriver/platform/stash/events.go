@@ -7,6 +7,7 @@ import (
 
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/internal/stream"
 	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/platform/types"
+	"github.com/massdriver-cloud/massdriver-sdk-go/massdriver/streaming"
 )
 
 // Event says a stash entry was set or deleted — alias of
@@ -55,10 +56,11 @@ const stashEventsSubscription = `subscription alphaStashEvents($organizationId: 
 // that expires sends no event. A frame that does not decode is skipped.
 //
 // Lifetime is owned by ctx. Cancelling ctx tears down the subscription and
-// closes the returned channel. Streaming requires PAT (bearer)
+// closes the stream's channel. [streaming.Stream.Err] says why the channel
+// closed. Streaming requires PAT (bearer)
 // authentication; basic-auth callers get [streaming.ErrRequiresPAT] before
 // any network I/O.
-func (s *Service) Subscribe(ctx context.Context, projectID, environmentID string) (<-chan Event, error) {
+func (s *Service) Subscribe(ctx context.Context, projectID, environmentID string) (*streaming.Stream[Event], error) {
 	if projectID == "" {
 		return nil, errors.New("subscribe to stash events: a project ID is required")
 	}
