@@ -50,7 +50,7 @@ type Socket struct {
 
 	mu          sync.Mutex
 	pending     map[string]chan reply  // ref → reply slot
-	docRefs     map[string]bool        // refs of `doc` pushes awaiting a reply
+	docRefs     map[string]string      // ref of a `doc` push → subscription ID its reply registered ("" until then)
 	subscribers map[string]*subscriber // subscriptionId (== Phoenix topic) → route
 	closed      bool
 	closeErr    error
@@ -105,7 +105,7 @@ func Dial(ctx context.Context, baseURL, token string) (*Socket, error) {
 	s := &Socket{
 		conn:        conn,
 		pending:     make(map[string]chan reply),
-		docRefs:     make(map[string]bool),
+		docRefs:     make(map[string]string),
 		subscribers: make(map[string]*subscriber),
 		done:        make(chan struct{}),
 	}
@@ -165,7 +165,7 @@ func (s *Socket) push(ctx context.Context, joinRef *string, ref, topic, event st
 	s.mu.Lock()
 	if s.closed {
 		s.mu.Unlock()
-		return reply{}, fmt.Errorf("absinthe socket closed: %w", s.closeErr)
+		return reply{}, s.closedErr()
 	}
 	s.pending[ref] = ch
 	s.mu.Unlock()
@@ -273,19 +273,25 @@ func (s *Socket) dispatch(body []byte) {
 		_ = json.Unmarshal(payload, &p)
 		r := reply{status: p.Status, response: p.Response}
 		s.mu.Lock()
+		defer s.mu.Unlock()
 		ch, ok := s.pending[*ref]
-		if s.docRefs[*ref] {
-			delete(s.docRefs, *ref)
+		if !ok {
+			return
+		}
+		if _, isDoc := s.docRefs[*ref]; isDoc {
 			// Register the route here, in the read loop, so a frame for the
 			// new subscription that follows this reply is not dropped.
-			if id := subscriptionID(p.Status, p.Response); id != "" && ok && !s.closed {
+			if id := subscriptionID(p.Status, p.Response); id != "" && !s.closed {
 				r.route = &subscriber{ch: make(chan json.RawMessage, 64)}
 				s.subscribers[id] = r.route
+				s.docRefs[*ref] = id
 			}
 		}
-		s.mu.Unlock()
-		if ok {
-			ch <- r
+		// The send happens under mu so shutdown cannot close ch first. ch
+		// holds one reply, so a duplicate reply is dropped.
+		select {
+		case ch <- r:
+		default:
 		}
 	case "subscription:data":
 		// Payload is {"result": {"data": ..., "errors": ...}, "subscriptionId": "..."}.

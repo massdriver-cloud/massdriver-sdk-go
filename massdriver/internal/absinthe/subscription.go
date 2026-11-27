@@ -44,13 +44,20 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 		s.mu.Unlock()
 		return nil, s.closedErr()
 	}
-	s.docRefs[ref] = true
+	s.docRefs[ref] = ""
 	s.mu.Unlock()
 	resp, err := s.push(ctx, &s.joinRef, ref, controlTopic, "doc", body)
+	s.mu.Lock()
+	registered := s.docRefs[ref]
+	delete(s.docRefs, ref)
+	s.mu.Unlock()
 	if err != nil {
-		s.mu.Lock()
-		delete(s.docRefs, ref)
-		s.mu.Unlock()
+		if registered != "" {
+			// The reply registered a route as push gave up. Nobody will
+			// read it, so end it here and on the server.
+			s.endSubscription(registered, nil)
+			go s.unsubscribe(context.WithoutCancel(ctx), registered)
+		}
 		return nil, err
 	}
 	if resp.status != "ok" {
@@ -97,19 +104,24 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 func (sub *Subscription) Close() error {
 	sub.closeOne.Do(func() {
 		close(sub.closed)
-		// Best-effort unsubscribe; ignore errors (the server may already
-		// have dropped the sub or the socket may be closing).
-		body, _ := json.Marshal(struct {
-			SubscriptionID string `json:"subscriptionId"`
-		}{SubscriptionID: sub.ID})
-		ctx, cancel := context.WithTimeout(context.Background(), replyTimeout)
-		defer cancel()
-		ref := sub.socket.refID()
-		_, _ = sub.socket.push(ctx, &sub.socket.joinRef, ref, controlTopic, "unsubscribe", body)
-
+		sub.socket.unsubscribe(context.Background(), sub.ID)
 		sub.socket.endSubscription(sub.ID, nil)
 	})
 	return nil
+}
+
+// unsubscribe asks the server to stop subscription id. It is best-effort:
+// errors are ignored, since the server may already have dropped the
+// subscription or the socket may be closing. parent must not be cancelled
+// already; the push is bounded by the reply timeout.
+func (s *Socket) unsubscribe(parent context.Context, id string) {
+	body, _ := json.Marshal(struct {
+		SubscriptionID string `json:"subscriptionId"`
+	}{SubscriptionID: id})
+	ctx, cancel := context.WithTimeout(parent, replyTimeout)
+	defer cancel()
+	ref := s.refID()
+	_, _ = s.push(ctx, &s.joinRef, ref, controlTopic, "unsubscribe", body)
 }
 
 // Err returns why the subscription ended, valid once Data has closed: nil
