@@ -1321,15 +1321,21 @@ const (
 	AlphaWidgetInputTypeNumber AlphaWidgetInputType = "NUMBER"
 	// A whole number.
 	AlphaWidgetInputTypeInteger AlphaWidgetInputType = "INTEGER"
+	// True or false.
+	AlphaWidgetInputTypeBoolean AlphaWidgetInputType = "BOOLEAN"
 	// A list.
 	AlphaWidgetInputTypeArray AlphaWidgetInputType = "ARRAY"
+	// A JSON object.
+	AlphaWidgetInputTypeObject AlphaWidgetInputType = "OBJECT"
 )
 
 var AllAlphaWidgetInputType = []AlphaWidgetInputType{
 	AlphaWidgetInputTypeString,
 	AlphaWidgetInputTypeNumber,
 	AlphaWidgetInputTypeInteger,
+	AlphaWidgetInputTypeBoolean,
 	AlphaWidgetInputTypeArray,
+	AlphaWidgetInputTypeObject,
 }
 
 // ApproveDeploymentApproveDeploymentDeploymentPayload includes the requested fields of the GraphQL type DeploymentPayload.
@@ -19894,8 +19900,10 @@ type GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition struct {
 	Entity AlphaWidgetEntityKind `json:"entity"`
 	// The version of the well-known key's shape, for example `1`.
 	Version int `json:"version"`
-	// The well-known stash key, for example `md/v1/usage`.
+	// The well-known stash key, for example `md/v1/usage`, or a key pattern with named segments in braces, for example `md/v1/step/{step}`. A key such as `md/v1/step/src` matches the pattern. A segment is 1 to 63 lowercase letters, digits, `_`, and `-`, and starts with a letter or digit.
 	Key string `json:"key"`
+	// The names of the segments in `key`, for example `["step"]` for `md/v1/step/{step}`. Empty for a fixed key.
+	KeySegments []string `json:"keySegments"`
 	// The kind of entity whose stash holds the key. A `link.traffic` widget reads the key on the instance that sends the traffic, and shows on the lines that leave that instance.
 	Scope AlphaStashScopeKind `json:"scope"`
 	// The format the key's value must be set with.
@@ -19924,6 +19932,11 @@ func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetVersion() i
 
 // GetKey returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Key, and is useful for accessing the field via an interface.
 func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetKey() string { return v.Key }
+
+// GetKeySegments returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.KeySegments, and is useful for accessing the field via an interface.
+func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetKeySegments() []string {
+	return v.KeySegments
+}
 
 // GetScope returns GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition.Scope, and is useful for accessing the field via an interface.
 func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) GetScope() AlphaStashScopeKind {
@@ -19989,6 +20002,8 @@ type __premarshalGetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition struct 
 
 	Key string `json:"key"`
 
+	KeySegments []string `json:"keySegments"`
+
 	Scope AlphaStashScopeKind `json:"scope"`
 
 	Format AlphaStashFormat `json:"format"`
@@ -20014,6 +20029,7 @@ func (v *GetWidgetCatalogAlphaWidgetCatalogAlphaWidgetDefinition) __premarshalJS
 	retval.Entity = v.Entity
 	retval.Version = v.Version
 	retval.Key = v.Key
+	retval.KeySegments = v.KeySegments
 	retval.Scope = v.Scope
 	retval.Format = v.Format
 	{
@@ -20090,6 +20106,7 @@ type GetWidgetCatalogResponse struct {
 	// entity
 	// version
 	// key
+	// keySegments
 	// scope
 	// format
 	// schema
@@ -27907,8 +27924,10 @@ func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageCursorPaginati
 type ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget struct {
 	// The widget's name, for example `instance.usage_bar`.
 	Name string `json:"name"`
-	// The entity whose stash has the key. For a `link.traffic` widget, this is the instance that sends the traffic, and the widget shows on the lines that leave it.
+	// The entity whose stash has the key. For a `link.traffic` widget, this is the instance that sends the traffic, and the widget shows on the lines that leave it. For a deployment result read through an instance, this is the deployment that the result came from.
 	Scope ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef `json:"scope"`
+	// The values of the key's named segments, by name, for example `{"step": "src"}` for the key `md/v1/step/src`. Empty for a fixed key.
+	Segments map[string]any `json:"-"`
 	// The widget's input values, by input name, for example `{"value": 42, "max": 100}`. An optional input that the key's value does not set is left out.
 	Values map[string]any `json:"-"`
 	// When the key was last set (UTC).
@@ -27925,6 +27944,11 @@ func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidg
 // GetScope returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.Scope, and is useful for accessing the field via an interface.
 func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget) GetScope() ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef {
 	return v.Scope
+}
+
+// GetSegments returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.Segments, and is useful for accessing the field via an interface.
+func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget) GetSegments() map[string]any {
+	return v.Segments
 }
 
 // GetValues returns ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.Values, and is useful for accessing the field via an interface.
@@ -27950,7 +27974,8 @@ func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidg
 
 	var firstPass struct {
 		*ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget
-		Values json.RawMessage `json:"values"`
+		Segments json.RawMessage `json:"segments"`
+		Values   json.RawMessage `json:"values"`
 		graphql.NoUnmarshalJSON
 	}
 	firstPass.ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget = v
@@ -27958,6 +27983,19 @@ func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidg
 	err := json.Unmarshal(b, &firstPass)
 	if err != nil {
 		return err
+	}
+
+	{
+		dst := &v.Segments
+		src := firstPass.Segments
+		if len(src) != 0 && string(src) != "null" {
+			err = scalars.UnmarshalJSON(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"unable to unmarshal ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.Segments: %w", err)
+			}
+		}
 	}
 
 	{
@@ -27980,6 +28018,8 @@ type __premarshalListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsA
 
 	Scope ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidgetScopeAlphaStashScopeRef `json:"scope"`
 
+	Segments json.RawMessage `json:"segments"`
+
 	Values json.RawMessage `json:"values"`
 
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -28000,6 +28040,18 @@ func (v *ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidg
 
 	retval.Name = v.Name
 	retval.Scope = v.Scope
+	{
+
+		dst := &retval.Segments
+		src := v.Segments
+		var err error
+		*dst, err = scalars.MarshalJSON(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal ListWidgetsForScopesAlphaWidgetsForScopesAlphaWidgetsPageItemsAlphaWidget.Segments: %w", err)
+		}
+	}
 	{
 
 		dst := &retval.Values
@@ -28051,8 +28103,12 @@ type ListWidgetsForScopesResponse struct {
 	// A widget is returned for each well-known key that is set with a value that matches its schema. When a scope
 	// has more than one version of a widget's key, the widget is returned from the highest version. Expired keys
 	// are not returned. A page reads up to `limit` keys, so it can have fewer widgets than `limit`, or none. Keep
-	// reading pages until `cursor.next` is null. Subscribe to
-	// `alphaStashEvents` and read the widgets again when an `md/` key changes.
+	// reading pages until `cursor.next` is null. Subscribe to `alphaStashEvents` and read the widgets again when
+	// an `md/` key changes.
+	//
+	// An instance scope also returns the deployment results of the instance's latest deployment that has any
+	// well-known key, such as `md/v1/step/src` and `md/v1/cost_estimate`. The `scope` of each of those widgets
+	// is that deployment. A deployment scope returns the results of that deployment.
 	//
 	// ```graphql
 	// query {
@@ -28063,6 +28119,7 @@ type ListWidgetsForScopesResponse struct {
 	// items {
 	// name
 	// scope { kind id }
+	// segments
 	// values
 	// expiresAt
 	// }
@@ -32657,8 +32714,9 @@ type SetStashEntryResponse struct {
 	// its maximum number of keys (1000 unless your installation sets another).
 	//
 	// Keys that start with `md/` are well-known keys that drive the widgets in `alphaWidgetCatalog`, for example
-	// `md/v1/health`. Each one can be set only on its kind of entity, with its format, and with a value that
-	// matches its schema. An `md/` key that is not in the catalog is rejected. An `md/` entry cannot be sensitive.
+	// `md/v1/health` or `md/v1/step/src`. Each one can be set only on its kind of entity, with its format, and
+	// with a value that matches its schema. An `md/` key that is not in the catalog is rejected. An `md/` entry
+	// cannot be sensitive.
 	//
 	// ```graphql
 	// mutation {
@@ -42816,6 +42874,7 @@ query GetWidgetCatalog {
 		entity
 		version
 		key
+		keySegments
 		scope
 		format
 		schema
@@ -44592,6 +44651,7 @@ query ListWidgetsForScopes ($organizationId: ID!, $scopes: [AlphaStashScope!]!, 
 				kind
 				id
 			}
+			segments
 			values
 			updatedAt
 			expiresAt

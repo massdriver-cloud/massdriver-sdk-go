@@ -16,6 +16,7 @@ func TestWidgetCatalog(t *testing.T) {
 			"entity":      "INSTANCE",
 			"version":     1,
 			"key":         "md/v1/usage",
+			"keySegments": []string{},
 			"scope":       "INSTANCE",
 			"format":      "JSON",
 			"schema":      map[string]any{"type": "object", "required": []string{"value", "max"}},
@@ -58,6 +59,7 @@ func TestWidgetsForScopes(t *testing.T) {
 			"items": []map[string]any{{
 				"name":      "instance.usage_bar",
 				"scope":     map[string]any{"kind": "INSTANCE", "id": "api-prod-db"},
+				"segments":  map[string]any{},
 				"values":    map[string]any{"value": 42, "max": 100},
 				"updatedAt": "2026-11-20T10:00:00Z",
 				"expiresAt": nil,
@@ -119,5 +121,61 @@ func TestIterWidgetsForScopes_EmptyPageFollowsCursor(t *testing.T) {
 	}
 	if len(got) != 1 || got[0].Name != "environment.banner" {
 		t.Errorf("got %+v", got)
+	}
+}
+
+func TestWidgetCatalog_KeyPattern(t *testing.T) {
+	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{
+		"alphaWidgetCatalog": []map[string]any{{
+			"name":        "deployment.step",
+			"description": "How a step ran.",
+			"entity":      "DEPLOYMENT",
+			"version":     1,
+			"key":         "md/v1/step/{step}",
+			"keySegments": []string{"step"},
+			"scope":       "DEPLOYMENT",
+			"format":      "JSON",
+			"schema":      map[string]any{"required": []string{"tool", "action", "status"}},
+			"inputs":      []map[string]any{{"name": "blocking", "type": "BOOLEAN", "required": false, "description": "Stops the deployment."}},
+		}},
+	}))
+
+	got, err := newService(gqlClient).WidgetCatalog(t.Context())
+	if err != nil {
+		t.Fatalf("WidgetCatalog: %v", err)
+	}
+	w := got[0]
+	if w.Key != "md/v1/step/{step}" || len(w.KeySegments) != 1 || w.KeySegments[0] != "step" || w.Scope != stash.ScopeDeployment {
+		t.Errorf("widget = %+v", w)
+	}
+	if w.Inputs[0].Type != "BOOLEAN" {
+		t.Errorf("Inputs = %+v", w.Inputs)
+	}
+}
+
+func TestWidgetsForScopes_DeploymentResultThroughInstance(t *testing.T) {
+	gqlClient := gqltest.NewClient(gqltest.RespondWithData(map[string]any{
+		"alphaWidgetsForScopes": map[string]any{
+			"cursor": map[string]any{},
+			"items": []map[string]any{{
+				"name":      "deployment.changes",
+				"scope":     map[string]any{"kind": "DEPLOYMENT", "id": "a1b2c3d4-0000-0000-0000-000000000001"},
+				"segments":  map[string]any{"step": "src"},
+				"values":    map[string]any{"tool": "opentofu", "add": 2},
+				"updatedAt": "2026-11-27T20:03:24Z",
+			}},
+		},
+	}))
+
+	page, err := newService(gqlClient).WidgetsForScopes(t.Context(), []stash.Scope{{Kind: stash.ScopeInstance, ID: "api-prod-db"}}, stash.WidgetsInput{})
+	if err != nil {
+		t.Fatalf("WidgetsForScopes: %v", err)
+	}
+	w := page.Items[0]
+	if w.Scope != (stash.Scope{Kind: stash.ScopeDeployment, ID: "a1b2c3d4-0000-0000-0000-000000000001"}) {
+		t.Errorf("Scope = %+v, want the deployment the result came from", w.Scope)
+	}
+	if len(w.Segments) != 1 || w.Segments["step"] != "src" {
+		t.Errorf("Segments = %v, want step: src", w.Segments)
 	}
 }

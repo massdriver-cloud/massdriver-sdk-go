@@ -69,12 +69,17 @@ type StashEvent struct {
 // COMPONENT, INSTANCE, DEPLOYMENT, or LINK. Scope is the kind of resource
 // whose stash holds Key. Schema is the JSON Schema the key's value must
 // match.
+//
+// Key is a fixed key such as `md/v1/usage`, or a pattern with named
+// segments in braces such as `md/v1/step/{step}`. KeySegments names the
+// segments of a pattern, and is empty for a fixed key.
 type WidgetDefinition struct {
 	Name        string         `json:"name" mapstructure:"name"`
 	Description string         `json:"description" mapstructure:"description"`
 	Entity      string         `json:"entity" mapstructure:"entity"`
 	Version     int            `json:"version" mapstructure:"version"`
 	Key         string         `json:"key" mapstructure:"key"`
+	KeySegments []string       `json:"keySegments" mapstructure:"keySegments"`
 	Scope       StashScopeKind `json:"scope" mapstructure:"scope"`
 	Format      string         `json:"format" mapstructure:"format"`
 	Schema      map[string]any `json:"schema" mapstructure:"schema"`
@@ -82,7 +87,7 @@ type WidgetDefinition struct {
 }
 
 // WidgetInput is one input of a [WidgetDefinition]. Type is STRING,
-// NUMBER, INTEGER, or ARRAY. Field is the field of the key's JSON value the
+// NUMBER, INTEGER, BOOLEAN, ARRAY, or OBJECT. Field is the field of the key's JSON value the
 // input reads, empty when the key is TEXT and the input reads the whole
 // value.
 type WidgetInput struct {
@@ -96,10 +101,16 @@ type WidgetInput struct {
 // Widget is a widget drawn from a well-known key in one stash. Values maps
 // each input name to its value. ExpiresAt is zero when the key does not
 // expire.
+//
+// Scope is the resource whose stash has the key. For a deployment result
+// read through an instance, it is the deployment the result came from.
+// Segments holds the values of the key's named segments, such as
+// {"step": "src"} for `md/v1/step/src`, and is empty for a fixed key.
 type Widget struct {
-	Name      string         `json:"name" mapstructure:"name"`
-	Scope     StashScope     `json:"scope" mapstructure:"scope"`
-	Values    map[string]any `json:"values" mapstructure:"values"`
-	UpdatedAt time.Time      `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
-	ExpiresAt time.Time      `json:"expiresAt,omitzero" mapstructure:"expiresAt"`
+	Name      string            `json:"name" mapstructure:"name"`
+	Scope     StashScope        `json:"scope" mapstructure:"scope"`
+	Segments  map[string]string `json:"segments" mapstructure:"segments"`
+	Values    map[string]any    `json:"values" mapstructure:"values"`
+	UpdatedAt time.Time         `json:"updatedAt,omitzero" mapstructure:"updatedAt"`
+	ExpiresAt time.Time         `json:"expiresAt,omitzero" mapstructure:"expiresAt"`
 }

@@ -82,8 +82,8 @@ type Link struct {
 }
 
 // JSONInput returns a [SetInput] whose Value is v marshaled to JSON, with
-// [FormatJSON]. Use it with [Usage], [Traffic], [Banner], or [Links]. v
-// must marshal to a JSON object.
+// [FormatJSON]. Use it with a well-known key's value type, such as [Usage]
+// or [Step]. v must marshal to a JSON object.
 func JSONInput(v any) (SetInput, error) {
 	data, err := json.Marshal(v)
 	if err != nil {

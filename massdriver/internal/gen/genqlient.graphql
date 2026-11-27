@@ -3672,6 +3672,7 @@ query GetWidgetCatalog {
     entity
     version
     key
+    keySegments
     scope
     format
     schema
@@ -3702,6 +3703,7 @@ query ListWidgetsForScopes(
         kind
         id
       }
+      segments
       values
       updatedAt
       expiresAt

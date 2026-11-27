@@ -10,6 +10,8 @@
 //
 // Keys that start with `md/` are well-known keys, such as [KeyUsageV1]. The
 // Massdriver UI draws a widget from each one that is set with a valid value.
+// A provisioner reports a deployment's results with keys such as
+// [KeyStepV1] and [KeyCostEstimateV1].
 // [Service.WidgetCatalog] lists the widgets and their keys, and
 // [Service.IterWidgetsForScopes] reads the widgets of several scopes.
 // [Service.Subscribe] streams the keys that are set or deleted in a project.
