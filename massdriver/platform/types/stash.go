@@ -56,10 +56,10 @@ const (
 // [StashEventDeleted], and its Value is nil when the entry is sensitive.
 type StashEvent struct {
 	Action    StashEventAction `json:"action"`
-	Scope     StashScope  `json:"scope"`
-	Key       string      `json:"key"`
-	Entry     *StashEntry `json:"entry,omitempty"`
-	Timestamp time.Time   `json:"timestamp"`
+	Scope     StashScope       `json:"scope"`
+	Key       string           `json:"key"`
+	Entry     *StashEntry      `json:"entry,omitempty"`
+	Timestamp time.Time        `json:"timestamp"`
 }
 
 // WidgetDefinition is one version of a widget that the Massdriver UI draws
