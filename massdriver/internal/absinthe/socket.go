@@ -50,6 +50,7 @@ type Socket struct {
 
 	mu          sync.Mutex
 	pending     map[string]chan reply  // ref → reply slot
+	docRefs     map[string]bool        // refs of `doc` pushes awaiting a reply
 	subscribers map[string]*subscriber // subscriptionId (== Phoenix topic) → route
 	closed      bool
 	closeErr    error
@@ -75,6 +76,9 @@ type subscriber struct {
 type reply struct {
 	status   string
 	response json.RawMessage
+	// route is the subscription route registered for an ok reply to a
+	// `doc` push.
+	route *subscriber
 }
 
 // Dial opens a WebSocket to baseURL's Phoenix endpoint, joins
@@ -101,6 +105,7 @@ func Dial(ctx context.Context, baseURL, token string) (*Socket, error) {
 	s := &Socket{
 		conn:        conn,
 		pending:     make(map[string]chan reply),
+		docRefs:     make(map[string]bool),
 		subscribers: make(map[string]*subscriber),
 		done:        make(chan struct{}),
 	}
@@ -266,11 +271,21 @@ func (s *Socket) dispatch(body []byte) {
 			Response json.RawMessage `json:"response"`
 		}
 		_ = json.Unmarshal(payload, &p)
+		r := reply{status: p.Status, response: p.Response}
 		s.mu.Lock()
 		ch, ok := s.pending[*ref]
+		if s.docRefs[*ref] {
+			delete(s.docRefs, *ref)
+			// Register the route here, in the read loop, so a frame for the
+			// new subscription that follows this reply is not dropped.
+			if id := subscriptionID(p.Status, p.Response); id != "" && ok && !s.closed {
+				r.route = &subscriber{ch: make(chan json.RawMessage, 64)}
+				s.subscribers[id] = r.route
+			}
+		}
 		s.mu.Unlock()
 		if ok {
-			ch <- reply{status: p.Status, response: p.Response}
+			ch <- r
 		}
 	case "subscription:data":
 		// Payload is {"result": {"data": ..., "errors": ...}, "subscriptionId": "..."}.
@@ -328,6 +343,7 @@ func (s *Socket) shutdown(cause error) {
 	}
 	pending := s.pending
 	s.pending = nil
+	s.docRefs = nil
 	subErr := s.closeErr
 	if subErr == nil {
 		subErr = ErrSocketClosed
@@ -344,22 +360,19 @@ func (s *Socket) shutdown(cause error) {
 	}
 }
 
-// registerSubscription wires up a topic→route for incoming
-// subscription:data frames.
-func (s *Socket) registerSubscription(topic string) *subscriber {
-	sub := &subscriber{ch: make(chan json.RawMessage, 64)}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if s.closed {
-		sub.err = s.closeErr
-		if sub.err == nil {
-			sub.err = ErrSocketClosed
-		}
-		close(sub.ch)
-		return sub
+// subscriptionID reads the subscriptionId of an ok reply to a `doc` push.
+// Returns "" for any other reply.
+func subscriptionID(status string, response json.RawMessage) string {
+	if status != "ok" {
+		return ""
 	}
-	s.subscribers[topic] = sub
-	return sub
+	var r struct {
+		SubscriptionID string `json:"subscriptionId"`
+	}
+	if err := json.Unmarshal(response, &r); err != nil {
+		return ""
+	}
+	return r.SubscriptionID
 }
 
 // endSubscription removes topic's route and closes its channel with err as

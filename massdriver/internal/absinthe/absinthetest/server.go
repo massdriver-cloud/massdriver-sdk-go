@@ -24,6 +24,10 @@ const waitTimeout = 5 * time.Second
 type Server struct {
 	*httptest.Server
 
+	// AfterSubscribe, when set, runs right after the server replies to a
+	// subscription document, before it reads the next frame.
+	AfterSubscribe func(id string)
+
 	t        testing.TB
 	upgrader websocket.Upgrader
 
@@ -228,6 +232,9 @@ func (s *Server) handle(c *conn, body []byte) {
 		s.mu.Unlock()
 	}
 	_ = c.write(joinRef, ref, topic, "phx_reply", map[string]any{"status": "ok", "response": response})
+	if id, ok := response["subscriptionId"].(string); ok && s.AfterSubscribe != nil {
+		s.AfterSubscribe(id)
+	}
 }
 
 func (c *conn) write(joinRef, ref *string, topic, event string, payload any) error {

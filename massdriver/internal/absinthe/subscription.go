@@ -39,25 +39,29 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 	}
 
 	ref := s.refID()
+	s.mu.Lock()
+	if s.closed {
+		s.mu.Unlock()
+		return nil, s.closedErr()
+	}
+	s.docRefs[ref] = true
+	s.mu.Unlock()
 	resp, err := s.push(ctx, &s.joinRef, ref, controlTopic, "doc", body)
 	if err != nil {
+		s.mu.Lock()
+		delete(s.docRefs, ref)
+		s.mu.Unlock()
 		return nil, err
 	}
 	if resp.status != "ok" {
 		return nil, fmt.Errorf("absinthe subscribe: status=%s response=%s", resp.status, string(resp.response))
 	}
-
-	var subResp struct {
-		SubscriptionID string `json:"subscriptionId"`
-	}
-	if err := json.Unmarshal(resp.response, &subResp); err != nil {
-		return nil, fmt.Errorf("absinthe subscribe: decode subscriptionId: %w", err)
-	}
-	if subResp.SubscriptionID == "" {
+	if resp.route == nil {
 		return nil, fmt.Errorf("absinthe subscribe: server returned no subscriptionId (response=%s)", string(resp.response))
 	}
+	route := resp.route
+	id := subscriptionID(resp.status, resp.response)
 
-	route := s.registerSubscription(subResp.SubscriptionID)
 	out := make(chan json.RawMessage, cap(route.ch))
 	closed := make(chan struct{})
 
@@ -79,7 +83,7 @@ func (s *Socket) Subscribe(ctx context.Context, query string, variables map[stri
 	}()
 
 	return &Subscription{
-		ID:     subResp.SubscriptionID,
+		ID:     id,
 		Data:   out,
 		socket: s,
 		route:  route,

@@ -90,3 +90,39 @@ func TestSubscribe_LastReleaseClosesSocket(t *testing.T) {
 	releaseSecond()
 	srv.WaitForOpenConns(0)
 }
+
+func TestSubscribe_KeepsFramesSentRightAfterTheReply(t *testing.T) {
+	srv := absinthetest.NewServer(t)
+	srv.AfterSubscribe = func(id string) {
+		srv.Push(id, map[string]any{"alphaStashEvents": map[string]any{"key": "first"}})
+		srv.Complete(id)
+	}
+	c := newClient(srv.URL, config.AuthPAT)
+
+	sub, release, err := c.Subscribe(t.Context(), query, nil)
+	if err != nil {
+		t.Fatalf("Subscribe: %v", err)
+	}
+	defer release()
+
+	var frames int
+	timeout := time.After(5 * time.Second)
+	for done := false; !done; {
+		select {
+		case _, ok := <-sub.Data:
+			if !ok {
+				done = true
+				continue
+			}
+			frames++
+		case <-timeout:
+			t.Fatal("timed out waiting for the subscription to end")
+		}
+	}
+	if frames != 1 {
+		t.Errorf("got %d frames, want 1", frames)
+	}
+	if err := sub.Err(); err != nil {
+		t.Errorf("Err = %v, want nil after the server completes it", err)
+	}
+}
